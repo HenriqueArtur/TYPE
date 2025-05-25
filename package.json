@@ -1,6 +1,8 @@
 {
   "name": "engine-ts",
   "author": "Henrique Artur <contato@henriqueartur.com>",
+  "homepage": "github.com/HenriqueArtur/Engine-Ts",
+  "repository": "github.com/HenriqueArtur/Engine-Ts",
   "private": true,
   "version": "0.0.0",
   "type": "module",
