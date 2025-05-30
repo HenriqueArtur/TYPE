@@ -8,15 +8,21 @@
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
-    "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
+    "dev": "concurrently -k \"vite --no-open\" \"wait-on http://localhost:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
+    "dev:vite": "vite --no-open",
     "build": "vite build && electron-builder",
     "lint": "eslint .",
     "preview": "vite preview",
     "build:app": "vite build && electron-builder"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron"
+    ]
+  },
   "build": {
     "appId": "com.example.yourapp",
-    "productName": "YourApp",
+    "productName": "Engine",
     "directories": {
       "output": "release",
       "buildResources": "assets"
@@ -39,8 +45,10 @@
     }
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.1.8",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
