@@ -1,11 +1,11 @@
-import type React from "react";
+import type { ReactNode } from "react";
 import Resizer from "../utils/Resizer";
 import useResizable from "../utils/Resizer/useResizable";
 
 interface SidebarProps {
   position: "left" | "right";
   initialWidth?: number;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export default function Sidebar({ position, initialWidth = 200, children }: SidebarProps) {
