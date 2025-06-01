@@ -7,6 +7,7 @@
   "version": "0.0.0",
   "type": "module",
   "main": "dist-electron/main.js",
+  "packageManager": "pnpm@10.5.2",
   "scripts": {
     "dev": "concurrently -k \"vite --no-open\" \"wait-on http://localhost:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
     "build": "vite build && electron-builder",
