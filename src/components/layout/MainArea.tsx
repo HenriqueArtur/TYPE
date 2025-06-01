@@ -1,8 +1,7 @@
-import React from 'react';
-import GamePanel from './panels/GamePanel';
-import BottomDock from './BottomDock';
-import ProjectPanel from './panels/ProjectPanel';
-import ConsolePanel from './panels/ConsolePanel';
+import ConsolePanel from "../panels/ConsolePanel";
+import GamePanel from "../panels/GamePanel";
+import ProjectPanel from "../panels/ProjectPanel";
+import BottomDock from "./BottomDock";
 
 export default function MainArea() {
   return (
