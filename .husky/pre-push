@@ -1,0 +1,3 @@
+pnpm run lint:ci
+pnpm run test:type
+pnpm run test:ci
