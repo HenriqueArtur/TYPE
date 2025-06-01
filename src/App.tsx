@@ -1,11 +1,7 @@
 import EditorLayout from "./components/layout/EditorLayout";
 
 function App() {
-  return (
-    <>
-      <EditorLayout />
-    </>
-  );
+  return <EditorLayout />;
 }
 
 export default App;
