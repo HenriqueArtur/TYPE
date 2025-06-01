@@ -7,13 +7,19 @@
   "version": "0.0.0",
   "type": "module",
   "main": "dist-electron/main.js",
+  "packageManager": "pnpm@10.5.2",
   "scripts": {
-    "dev": "concurrently -k \"vite --no-open\" \"wait-on http://localhost:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
-    "dev:vite": "vite --no-open",
+    "dev": "vite",
     "build": "vite build && electron-builder",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "build:app": "vite build && electron-builder"
+    "build:linux": "vite build && electron-builder --linux",
+    "build:mac": "vite build && electron-builder --mac",
+    "build:win": "vite build && electron-builder --win",
+    "lint": "biome check --fix --unsafe ./src/** ./electron/**",
+    "lint:ci": "biome check --diagnostic-level=error ./src/** ./electron/**",
+    "test": "vitest",
+    "test:ci": "vitest run --config vitest.config.ts",
+    "test:type": "pnpm exec tsc --noEmit",
+    "prepare": "husky"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -35,7 +41,7 @@
       "target": "dmg"
     },
     "win": {
-      "target": "nsis"
+      "target": "portable"
     },
     "linux": {
       "target": [
@@ -51,7 +57,7 @@
     "tailwindcss": "^4.1.8"
   },
   "devDependencies": {
-    "@eslint/js": "^9.25.0",
+    "@biomejs/biome": "1.9.4",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
@@ -63,10 +69,11 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "husky": "^9.1.7",
     "typescript": "~5.8.3",
-    "typescript-eslint": "^8.30.1",
     "vite": "^6.3.5",
     "vite-plugin-electron": "^0.29.0",
+    "vitest": "^3.1.4",
     "wait-on": "^8.0.3"
   }
 }

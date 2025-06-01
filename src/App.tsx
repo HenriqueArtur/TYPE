@@ -1,13 +1,7 @@
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import EditorLayout from './components/EditorLayout'
+import EditorLayout from "./components/layout/EditorLayout";
 
 function App() {
-  return (
-    <>
-      <EditorLayout />
-    </>
-  )
+  return <EditorLayout />;
 }
 
-export default App
+export default App;

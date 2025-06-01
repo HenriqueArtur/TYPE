@@ -1,7 +1,7 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import electron from 'vite-plugin-electron';
-import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import electron from "vite-plugin-electron";
 
 export default defineConfig({
   plugins: [
@@ -9,11 +9,11 @@ export default defineConfig({
     tailwindcss(),
     electron([
       {
-        entry: 'electron/main.ts',
+        entry: "electron/main.ts",
       },
     ]),
   ],
   build: {
-    outDir: 'dist',
+    outDir: "dist",
   },
 });
