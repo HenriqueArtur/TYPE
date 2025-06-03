@@ -41,8 +41,8 @@ export default function Resizer({ onResize, direction = "col" }: ResizerProps) {
       ref={ref}
       className={
         direction === "col"
-          ? "w-[2px] h-full cursor-col-resize bg-amber-50"
-          : "h-[2px] w-full cursor-row-resize bg-amber-50"
+          ? "w-[2px] h-full cursor-col-resize bg-divider"
+          : "h-[2px] w-full cursor-row-resize bg-divider"
       }
     />
   );

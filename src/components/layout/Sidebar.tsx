@@ -20,7 +20,7 @@ export default function Sidebar({ position, initialWidth = 200, children }: Side
   return (
     <>
       {!isLeft && <Resizer direction="col" onResize={handleWidthResize} />}
-      <div className="bg-gray-900 text-white p-2" style={{ width }}>
+      <div className="p-0 " style={{ width }}>
         {children}
       </div>
       {isLeft && <Resizer direction="col" onResize={handleWidthResize} />}
