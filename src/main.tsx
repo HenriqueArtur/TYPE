@@ -1,10 +1,15 @@
 import { StrictMode } from "react";
 import { type Container, createRoot } from "react-dom/client";
 import "./index.css";
+import { HeroUIProvider } from "@heroui/react";
 import App from "./App.tsx";
 
 createRoot(document.getElementById("root") as Container).render(
   <StrictMode>
-    <App />
+    <HeroUIProvider>
+      <main className="dark text-foreground bg-content2">
+        <App />
+      </main>
+    </HeroUIProvider>
   </StrictMode>,
 );

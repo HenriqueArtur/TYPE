@@ -1,4 +1,5 @@
 import type React from "react";
+import GenericPanel from "../panels/Panel";
 import Resizer from "../utils/Resizer";
 import useResizable from "../utils/Resizer/useResizable";
 
@@ -9,19 +10,9 @@ interface BottomDockProps {
   initialWidth?: number;
 }
 
-export default function BottomDock({
-  leftPanel,
-  rightPanel,
-  initialHeight = 200,
-  initialWidth = 100,
-}: BottomDockProps) {
+export default function BottomDock({ initialHeight = 200 }: BottomDockProps) {
   const [height, handleHeightResize] = useResizable({
     initial: initialHeight,
-    min: 80,
-    max: 600,
-  });
-  const [width, handleWidthResize] = useResizable({
-    initial: initialWidth,
     min: 80,
     max: 600,
   });
@@ -29,18 +20,30 @@ export default function BottomDock({
   return (
     <>
       <Resizer direction="row" onResize={handleHeightResize} />
-      <div className="flex" style={{ height }}>
-        <div className="flex-1 bg-gray-700 text-white p-2 overflow-auto" style={{ width: width }}>
-          {leftPanel}
-        </div>
-        <Resizer direction="col" onResize={handleWidthResize} />
-        <div
-          className="w-[300px] bg-gray-600 text-white p-2 overflow-auto"
-          style={{ width: width }}
-        >
-          {rightPanel}
-        </div>
-      </div>
+      <GenericPanel
+        tabs={[
+          {
+            key: "project",
+            title: "Project",
+            content: (
+              <div>
+                <h2>Project</h2>
+              </div>
+            ),
+          },
+          {
+            key: "console",
+            title: "Console",
+            content: (
+              <div>
+                <h2>Console</h2>
+              </div>
+            ),
+          },
+        ]}
+        defaultTabKey="project"
+        height={height}
+      />
     </>
   );
 }
