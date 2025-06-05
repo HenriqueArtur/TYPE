@@ -51,6 +51,7 @@
     }
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@heroui/react": "2.8.0-beta.6",
     "@tailwindcss/vite": "^4.1.8",
     "framer-motion": "^12.15.0",

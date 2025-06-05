@@ -1,7 +1,7 @@
 import { Application, Assets, Sprite } from "pixi.js";
 import { useEffect, useRef } from "react";
 
-export default function GamePanel() {
+export default function ScenePanel() {
   const pixiContainer = useRef<HTMLDivElement | null>(null);
   const pixiAppRef = useRef<Application | undefined>(undefined);
 
@@ -14,7 +14,7 @@ export default function GamePanel() {
     app
       .init({
         background: "#222244",
-        resizeTo: document.getElementById("GAME") as HTMLElement,
+        resizeTo: document.getElementById("SCENE") as HTMLElement,
       })
       .then(async () => {
         pixiAppRef.current = app;

@@ -19,7 +19,7 @@ export default function GenericPanel({ tabs, defaultTabKey, height }: GenericPan
   const selectedTab = tabs.find((tab) => tab.key === selected);
 
   return (
-    <div className="h-full pt-1" style={{ height: height ? height : "100%" }}>
+    <div className="pt-1" style={{ height: height ? height : "100%" }}>
       <Tabs
         key="generic-panel"
         aria-label="Generic Panel"
@@ -37,7 +37,7 @@ export default function GenericPanel({ tabs, defaultTabKey, height }: GenericPan
           <Tab key={tab.key} title={tab.title} />
         ))}
       </Tabs>
-      <div className="bg-content1 h-full px-3 m-0">{selectedTab?.content}</div>
+      <div className="bg-content1 p-0 m-0">{selectedTab?.content}</div>
     </div>
   );
 }
