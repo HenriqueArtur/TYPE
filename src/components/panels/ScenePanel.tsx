@@ -1,7 +1,7 @@
 import { Application, Assets, Sprite } from "pixi.js";
 import { useEffect, useRef } from "react";
 
-export default function GamePanel() {
+export default function ScenePanel() {
   const pixiContainer = useRef<HTMLDivElement | null>(null);
   const pixiAppRef = useRef<Application | undefined>(undefined);
 
@@ -14,14 +14,11 @@ export default function GamePanel() {
     app
       .init({
         background: "#222244",
-        resizeTo: document.getElementById("GAME") as HTMLElement,
+        resizeTo: document.getElementById("scene") as HTMLElement,
       })
       .then(async () => {
         pixiAppRef.current = app;
-        if (pixiContainer.current) {
-          pixiContainer.current.innerHTML = "";
-          pixiContainer.current.appendChild(app.canvas);
-        }
+        pixiContainer.current?.appendChild(app.canvas);
 
         // Load the bunny image
         const texture = await Assets.load("https://pixijs.com/assets/bunny.png");
@@ -58,5 +55,9 @@ export default function GamePanel() {
     };
   }, []);
 
-  return <div id="game" ref={pixiContainer} />;
+  return (
+    <div className="overflow-hidden w-auto">
+      <div id="scene" ref={pixiContainer} />
+    </div>
+  );
 }
