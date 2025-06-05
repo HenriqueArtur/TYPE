@@ -14,11 +14,14 @@ export default function ScenePanel() {
     app
       .init({
         background: "#222244",
-        resizeTo: document.getElementById("scene") as HTMLElement,
+        resizeTo: document.getElementById("SCENE") as HTMLElement,
       })
       .then(async () => {
         pixiAppRef.current = app;
-        pixiContainer.current?.appendChild(app.canvas);
+        if (pixiContainer.current) {
+          pixiContainer.current.innerHTML = "";
+          pixiContainer.current.appendChild(app.canvas);
+        }
 
         // Load the bunny image
         const texture = await Assets.load("https://pixijs.com/assets/bunny.png");
@@ -55,9 +58,5 @@ export default function ScenePanel() {
     };
   }, []);
 
-  return (
-    <div className="overflow-hidden w-auto">
-      <div id="scene" ref={pixiContainer} />
-    </div>
-  );
+  return <div ref={pixiContainer} />;
 }

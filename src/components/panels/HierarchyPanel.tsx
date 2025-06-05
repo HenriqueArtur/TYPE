@@ -116,7 +116,6 @@ function TreeNodeComponent({
       onDragStart={handleDragStart}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
-      className="rounded hover:bg-gray-100"
     >
       <div
         className={`flex items-center select-none ${interactive ? "cursor-pointer" : "cursor-default"}`}

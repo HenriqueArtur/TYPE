@@ -58,5 +58,5 @@ export default function GamePanel() {
     };
   }, []);
 
-  return <div id="game" ref={pixiContainer} />;
+  return <div ref={pixiContainer} />;
 }
