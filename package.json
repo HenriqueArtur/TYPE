@@ -55,6 +55,7 @@
     "@heroui/react": "2.8.0-beta.6",
     "@tailwindcss/vite": "^4.1.8",
     "framer-motion": "^12.15.0",
+    "material-symbols": "^0.31.5",
     "pixi.js": "^8.9.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
