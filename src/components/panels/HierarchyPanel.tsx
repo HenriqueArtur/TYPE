@@ -1,4 +1,4 @@
-import { ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
+import { Button, Input } from "@heroui/react";
 import { useState } from "react";
 
 type TreeNode = {
@@ -129,9 +129,9 @@ function TreeNodeComponent({
       >
         {hasChildren ? (
           open ? (
-            <ChevronDownIcon className="h-4 w-4 mr-1" />
+            <Chevron type="down" />
           ) : (
-            <ChevronRightIcon className="h-4 w-4 mr-1" />
+            <Chevron type="right" />
           )
         ) : (
           <span className="w-5 inline-block" />
@@ -147,7 +147,6 @@ function TreeNodeComponent({
 
 export default function HierarchyPanel() {
   const [tree, setTree] = useState<TreeNode[]>(sampleData);
-  const [search, setSearch] = useState("");
 
   const handleMove = (draggedId: string, targetId: string) => {
     if (draggedId === targetId) return;
@@ -172,17 +171,52 @@ export default function HierarchyPanel() {
       .filter(Boolean) as TreeNode[];
   }
 
-  const filteredTree = filterTree(tree, search);
+  const filteredTree = filterTree(tree, "");
 
   return (
-    <div className="h-full p-2">
-      <input
-        className="mb-2 p-1 border rounded w-full"
-        placeholder="Search node..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
-      <Tree nodes={filteredTree} onMove={handleMove} interactive={search === ""} />
+    <div className="h-full p-0">
+      <div
+        className="bg-content2 pl-2"
+        style={{
+          borderBottom: "1px solid #444",
+          fontWeight: "bold",
+          fontSize: "15px",
+          letterSpacing: "0.5px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 8,
+        }}
+      >
+        <Button isIconOnly variant="light" size="sm" aria-label="Dock to Bottom">
+          <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
+            add
+          </span>
+        </Button>
+        <Input
+          type="search"
+          variant="bordered"
+          size="sm"
+          maxLength={120}
+          placeholder="Search..."
+          startContent={
+            <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
+              search
+            </span>
+          }
+          className="w-80 m-1"
+        />
+      </div>
+
+      <Tree nodes={filteredTree} onMove={handleMove} />
     </div>
+  );
+}
+
+function Chevron({ type }: { type: "right" | "down" }) {
+  return (
+    <span className="material-symbols-outlined">
+      {type === "right" ? "keyboard_arrow_right" : "keyboard_arrow_down"}
+    </span>
   );
 }
