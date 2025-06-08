@@ -189,9 +189,7 @@ export default function HierarchyPanel() {
         }}
       >
         <Button isIconOnly variant="light" size="sm" aria-label="Dock to Bottom">
-          <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
-            add
-          </span>
+          <span className="material-symbols-outlined text-md!">add</span>
         </Button>
         <Input
           type="search"

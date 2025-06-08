@@ -21,3 +21,8 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+@theme {
+  --text-tree: 20px;
+  --text-grid: 32px;
+}
