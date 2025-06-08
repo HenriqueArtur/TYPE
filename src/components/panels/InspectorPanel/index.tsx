@@ -14,7 +14,6 @@ import {
   Select,
   SelectItem,
   Slider,
-  cn,
 } from "@heroui/react";
 import { useState } from "react";
 import { Icon } from "../../utils/Icon";
