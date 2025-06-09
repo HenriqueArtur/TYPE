@@ -1,13 +1,9 @@
-import Dock from "./Dock";
+import GamePanel from "../panels/GamePanel";
 
 interface MainDrawDockProps {
-  never?: never;
+  height: number;
 }
 
-export default function MainDrawDock(_props: MainDrawDockProps) {
-  return (
-    <>
-      <Dock panels={["GAME", "SCENE"]} default_panel={"GAME"} />
-    </>
-  );
+export default function MainDrawDock({ height }: MainDrawDockProps) {
+  return <GamePanel height={height} />;
 }

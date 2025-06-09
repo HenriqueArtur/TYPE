@@ -1,7 +1,12 @@
-import { Application, Assets, Sprite } from "pixi.js";
+import { Application, Assets, Sprite, TilingSprite } from "pixi.js";
 import { useEffect, useRef } from "react";
+import bg from "../../assets/bg.png";
 
-export default function GamePanel() {
+interface GamePanelProps {
+  height: number;
+}
+
+export default function GamePanel(_props: GamePanelProps) {
   const pixiContainer = useRef<HTMLDivElement | null>(null);
   const pixiAppRef = useRef<Application | undefined>(undefined);
 
@@ -14,7 +19,7 @@ export default function GamePanel() {
     app
       .init({
         background: "#222244",
-        resizeTo: document.getElementById("GAME") as HTMLElement,
+        resizeTo: document.getElementById("game") as HTMLElement,
       })
       .then(async () => {
         pixiAppRef.current = app;
@@ -22,6 +27,16 @@ export default function GamePanel() {
           pixiContainer.current.innerHTML = "";
           pixiContainer.current.appendChild(app.canvas);
         }
+
+        // Add tiling background
+        const bgTexture = await Assets.load(bg);
+        const tilingSprite = new TilingSprite({
+          texture: bgTexture,
+          width: app.screen.width,
+          height: app.screen.height,
+        });
+        tilingSprite.tileScale.set(0.4);
+        app.stage.addChild(tilingSprite);
 
         // Load the bunny image
         const texture = await Assets.load("https://pixijs.com/assets/bunny.png");
@@ -58,5 +73,5 @@ export default function GamePanel() {
     };
   }, []);
 
-  return <div ref={pixiContainer} />;
+  return <div id="game" ref={pixiContainer} />;
 }

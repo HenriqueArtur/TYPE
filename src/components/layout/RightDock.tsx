@@ -7,7 +7,7 @@ interface BottomDockProps {
 
 export default function LeftDock(_props: BottomDockProps) {
   return (
-    <Sidebar position="right" initialWidth={200}>
+    <Sidebar position="right" initialWidth={300}>
       <Dock panels={["INSPECTOR"]} default_panel={"INSPECTOR"} />
     </Sidebar>
   );
