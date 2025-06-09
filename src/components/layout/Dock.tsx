@@ -6,9 +6,10 @@ type DockProps = {
   panels: Panel[];
   default_panel: Panel;
   height?: number;
+  id?: string;
 };
 
-export default function Dock({ panels, default_panel, height }: DockProps) {
+export default function Dock({ panels, default_panel, height, id }: DockProps) {
   const tabs_itens = PanelSelectTabs(panels);
   const [selected, setSelected] = useState<string>(default_panel);
 
@@ -17,7 +18,7 @@ export default function Dock({ panels, default_panel, height }: DockProps) {
   ) => JSX.Element;
 
   return (
-    <div className="flex flex-col" style={{ height: height ? height : "100%" }}>
+    <div id={id} className="flex flex-col" style={{ height: height ? height : "100%" }}>
       <Tabs
         key="generic-panel"
         aria-label="Generic Panel"

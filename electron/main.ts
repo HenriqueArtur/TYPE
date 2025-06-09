@@ -8,8 +8,8 @@ const __dirname = path.dirname(__filename);
 function createWindow() {
   return new BrowserWindow({
     title: "Engine TS",
-    width: 800,
-    height: 600,
+    width: 1280,
+    height: 720,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: false,

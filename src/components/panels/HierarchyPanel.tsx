@@ -1,24 +1,29 @@
-import { Button, Input } from "@heroui/react";
 import { useState } from "react";
+import { Icon } from "../utils/Icon";
+import { InputButtonIcon } from "../utils/Input/ButtonIcon";
+import { InputSearch } from "../utils/Input/Search";
 
 type TreeNode = {
   id: string;
   name: string;
+  type: "GameObject" | "GameObjectGroup";
   children?: TreeNode[];
 };
 
 const sampleData: TreeNode[] = [
   {
     id: "1",
-    name: "Root",
+    name: "Root Group",
+    type: "GameObjectGroup",
     children: [
-      { id: "2", name: "Child 1" },
+      { id: "2", name: "Child 1", type: "GameObject" },
       {
         id: "3",
-        name: "Child 2",
+        name: "Child Group",
+        type: "GameObjectGroup",
         children: [
-          { id: "4", name: "Grandchild 1" },
-          { id: "5", name: "Grandchild 2" },
+          { id: "4", name: "Grandchild 1", type: "GameObject" },
+          { id: "5", name: "Grandchild 2", type: "GameObject" },
         ],
       },
     ],
@@ -43,21 +48,6 @@ function findAndRemoveNode(nodes: TreeNode[], nodeId: string): [TreeNode | null,
   return [null, nodes];
 }
 
-function insertNode(nodes: TreeNode[], parentId: string, node: TreeNode): TreeNode[] {
-  return nodes.map((n) => {
-    if (n.id === parentId) {
-      return {
-        ...n,
-        children: n.children ? [...n.children, node] : [node],
-      };
-    }
-    if (n.children) {
-      return { ...n, children: insertNode(n.children, parentId, node) };
-    }
-    return n;
-  });
-}
-
 function Tree({
   nodes,
   onMove,
@@ -68,7 +58,7 @@ function Tree({
   interactive?: boolean;
 }) {
   return (
-    <ul className="pl-4">
+    <ul className="ml-4">
       {nodes.map((node) => (
         <TreeNodeComponent key={node.id} node={node} onMove={onMove} interactive={interactive} />
       ))}
@@ -118,7 +108,7 @@ function TreeNodeComponent({
       onDragOver={handleDragOver}
     >
       <div
-        className={`flex items-center select-none ${interactive ? "cursor-pointer" : "cursor-default"}`}
+        className={`py-0.5 flex items-center select-none ${interactive ? "cursor-pointer" : "cursor-default"}`}
         tabIndex={interactive ? 0 : -1}
         onClick={() => interactive && hasChildren && setOpen((o) => !o)}
         onKeyDown={(e) => {
@@ -129,13 +119,20 @@ function TreeNodeComponent({
       >
         {hasChildren ? (
           open ? (
-            <Chevron type="down" />
+            <Icon type="outlined" symbol="chevron_down" className="ml-2 mr-1 text-tree!" />
           ) : (
-            <Chevron type="right" />
+            <Icon type="outlined" symbol="chevron_right" className="ml-2 mr-1 text-tree!" />
           )
         ) : (
-          <span className="w-5 inline-block" />
+          <span className="w-2 inline-block" />
         )}
+        <span className="mr-1">
+          {node.type === "GameObjectGroup" ? (
+            <Icon type="outlined" symbol="game_object_group" className="mr-1 text-tree!" />
+          ) : (
+            <Icon type="outlined" symbol="game_object" className="mr-1 text-tree!" />
+          )}
+        </span>
         <span>{node.name}</span>
       </div>
       {hasChildren && open && node.children && (
@@ -150,10 +147,99 @@ export default function HierarchyPanel() {
 
   const handleMove = (draggedId: string, targetId: string) => {
     if (draggedId === targetId) return;
-    const [draggedNode, newTree] = findAndRemoveNode([...tree], draggedId);
+    const [draggedNode, treeWithoutDragged] = findAndRemoveNode([...tree], draggedId);
     if (!draggedNode) return;
-    const updatedTree = insertNode(newTree, targetId, draggedNode);
-    setTree(updatedTree);
+
+    const findNode = (nodes: TreeNode[], id: string): TreeNode | null => {
+      for (const node of nodes) {
+        if (node.id === id) return node;
+        if (node.children) {
+          const found = findNode(node.children, id);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const findParent = (nodes: TreeNode[], childId: string): TreeNode | null => {
+      for (const node of nodes) {
+        if (node.children?.some((c) => c.id === childId)) return node;
+        if (node.children) {
+          const found = findParent(node.children, childId);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    // Helper to recursively remove empty folders
+    const removeEmptyFolders = (nodes: TreeNode[]): TreeNode[] => {
+      return nodes
+        .filter(
+          (node) => node.type !== "GameObjectGroup" || (node.children && node.children.length > 0),
+        )
+        .map((node) =>
+          node.children ? { ...node, children: removeEmptyFolders(node.children) } : node,
+        );
+    };
+
+    const targetNode = findNode(treeWithoutDragged, targetId);
+    if (!targetNode) return;
+
+    // GameObject -> GameObject: create new group with both
+    if (draggedNode.type === "GameObject" && targetNode.type === "GameObject") {
+      const parent = findParent(treeWithoutDragged, targetId);
+      if (!parent || !parent.children) return;
+
+      // Remove both nodes from parent
+      parent.children = parent.children.filter((c) => c.id !== targetId && c.id !== draggedId);
+
+      // Create new group with both nodes
+      const newGroup: TreeNode = {
+        id: `group-${Date.now()}`,
+        name: "Folder",
+        type: "GameObjectGroup",
+        children: [targetNode, draggedNode],
+      };
+
+      parent.children.push(newGroup);
+      setTree(removeEmptyFolders([...treeWithoutDragged]));
+      return;
+    }
+
+    // GameObjectGroup -> GameObjectGroup: put inside
+    if (draggedNode.type === "GameObjectGroup" && targetNode.type === "GameObjectGroup") {
+      targetNode.children = [...(targetNode.children || []), draggedNode];
+      setTree(removeEmptyFolders([...treeWithoutDragged]));
+      return;
+    }
+
+    // GameObjectGroup -> GameObject: create new group with both
+    if (draggedNode.type === "GameObjectGroup" && targetNode.type === "GameObject") {
+      const parent = findParent(treeWithoutDragged, targetId);
+      if (!parent || !parent.children) return;
+
+      // Remove targetNode from parent
+      parent.children = parent.children.filter((c) => c.id !== targetId);
+
+      // Create new group
+      const newGroup: TreeNode = {
+        id: `group-${Date.now()}`,
+        name: "Folder",
+        type: "GameObjectGroup",
+        children: [targetNode, draggedNode],
+      };
+      parent.children.push(newGroup);
+      setTree(removeEmptyFolders([...treeWithoutDragged]));
+      return;
+    }
+
+    // GameObject -> GameObjectGroup: put inside group
+    if (draggedNode.type === "GameObject" && targetNode.type === "GameObjectGroup") {
+      targetNode.children = [...(targetNode.children || []), draggedNode];
+      setTree(removeEmptyFolders([...treeWithoutDragged]));
+      return;
+    }
   };
 
   function filterTree(nodes: TreeNode[], query: string): TreeNode[] {
@@ -188,35 +274,13 @@ export default function HierarchyPanel() {
           gap: 8,
         }}
       >
-        <Button isIconOnly variant="light" size="sm" aria-label="Dock to Bottom">
-          <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
-            add
-          </span>
-        </Button>
-        <Input
-          type="search"
-          variant="bordered"
-          size="sm"
-          maxLength={120}
-          placeholder="Search..."
-          startContent={
-            <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
-              search
-            </span>
-          }
-          className="w-80 m-1"
-        />
+        <InputButtonIcon symbol="add" aria_label="Add new file" />
+        <InputSearch />
       </div>
 
-      <Tree nodes={filteredTree} onMove={handleMove} />
+      <div className="pt-2">
+        <Tree nodes={filteredTree} onMove={handleMove} />
+      </div>
     </div>
-  );
-}
-
-function Chevron({ type }: { type: "right" | "down" }) {
-  return (
-    <span className="material-symbols-outlined">
-      {type === "right" ? "keyboard_arrow_right" : "keyboard_arrow_down"}
-    </span>
   );
 }

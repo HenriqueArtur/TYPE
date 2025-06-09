@@ -1,3 +1,4 @@
+import { Divider } from "@heroui/react";
 import LeftDock from "./LeftDock";
 import MainDock from "./MainDock";
 import RightDock from "./RightDock";
@@ -7,7 +8,7 @@ export default function EditorLayout() {
   return (
     <div className="w-screen h-screen flex flex-col m-0 p-0">
       <TopDock />
-      <div className="h-[2px] w-full bg-divider" />
+      <Divider />
       <div className="flex flex-1">
         <LeftDock />
         <MainDock />
