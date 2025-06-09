@@ -176,7 +176,7 @@ function TreeItem({
         role="treeitem"
       >
         {file.name.includes(".engine") ? (
-          <Icon type="outlined" symbol="game_obejct" className="text-tree!" />
+          <Icon type="outlined" symbol="game_object" className="text-tree!" />
         ) : (
           <Icon type="outlined" symbol="document" className="text-tree!" />
         )}{" "}
@@ -214,7 +214,7 @@ function GridItem({
         {file.type === "folder" ? (
           <Icon type="outlined" symbol="folder" className="select-none text-grid!" />
         ) : file.name.includes(".engine") ? (
-          <Icon type="outlined" symbol="game_obejct" className="select-none text-grid!" />
+          <Icon type="outlined" symbol="game_object" className="select-none text-grid!" />
         ) : (
           <Icon type="outlined" symbol="document" className="select-none text-grid!" />
         )}

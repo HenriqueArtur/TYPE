@@ -6,8 +6,8 @@ export const ICON_MAP = {
   document: "draft",
   folder: "folder",
   folder_open: "folder_open",
-  game_obejct: "deployed_code",
-  game_obejct_group: "category",
+  game_object: "deployed_code",
+  game_object_group: "category",
   search: "search",
   transform: "open_with",
 };

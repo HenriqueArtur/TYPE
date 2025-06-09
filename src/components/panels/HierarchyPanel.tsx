@@ -128,9 +128,9 @@ function TreeNodeComponent({
         )}
         <span className="mr-1">
           {node.type === "GameObjectGroup" ? (
-            <Icon type="outlined" symbol="game_obejct_group" className="mr-1 text-tree!" />
+            <Icon type="outlined" symbol="game_object_group" className="mr-1 text-tree!" />
           ) : (
-            <Icon type="outlined" symbol="game_obejct" className="mr-1 text-tree!" />
+            <Icon type="outlined" symbol="game_object" className="mr-1 text-tree!" />
           )}
         </span>
         <span>{node.name}</span>

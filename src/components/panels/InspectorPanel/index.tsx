@@ -22,13 +22,13 @@ export interface InspectorPanelProps {
   object_name?: string;
 }
 
-export default function InspectorPanel({ object_name = "UnamedGameObject" }: InspectorPanelProps) {
+export default function InspectorPanel({ object_name = "UnnamedGameObject" }: InspectorPanelProps) {
   const [name, setName] = useState(object_name);
 
   return (
     <div className="h-full p-0 flex flex-col">
       <div className="bg-content2 px-2 py-1 border-b border-[#444] font-bold text-[15px] tracking-[0.5px] flex items-center justify-between gap-2">
-        <Icon type="outlined" symbol="game_obejct" className="select-none text-[20px]!" />
+        <Icon type="outlined" symbol="game_object" className="select-none text-[20px]!" />
         <Input
           type="text"
           variant="flat"
