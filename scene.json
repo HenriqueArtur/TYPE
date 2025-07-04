@@ -1,0 +1,19 @@
+{
+  "scene": {
+    "objects": [
+      {
+        "name": "bunny",
+        "sprite": "bunny.png",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "behaviors": [
+          {
+            "type": "followMouse"
+          }
+        ]
+      }
+    ]
+  }
+}
