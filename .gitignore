@@ -26,3 +26,4 @@ dist-ssr
 # project
 dist-electron
 release
+out
