@@ -27,6 +27,7 @@
   },
   "include": [
     "src",
-    "electron"
+    "electron",
+    "public/bunny.png"
   ]
 }
