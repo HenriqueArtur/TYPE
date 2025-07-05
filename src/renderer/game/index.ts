@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import scene from "../../scene.json";
+import scene from "../../project/scene.json";
 
 const game = async () => {
   const app = new PIXI.Application();
@@ -9,7 +9,7 @@ const game = async () => {
   const bunnyObject = scene.scene.objects.find((obj) => obj.name === "bunny");
 
   if (bunnyObject) {
-    const texture = await PIXI.Assets.load(bunnyObject.sprite);
+    const texture = await PIXI.Assets.load(`../${bunnyObject.sprite}`);
     const bunny = new PIXI.Sprite(texture);
 
     bunny.x = bunnyObject.position.x;

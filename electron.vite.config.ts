@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
-import { defineConfig, externalizeDepsPlugin } from "electron-vite";
-import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
+import { defineConfig, externalizeDepsPlugin } from "electron-vite";
 
 export default defineConfig({
   main: {
@@ -9,7 +9,7 @@ export default defineConfig({
     build: {
       rollupOptions: {
         input: {
-          index: resolve(__dirname, "electron/main/index.ts"),
+          index: resolve(__dirname, "src/main/index.ts"),
         },
       },
     },
@@ -19,19 +19,19 @@ export default defineConfig({
     build: {
       rollupOptions: {
         input: {
-          index: resolve(__dirname, "electron/preload/index.ts"), // or preload.js
+          index: resolve(__dirname, "src/preload/index.ts"),
         },
       },
     },
   },
   renderer: {
-    root: ".", // Set root to current directory
     plugins: [react(), tailwindcss()],
+    publicDir: resolve(__dirname, "src/project/"),
     build: {
       rollupOptions: {
         input: {
-          index: resolve(__dirname, "index.html"),
-          game: resolve(__dirname, "game.html"),
+          index: resolve(__dirname, "src/renderer/editor/index.html"),
+          game: resolve(__dirname, "src/renderer/game/index.html"),
         },
       },
     },
