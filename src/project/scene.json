@@ -1,16 +1,21 @@
 {
   "scene": {
-    "objects": [
+    "entities": [
       {
         "name": "bunny",
-        "sprite": "bunny.png",
-        "position": {
-          "x": 0,
-          "y": 0
-        },
-        "behaviors": [
+        "components": [
           {
-            "type": "followMouse"
+            "type": "TransformComponent",
+            "data": {
+              "x": 400,
+              "y": 300
+            }
+          },
+          {
+            "type": "SpriteComponent",
+            "data": {
+              "texture": "bunny.png"
+            }
           }
         ]
       }
