@@ -28,6 +28,6 @@
   "include": [
     "src",
     "electron",
-    "public/bunny.png"
+    "src/project/bunny.png"
   ]
 }

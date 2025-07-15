@@ -20,7 +20,7 @@ function createMainWindow() {
   if (process.env.VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
   } else {
-    mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
+    mainWindow.loadFile(path.join(__dirname, "../renderer/editor/index.html"));
   }
 }
 
@@ -40,9 +40,9 @@ function createGameWindow(): void {
   });
 
   if (process.env.VITE_DEV_SERVER_URL) {
-    gameWindow.loadURL(path.join(__dirname, "../renderer/game.html"));
+    gameWindow.loadURL(path.join(__dirname, "../renderer/game/index.html"));
   } else {
-    gameWindow.loadFile(path.join(__dirname, "../renderer/game.html"));
+    gameWindow.loadFile(path.join(__dirname, "../renderer/game/index.html"));
   }
 
   gameWindow.on("closed", () => {

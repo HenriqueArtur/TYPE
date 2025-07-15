@@ -1,0 +1,24 @@
+{
+  "scene": {
+    "entities": [
+      {
+        "name": "bunny",
+        "components": [
+          {
+            "type": "TransformComponent",
+            "data": {
+              "x": 400,
+              "y": 300
+            }
+          },
+          {
+            "type": "SpriteComponent",
+            "data": {
+              "texture": "bunny.png"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
