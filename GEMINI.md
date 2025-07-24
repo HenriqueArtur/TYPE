@@ -77,3 +77,4 @@ This document provides essential context for AI models interacting with this pro
 * **Security:** Be mindful of security best practices, especially when dealing with Electron's main process and IPC (Inter-Process Communication). Do not hardcode secrets or keys.
 * **Dependencies:** When adding a new dependency, use `pnpm add <package-name>`.
 * **Commit Messages:** No specific commit message format is enforced, but it is recommended to follow the Conventional Commits specification.
+* **Asset Paths:** Do not change asset loading paths in `src/renderer/game/index.ts`. The paths are correct for the build process.
