@@ -196,6 +196,10 @@ const MAX_TEXTURE_SIZE = 2048;
 * **Electron Security:** Follow Electron security best practices (disable node integration in renderer, use context isolation)
 
 ### Development Workflow
+* **TDD Approach:** Adhere to a Test-Driven Development (TDD) workflow.
+    *   **Write Tests First:** Before implementing a new feature, write the corresponding tests.
+    *   **Focused Testing:** During development, run only the tests for the specific feature you are working on.
+    *   **Full Regression:** After completing the feature, run the entire test suite to ensure no regressions were introduced.
 * **Planning Phase:** Before making changes, create a detailed plan with numbered steps
 * **Approval Required:** Wait for operator approval before implementing changes
 * **Dependency Management:** Discuss new dependencies with operator, provide pros/cons analysis
