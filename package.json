@@ -10,7 +10,7 @@
   "packageManager": "pnpm@10.5.2",
   "scripts": {
     "dev": "electron-vite build && electron-vite dev",
-    "build": "electron-vite build && electron-builder",
+    "build": "electron-vite build",
     "build:linux": "electron-vite build && electron-builder --linux",
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:win": "electron-vite build && electron-builder --win",
@@ -18,7 +18,7 @@
     "lint:ci": "biome check --diagnostic-level=error ./src/**",
     "test": "vitest",
     "test:ci": "vitest run --config vitest.config.ts",
-    "test:type": "pnpm exec tsc --noEmit",
+    "test:type": "pnpm exec tsc --noEmit -p tsconfig.app.json",
     "prepare": "husky"
   },
   "pnpm": {
