@@ -22,7 +22,9 @@
     "prepare": "husky"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["electron"]
+    "onlyBuiltDependencies": [
+      "electron"
+    ]
   },
   "build": {
     "appId": "com.henriqueartur.engine-ts",
@@ -31,12 +33,18 @@
       "output": "release",
       "buildResources": "assets"
     },
-    "files": ["out/**/*", "node_modules/**/*", "package.json"],
+    "files": [
+      "out/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
     "extraResources": [
       {
         "from": "assets",
         "to": "assets",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "mac": {
@@ -47,7 +55,10 @@
       "target": "portable"
     },
     "linux": {
-      "target": ["AppImage", "deb"]
+      "target": [
+        "AppImage",
+        "deb"
+      ]
     }
   },
   "dependencies": {
@@ -56,6 +67,7 @@
     "@tailwindcss/vite": "^4.1.8",
     "framer-motion": "^12.15.0",
     "material-symbols": "^0.31.5",
+    "nanoid": "^5.1.5",
     "pixi.js": "^8.9.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
