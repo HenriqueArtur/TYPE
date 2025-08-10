@@ -1,6 +1,5 @@
 import { Sprite } from "pixi.js";
 import type { GameComponent } from ".";
-import { generateId } from "../Utils/id";
 import { TextureComponent } from "./TextureComponent";
 import { TransformComponent, type TransformComponentData } from "./TransformComponent";
 
@@ -13,7 +12,6 @@ export type SpriteComponentDataJson = Omit<SpriteComponentData, "texture"> & {
 };
 
 export class SpriteComponent implements GameComponent {
-  readonly id: string;
   static readonly _type = "SpriteComponent";
   readonly type = SpriteComponent._type;
   static readonly prefix = "SP";
@@ -21,14 +19,29 @@ export class SpriteComponent implements GameComponent {
   readonly _transform: TransformComponent;
   private _instance: Sprite | null = null;
 
-  constructor({ id, texture, ...transform }: SpriteComponentData) {
-    this.id = id ?? generateId(SpriteComponent.prefix);
+  constructor({ texture, ...transform }: SpriteComponentData) {
     this.texture = texture;
     this._transform = new TransformComponent(transform);
   }
 
   transform(data: Omit<TransformComponentData, "id">) {
+    console.log(data)
     this._transform.set(data);
+    if(data.position?.x){
+      (this._instance as Sprite).position.x = data.position.x
+    }
+    if(data.position?.y){
+      (this._instance as Sprite).position.y = data.position.y
+    }
+    if(data.scale?.x){
+      (this._instance as Sprite).scale.x = data.scale.x
+    }
+    if(data.scale?.y){
+      (this._instance as Sprite).scale.y = data.scale.y
+    }
+    if(data.rotation){
+      (this._instance as Sprite).rotation = data.rotation.degrees
+    }
   }
 
   async load() {

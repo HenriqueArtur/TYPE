@@ -1,14 +1,11 @@
 import { Assets, type Texture } from "pixi.js";
 import type { GameComponent } from ".";
-import { generateId } from "../Utils/id";
 
 export interface TextureComponentData {
-  id?: string;
   path: string;
 }
 
 export class TextureComponent implements GameComponent {
-  readonly id: string;
   static readonly _type = "TextureComponent";
   readonly type = TextureComponent._type;
   static readonly prefix = "TX";
@@ -16,7 +13,6 @@ export class TextureComponent implements GameComponent {
   private _instance: Texture | null = null;
 
   constructor(data: TextureComponentData) {
-    this.id = data.id ?? generateId(TextureComponent.prefix);
     this.path = `../${data.path}`;
   }
 

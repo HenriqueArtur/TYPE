@@ -10,6 +10,7 @@
   "packageManager": "pnpm@10.5.2",
   "scripts": {
     "dev": "electron-vite build && electron-vite dev",
+    "dev:game": "cross-env APP_MODE=game electron-vite build && electron-vite dev",
     "build": "electron-vite build",
     "build:linux": "electron-vite build && electron-builder --linux",
     "build:mac": "electron-vite build && electron-builder --mac",
@@ -66,6 +67,7 @@
     "@heroui/react": "2.8.0-beta.6",
     "@tailwindcss/vite": "^4.1.8",
     "framer-motion": "^12.15.0",
+    "glob": "^11.0.3",
     "material-symbols": "^0.31.5",
     "nanoid": "^5.1.5",
     "pixi.js": "^8.9.2",
@@ -75,6 +77,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
+    "@types/glob": "^9.0.0",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",

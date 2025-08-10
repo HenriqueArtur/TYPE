@@ -26,7 +26,7 @@ export default defineConfig({
   },
   renderer: {
     plugins: [react(), tailwindcss()],
-    publicDir: resolve(__dirname, "src/project/"),
+    publicDir: resolve(__dirname, "src/__Project__/"),
     build: {
       rollupOptions: {
         input: {

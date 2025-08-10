@@ -5,6 +5,8 @@
     "gameObjects": [
       {
         "id": "GO_bunny",
+        "script": "bunny.js",
+        "name": "Bunny",
         "components": {
           "sprit_1": {
             "id": "SP_bunny",
