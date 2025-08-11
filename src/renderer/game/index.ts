@@ -1,6 +1,7 @@
 import * as PIXI from "pixi.js";
 import { Ticker } from "pixi.js";
 import type { GameObject } from "../../__Engine__/GameObject";
+import { Mouse } from "../../__Engine__/InputDevices/Mouse";
 import INITIAL_SCENE from "../../__Project__";
 
 export async function Game() {
@@ -15,9 +16,16 @@ export async function Game() {
     app.stage.addChild(sprite.instance());
   }
 
+  const MOUSE = new Mouse();
+  function onMouseMove(event: MouseEvent) {
+    MOUSE.position.x = event.x;
+    MOUSE.position.y = event.y;
+  }
+  app.canvas.addEventListener("mousemove", onMouseMove);
+
   const ticker = new Ticker();
   game_scene.gameObjects.forEach((gb: GameObject) => {
-    ticker.add((t) => gb.update({ deltaTime: t.deltaTime }));
+    ticker.add((t) => gb.update({ deltaTime: t.deltaTime, mouse: MOUSE }));
   });
   ticker.start();
 }

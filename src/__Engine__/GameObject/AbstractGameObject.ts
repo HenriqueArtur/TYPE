@@ -1,4 +1,5 @@
 import type { GameComponent } from "../Component";
+import type { Mouse } from "../InputDevices/Mouse";
 import { generateId } from "../Utils/id";
 
 export type GameObjectData = {
@@ -7,6 +8,7 @@ export type GameObjectData = {
 
 export interface GameObjectUpdate {
   deltaTime: number;
+  mouse: Mouse;
 }
 
 export abstract class GameObject {
@@ -17,6 +19,6 @@ export abstract class GameObject {
   }
 
   onStart?(): void {}
-  abstract update(args: GameObjectUpdate): void;
+  abstract update(args?: GameObjectUpdate): void;
   onDestroy?(): void {}
 }

@@ -15,9 +15,13 @@ export class Bunny extends GameObject {
     this.sprite = sprite;
   }
 
-  update({ deltaTime }: GameObjectUpdate) {
+  update({ deltaTime, mouse }: GameObjectUpdate) {
     const value = this.sprite._transform.value();
     this.sprite.transform({
+      position: {
+        x: mouse.position.x,
+        y: mouse.position.y,
+      },
       rotation: Angle.fromDegrees(value.rotation.degrees() + 0.1 * deltaTime),
     });
   }
