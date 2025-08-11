@@ -1,4 +1,4 @@
-import { createComponent, TextureComponent } from "../Component";
+import { TextureComponent, createComponent } from "../Component";
 import type { SpriteComponent } from "../Component/SpriteComponent";
 import type { GameObject, GameObjectDataJson } from "../GameObject";
 import { ConcreteGameObject } from "../GameObject/ConcreteGameObject";

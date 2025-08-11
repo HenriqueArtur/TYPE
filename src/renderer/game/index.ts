@@ -17,7 +17,7 @@ export async function Game() {
 
   const ticker = new Ticker();
   game_scene.gameObjects.forEach((gb: GameObject) => {
-    ticker.add((t) => gb.update({deltaTime: t.deltaTime}));
+    ticker.add((t) => gb.update({ deltaTime: t.deltaTime }));
   });
   ticker.start();
 }

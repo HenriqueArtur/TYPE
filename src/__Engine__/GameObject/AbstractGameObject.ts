@@ -6,7 +6,7 @@ export type GameObjectData = {
 } & Record<string, GameComponent>;
 
 export interface GameObjectUpdate {
-  deltaTime: number
+  deltaTime: number;
 }
 
 export abstract class GameObject {

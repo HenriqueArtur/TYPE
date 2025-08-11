@@ -1,4 +1,4 @@
-import { GameObject, SpriteComponent } from "../__Engine__";
+import { GameObject, type SpriteComponent } from "../__Engine__";
 import type { GameObjectUpdate } from "../__Engine__/GameObject/AbstractGameObject";
 import { Angle } from "../__Engine__/Utils/Angle";
 
@@ -15,8 +15,10 @@ export class Bunny extends GameObject {
     this.sprite = sprite;
   }
 
-  update({deltaTime}: GameObjectUpdate) {
+  update({ deltaTime }: GameObjectUpdate) {
     const value = this.sprite._transform.value();
-    this.sprite.transform({ rotation: Angle.fromDegrees(value.rotation.degrees + 0.1 * deltaTime) });
+    this.sprite.transform({
+      rotation: Angle.fromDegrees(value.rotation.degrees() + 0.1 * deltaTime),
+    });
   }
 }
