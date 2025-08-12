@@ -1,5 +1,5 @@
 import { TextureComponent, createComponent } from "../Component";
-import type { SpriteComponent } from "../Component/SpriteComponent";
+import type { SpriteComponent, SpriteComponentDataJson } from "../Component/SpriteComponent";
 import type { GameObject, GameObjectDataJson } from "../GameObject";
 import { ConcreteGameObject } from "../GameObject/ConcreteGameObject";
 import { generateId } from "../Utils/id";
@@ -42,10 +42,10 @@ export class GameScene {
     const game_objects: GameObject[] = [];
     for (const obj of scene.gameObjects) {
       if (obj.script) {
-        const constructor_args = {};
-        for (const [key, value] of Object.entries(obj.components)) {
+        const constructor_args: Record<string, unknown> = {};
+        for (const [, value] of Object.entries(obj.components)) {
           if (value.type === "SpriteComponent") {
-            const texture = new TextureComponent({ path: value.initial_values.texture });
+            const texture = new TextureComponent({ path: (value.initial_values as SpriteComponentDataJson).texture });
             constructor_args.sprite = { ...value.initial_values, texture };
           }
         }
