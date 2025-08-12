@@ -10,7 +10,6 @@
   "packageManager": "pnpm@10.14.0",
   "scripts": {
     "dev": "electron-vite build && electron-vite dev",
-    "dev:game": "cross-env APP_MODE=game electron-vite build && electron-vite dev",
     "build": "electron-vite build",
     "build:linux": "electron-vite build && electron-builder --linux",
     "build:mac": "electron-vite build && electron-builder --mac",
@@ -80,20 +79,13 @@
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^4.4.1",
-    "concurrently": "^9.2.0",
-    "cross-env": "^7.0.3",
     "electron": "^36.3.1",
     "electron-builder": "^26.0.12",
     "electron-vite": "^3.1.0",
-    "eslint": "^9.33.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.19",
-    "globals": "^16.3.0",
     "husky": "^9.1.7",
     "npm-check-updates": "^18.0.2",
     "typescript": "~5.9.2",
     "vite": "^6.3.5",
-    "vitest": "^3.2.4",
-    "wait-on": "^8.0.4"
+    "vitest": "^3.2.4"
   }
 }
