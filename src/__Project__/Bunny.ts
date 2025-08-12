@@ -22,7 +22,7 @@ export class Bunny extends GameObject {
         x: mouse.position.x,
         y: mouse.position.y,
       },
-      rotation: Angle.fromDegrees(value.rotation.degrees() + 0.1 * deltaTime),
+      rotation: Angle.fromDegrees(value.rotation.degrees + 0.1 * deltaTime),
     });
   }
 }

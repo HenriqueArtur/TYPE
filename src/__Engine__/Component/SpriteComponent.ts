@@ -41,7 +41,7 @@ export class SpriteComponent implements GameComponent {
       (this._instance as Sprite).scale.y = data.scale.y;
     }
     if (data.rotation) {
-      (this._instance as Sprite).rotation = data.rotation.degrees();
+      (this._instance as Sprite).rotation = data.rotation.degrees;
     }
   }
 
@@ -52,7 +52,7 @@ export class SpriteComponent implements GameComponent {
       texture,
       position,
       scale,
-      rotation: rotation.degrees(),
+      rotation: rotation.degrees,
       anchor: 0.5,
     });
     return this._instance as Sprite;
