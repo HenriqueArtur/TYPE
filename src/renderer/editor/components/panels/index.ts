@@ -1,21 +1,27 @@
-import type { JSX } from "react";
-import ConsolePanel from "./ConsolePanel";
-import GamePanel from "./GamePanel";
+import ConsolePanel, { type ConsolePanelProps } from "./ConsolePanel";
+import GamePanel, { type GamePanelProps } from "./GamePanel";
 import HierarchyPanel from "./HierarchyPanel";
-import InspectorPanel from "./InspectorPanel";
+import InspectorPanel, { type InspectorPanelProps } from "./InspectorPanel";
 import ProjectPanel from "./ProjectPanel";
 import ScenePanel from "./ScenePanel";
 
-export interface PanelItem {
+export interface PanelItem<T> {
   tab_name: string;
-  content: (...props: unknown[]) => JSX.Element;
+  content: React.FC<T>;
 }
 
-export type PanelTabItem = PanelItem & { key: Panel };
+export type PanelTabItem = PanelItem<unknown> & { key: Panel };
 
 export type Panel = "GAME" | "HIERARCHY" | "SCENE" | "INSPECTOR" | "PROJECT" | "CONSOLE";
 
-export type PanelTable = Record<Panel, PanelItem>;
+export type PanelTable = {
+  GAME: PanelItem<GamePanelProps>;
+  HIERARCHY: PanelItem<unknown>;
+  SCENE: PanelItem<unknown>;
+  INSPECTOR: PanelItem<InspectorPanelProps>;
+  PROJECT: PanelItem<unknown>;
+  CONSOLE: PanelItem<ConsolePanelProps>;
+};
 
 const PANEL: PanelTable = {
   GAME: {
@@ -48,6 +54,8 @@ export function PanelSelectTabs(tabs: Panel[]): PanelTabItem[] {
   return tabs.map((tab) => ({
     key: tab,
     tab_name: PANEL[tab].tab_name,
-    content: PANEL[tab].content,
+    // This cast is necessary because the content of each panel has different props,
+    // but the function must return an array of panels with a common props type.
+    content: PANEL[tab].content as React.FC<unknown>,
   }));
 }

@@ -2,7 +2,7 @@ import { Application, Assets, Sprite, TilingSprite } from "pixi.js";
 import { useEffect, useRef } from "react";
 import bg from "../../assets/bg.png";
 
-interface GamePanelProps {
+export interface GamePanelProps {
   height: number;
 }
 
