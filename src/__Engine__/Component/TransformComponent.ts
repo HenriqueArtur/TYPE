@@ -1,5 +1,5 @@
-import type { GameComponent } from ".";
 import { Angle } from "../Utils/Angle";
+import type { GameComponent } from ".";
 
 export interface TransformComponentData {
   position?: {

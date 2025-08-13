@@ -1,6 +1,6 @@
 import { Sprite } from "pixi.js";
-import type { GameComponent } from ".";
 import { Angle } from "../Utils/Angle";
+import type { GameComponent } from ".";
 import { TextureComponent } from "./TextureComponent";
 import { TransformComponent, type TransformComponentData } from "./TransformComponent";
 

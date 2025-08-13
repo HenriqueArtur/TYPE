@@ -1,4 +1,4 @@
-import { type GameComponent, SpriteComponent, createComponent } from "../Component";
+import { createComponent, type GameComponent, SpriteComponent } from "../Component";
 import type { GameObject } from "./AbstractGameObject";
 
 type Constructor<T extends GameObject, D> = new (dep: D) => T;
