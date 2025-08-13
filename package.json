@@ -67,7 +67,7 @@
     "@heroui/react": "2.8.2",
     "@tailwindcss/vite": "^4.1.11",
     "framer-motion": "^12.23.12",
-    "material-symbols": "^0.31.5",
+    "material-symbols": "^0.34.1",
     "nanoid": "^5.1.5",
     "pixi.js": "^8.12.0",
     "react": "^19.1.1",
