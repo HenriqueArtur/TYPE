@@ -78,14 +78,14 @@
     "@biomejs/biome": "1.9.4",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
-    "@vitejs/plugin-react": "^4.4.1",
-    "electron": "^36.3.1",
+    "@vitejs/plugin-react": "^5.0.0",
+    "electron": "^37.2.6",
     "electron-builder": "^26.0.12",
-    "electron-vite": "^3.1.0",
+    "electron-vite": "^4.0.0",
     "husky": "^9.1.7",
     "npm-check-updates": "^18.0.2",
     "typescript": "~5.9.2",
-    "vite": "^6.3.5",
+    "vite": "^7.1.2",
     "vitest": "^3.2.4"
   }
 }
