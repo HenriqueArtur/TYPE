@@ -1,0 +1,32 @@
+{
+  "scene": {
+    "id": "SN_PEmgXH6GgeA0z3Dv",
+    "name": "test_scene",
+    "gameObjects": [
+      {
+        "id": "GO_bunny",
+        "script": "bunny.js",
+        "name": "Bunny",
+        "components": {
+          "sprit_1": {
+            "id": "SP_bunny",
+            "name": "bunny_sprite",
+            "type": "SpriteComponent",
+            "initial_values": {
+              "position": {
+                "x": 400,
+                "y": 300
+              },
+              "scale": {
+                "x": 1,
+                "y": 1
+              },
+              "rotation": 0,
+              "texture": "bunny.png"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

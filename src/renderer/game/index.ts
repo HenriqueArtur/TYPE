@@ -1,57 +1,33 @@
 import * as PIXI from "pixi.js";
-import scene from "../../project/scene.json";
-import {
-  type Component,
-  type ComponentClass,
-  Entity,
-  SpriteComponent,
-  TransformComponent,
-} from "./ecs";
+import { Ticker } from "pixi.js";
+import type { GameObject } from "../../__Engine__/GameObject";
+import { Mouse } from "../../__Engine__/InputDevices/Mouse";
+import INITIAL_SCENE from "../../__Project__";
 
-const componentRegistry: Record<string, ComponentClass<Component>> = {
-  TransformComponent,
-  SpriteComponent,
-};
-
-const game = async () => {
+export async function Game() {
   const app = new PIXI.Application();
   await app.init({ width: 800, height: 600, backgroundColor: 0x1099bb });
-  document.getElementById("game")?.appendChild(app.view as unknown as Node);
+  document.getElementById("game")?.appendChild(app.canvas as unknown as Node);
 
-  const entities: Entity[] = [];
+  const game_scene = INITIAL_SCENE;
 
-  for (const entityData of scene.scene.entities) {
-    const entity = new Entity(entityData.name);
-
-    for (const componentData of entityData.components) {
-      const ComponentClass = componentRegistry[componentData.type];
-      if (ComponentClass) {
-        const component = new ComponentClass(componentData.data);
-        entity.addComponent(component);
-      }
-    }
-    entities.push(entity);
+  for (const sprite of game_scene.components.sprites) {
+    await sprite.load();
+    app.stage.addChild(sprite.instance());
   }
 
-  for (const entity of entities) {
-    const transform = entity.getComponent(TransformComponent);
-    const spriteComponent = entity.getComponent(SpriteComponent);
-
-    if (transform && spriteComponent) {
-      const texture = await PIXI.Assets.load(`../${spriteComponent.texture}`);
-      const sprite = new PIXI.Sprite(texture);
-
-      sprite.x = transform.x;
-      sprite.y = transform.y;
-      sprite.rotation = transform.rotation;
-      sprite.scale.x = transform.scaleX;
-      sprite.scale.y = transform.scaleY;
-
-      sprite.anchor.set(0.5);
-
-      app.stage.addChild(sprite);
-    }
+  const MOUSE = new Mouse();
+  function onMouseMove(event: MouseEvent) {
+    MOUSE.position.x = event.x;
+    MOUSE.position.y = event.y;
   }
-};
+  app.canvas.addEventListener("mousemove", onMouseMove);
 
-game();
+  const ticker = new Ticker();
+  game_scene.gameObjects.forEach((gb: GameObject) => {
+    ticker.add((t) => gb.update({ deltaTime: t.deltaTime, mouse: MOUSE }));
+  });
+  ticker.start();
+}
+
+Game();

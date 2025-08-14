@@ -7,10 +7,10 @@
   "version": "0.0.0",
   "type": "module",
   "main": "out/main/index.js",
-  "packageManager": "pnpm@10.5.2",
+  "packageManager": "pnpm@10.14.0",
   "scripts": {
     "dev": "electron-vite build && electron-vite dev",
-    "build": "electron-vite build && electron-builder",
+    "build": "electron-vite build",
     "build:linux": "electron-vite build && electron-builder --linux",
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:win": "electron-vite build && electron-builder --win",
@@ -18,11 +18,14 @@
     "lint:ci": "biome check --diagnostic-level=error ./src/**",
     "test": "vitest",
     "test:ci": "vitest run --config vitest.config.ts",
-    "test:type": "pnpm exec tsc --noEmit",
-    "prepare": "husky"
+    "test:type": "pnpm exec tsc --noEmit -p tsconfig.app.json",
+    "prepare": "husky",
+    "update:dependencies": "pnpm exec ncu -i --format group -p pnpm"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["electron"]
+    "onlyBuiltDependencies": [
+      "electron"
+    ]
   },
   "build": {
     "appId": "com.henriqueartur.engine-ts",
@@ -31,12 +34,18 @@
       "output": "release",
       "buildResources": "assets"
     },
-    "files": ["out/**/*", "node_modules/**/*", "package.json"],
+    "files": [
+      "out/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
     "extraResources": [
       {
         "from": "assets",
         "to": "assets",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "mac": {
@@ -47,38 +56,36 @@
       "target": "portable"
     },
     "linux": {
-      "target": ["AppImage", "deb"]
+      "target": [
+        "AppImage",
+        "deb"
+      ]
     }
   },
   "dependencies": {
-    "@heroicons/react": "^2.2.0",
-    "@heroui/react": "2.8.0-beta.6",
-    "@tailwindcss/vite": "^4.1.8",
-    "framer-motion": "^12.15.0",
-    "material-symbols": "^0.31.5",
-    "pixi.js": "^8.9.2",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "tailwindcss": "^4.1.8"
+    "@heroicons/react": "2.2.0",
+    "@heroui/react": "2.8.2",
+    "@tailwindcss/vite": "4.1.11",
+    "framer-motion": "12.23.12",
+    "material-symbols": "0.34.1",
+    "nanoid": "5.1.5",
+    "pixi.js": "8.12.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "tailwindcss": "4.1.11"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
-    "@types/react": "^19.1.2",
-    "@types/react-dom": "^19.1.2",
-    "@vitejs/plugin-react": "^4.4.1",
-    "concurrently": "^9.1.2",
-    "cross-env": "^7.0.3",
-    "electron": "^36.3.1",
-    "electron-builder": "^26.0.12",
-    "electron-vite": "^3.1.0",
-    "eslint": "^9.25.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.19",
-    "globals": "^16.0.0",
-    "husky": "^9.1.7",
-    "typescript": "~5.8.3",
-    "vite": "^6.3.5",
-    "vitest": "^3.1.4",
-    "wait-on": "^8.0.3"
+    "@biomejs/biome": "2.1.4",
+    "@types/react": "19.1.10",
+    "@types/react-dom": "19.1.7",
+    "@vitejs/plugin-react": "5.0.0",
+    "electron": "37.2.6",
+    "electron-builder": "26.0.12",
+    "electron-vite": "4.0.0",
+    "husky": "9.1.7",
+    "npm-check-updates": "18.0.2",
+    "typescript": "5.9.2",
+    "vite": "7.1.2",
+    "vitest": "3.2.4"
   }
 }

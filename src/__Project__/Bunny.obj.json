@@ -1,0 +1,19 @@
+{
+  "sprite": {
+    "id": "SP_bunny",
+    "name": "bunny_sprite",
+    "type": "SpriteComponent",
+    "initial_values": {
+      "position": {
+        "x": 400,
+        "y": 300
+      },
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "rotation": 0,
+      "texture": "bunny.png"
+    }
+  }
+}

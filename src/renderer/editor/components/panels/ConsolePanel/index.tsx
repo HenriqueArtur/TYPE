@@ -2,7 +2,7 @@ import { InputSearch } from "../../utils/Input/Search";
 import { mockLogs } from "./mock";
 import type { LogMsg } from "./type";
 
-interface ConsolePanelProps {
+export interface ConsolePanelProps {
   logs?: LogMsg[];
 }
 
