@@ -28,20 +28,24 @@ export class SpriteComponent implements GameComponent {
 
   transform(data: Omit<TransformComponentData, "id">) {
     this._transform.set(data);
-    if (data.position?.x) {
-      (this._instance as Sprite).position.x = data.position.x;
-    }
-    if (data.position?.y) {
-      (this._instance as Sprite).position.y = data.position.y;
-    }
-    if (data.scale?.x) {
-      (this._instance as Sprite).scale.x = data.scale.x;
-    }
-    if (data.scale?.y) {
-      (this._instance as Sprite).scale.y = data.scale.y;
-    }
-    if (data.rotation) {
-      (this._instance as Sprite).rotation = data.rotation.degrees;
+
+    // Only update sprite instance if it's loaded and has proper properties
+    if (this._instance?.position && this._instance.scale) {
+      if (data.position?.x) {
+        this._instance.position.x = data.position.x;
+      }
+      if (data.position?.y) {
+        this._instance.position.y = data.position.y;
+      }
+      if (data.scale?.x) {
+        this._instance.scale.x = data.scale.x;
+      }
+      if (data.scale?.y) {
+        this._instance.scale.y = data.scale.y;
+      }
+      if (data.rotation) {
+        this._instance.rotation = data.rotation.degrees;
+      }
     }
   }
 

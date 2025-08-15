@@ -13,7 +13,18 @@ export class TextureComponent implements GameComponent {
   private _instance: Texture | null = null;
 
   constructor(data: TextureComponentData) {
-    this.path = `../${data.path}`;
+    // The ".." is needed to adjust asset paths after Electron build
+    // Handle different path formats intelligently:
+    if (!data.path) {
+      // Throw error for undefined/null/empty path
+      throw new Error("TextureComponent: 'path' must be a non-empty string.");
+    } else if (data.path.startsWith("/")) {
+      // If absolute path (starts with "/"), add only ".."
+      this.path = `..${data.path}`;
+    } else {
+      // If relative path, add "../"
+      this.path = `../${data.path}`;
+    }
   }
 
   async load() {
