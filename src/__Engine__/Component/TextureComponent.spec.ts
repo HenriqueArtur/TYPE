@@ -59,11 +59,12 @@ describe("TextureComponent", () => {
       expect(texture.path).toBe("../textures/ui/button.png");
     });
 
-    it("should handle empty string path", () => {
+    it("should throw error for empty string path", () => {
       const data: TextureComponentData = { path: "" };
-      const texture = new TextureComponent(data);
 
-      expect(texture.path).toBe("../");
+      expect(() => new TextureComponent(data)).toThrow(
+        "TextureComponent: 'path' must be a non-empty string.",
+      );
     });
   });
 
@@ -128,12 +129,10 @@ describe("TextureComponent", () => {
       await expect(texture.load()).rejects.toThrow("Texture not found");
     });
 
-    it("should handle empty path load", async () => {
-      const texture = new TextureComponent({ path: "" });
-
-      await texture.load();
-
-      expect(Assets.load).toHaveBeenCalledWith("../");
+    it("should throw error for empty path during construction", () => {
+      expect(() => new TextureComponent({ path: "" })).toThrow(
+        "TextureComponent: 'path' must be a non-empty string.",
+      );
     });
   });
 
@@ -213,18 +212,18 @@ describe("TextureComponent", () => {
       }).toThrow();
     });
 
-    it("should handle JSON with missing path property", () => {
+    it("should throw error for JSON with missing path property", () => {
       const objectData = { notPath: "value" };
 
-      // This will create a texture with undefined path, which becomes "../undefined"
-      const texture = TextureComponent.jsonToGameObject(objectData);
-      expect(texture.path).toBe("../undefined");
+      expect(() => TextureComponent.jsonToGameObject(objectData)).toThrow(
+        "TextureComponent: 'path' must be a non-empty string.",
+      );
     });
 
-    it("should handle empty object", () => {
-      // This will create a texture with undefined path, which becomes "../undefined"
-      const texture = TextureComponent.jsonToGameObject({});
-      expect(texture.path).toBe("../undefined");
+    it("should throw error for empty object", () => {
+      expect(() => TextureComponent.jsonToGameObject({})).toThrow(
+        "TextureComponent: 'path' must be a non-empty string.",
+      );
     });
   });
 
