@@ -89,6 +89,10 @@ All game data is serialized as JSON files in `src/__Project__/`, enabling versio
 - Follow Electron security best practices (disable node integration, use context isolation)
 - Never commit secrets, API keys, or sensitive configuration
 
+### Commit Policy
+- **IMPORTANT**: Only commit changes when explicitly requested by the user
+- Never commit automatically or proactively without explicit user instruction
+
 ### Asset Path Integrity
 - **CRITICAL**: Never modify asset loading paths in `src/renderer/game/index.ts`
 
@@ -102,13 +106,10 @@ Game objects require three associated files with matching base names:
 - `.obj.json`: Serialized initial values
 - `.loaded.ts`: Loading logic for initial values
 
-### Component System
-The engine uses a component-based architecture where game objects are entities with attached components:
-- `TransformComponent`: Position, rotation, scale
-- `SpriteComponent`: Visual sprite rendering
-- `TextureComponent`: Texture management
+### Engine Documentation
+For detailed information about the game engine architecture, components, scene system, input devices, utilities, and development guidelines, see `./for-LLMs/engine.md`.
 
-Components are registered via the `COMPONENT_CLASSES` registry in `src/__Engine__/Component/index.ts`.
+**Important**: When creating new engine artifacts (components, utilities, input devices), they must be documented in `engine.md`.
 
 ## AI Journal System
 
@@ -124,19 +125,28 @@ At the **first interaction**, create an AI journal file in `.ai-journal/` direct
 
 **AI Agent**: Claude Code
 **Created**: YYYY-MM-DD HH:MM:SS
-**Commit Hash**: <current git commit hash>
-
-## Planned Steps
-1. [Initial planned steps based on user request]
-2. [Additional steps as they emerge]
-
-## Interaction Log
-### [Timestamp] - [Brief interaction description]
-- User Request: [Concise summary of what was asked]
-- New Steps: [Any additional steps identified]
+**Commit Hash**: <last commit hash from origin/main>
 
 ## Summary
-[To be filled when all tasks are completed]
+**Session Impact**: [Comprehensive overview of all interactions and their collective impact on the project]
+
+## Interaction Log
+
+### [UTC-Timestamp] - [Brief interaction description]
+**User Request**: [Concise summary of what was asked]
+
+**Planned Steps**:
+1. [What I plan to do]
+2. [Step by step approach]
+3. [Expected actions]
+
+**What Actually Happened**:
+- [Detailed execution of the work]
+- [What tools were used]
+- [Any issues encountered]
+- [Actual steps taken]
+
+**Result**: [Clear outcome and impact of this interaction]
 ```
 
 ### Journal Workflow
@@ -150,8 +160,12 @@ At the **first interaction**, create an AI journal file in `.ai-journal/` direct
 
 ### Journal Commands
 - Always check if `.ai-journal/` directory exists, create if needed
-- Use `git log -1 --format="%H"` to get current commit hash
+- Use `git log -1 --format="%H" origin/main` to get last commit hash from origin/main
 - Use `git diff <journal-commit-hash> HEAD` to capture changes during mid-session commits
+- Use `TZ=UTC date "+%Y-%m-%d-%H-%M-%S"` to get UTC timestamp for file naming (macOS/Linux)
+- Use `TZ=UTC date "+%H:%M:%S"` to get UTC time for interaction timestamps (macOS/Linux)
+- For Windows: Use `powershell -Command "Get-Date -Format 'yyyy-MM-dd-HH-mm-ss' -AsUTC"` for file naming
+- For Windows: Use `powershell -Command "Get-Date -Format 'HH:mm:ss' -AsUTC"` for interaction timestamps
 
 ## Commit Message Protocol
 
@@ -167,21 +181,18 @@ All commits **MUST** follow the [Gitmoji](https://gitmoji.dev/) pattern for cons
 - 🎉 `:tada:` - Initial commit
 - ✨ `:sparkles:` - New feature
 - 🐛 `:bug:` - Bug fix
-- 🔧 `:wrench:` - Configuration changes
+- 🔧 `:wrench:` - Configuration
 - 📝 `:memo:` - Documentation
-- ✅ `:white_check_mark:` - Add or update tests
-- 🎨 `:art:` - Improve structure/format of code
-- ⚡ `:zap:` - Performance improvements
-- 🔥 `:fire:` - Remove code or files
-- 🚚 `:truck:` - Move or rename resources
-- 📦 `:package:` - Add or update compiled files or packages
-- 🔒 `:lock:` - Fix security issues
-- ⬆️ `:arrow_up:` - Upgrade dependencies
-- ⬇️ `:arrow_down:` - Downgrade dependencies
-- 📌 `:pushpin:` - Pin dependencies
-- 🚨 `:rotating_light:` - Fix compiler/linter warnings
-- 🎮 `:video_game:` - Game engine specific features
-- 🖥️ `:desktop_computer:` - Electron-specific changes
+- ✅ `:white_check_mark:` - Tests
+- 🎨 `:art:` - Code structure
+- ⚡ `:zap:` - Performance
+- 🔥 `:fire:` - Remove code
+- 🚚 `:truck:` - Move/rename
+- 📦 `:package:` - Dependencies
+- 🔒 `:lock:` - Security
+- 🚨 `:rotating_light:` - Linter warnings
+- 🎮 `:video_game:` - Game engine
+- 🖥️ `:desktop_computer:` - Electron
 
 ### Examples
 ```bash
@@ -197,6 +208,23 @@ git commit -m "🔧 config: enforce no-explicit-any rule in biome.json"
 - **Present tense**: Use imperative mood ("add" not "added")
 - **Specific**: Be precise about what was changed
 - **Contextual**: Use appropriate gitmoji for the type of change
+
+## Semantic Versioning
+
+This project follows [Semantic Versioning](https://semver.org/) (SemVer) with format `MAJOR.MINOR.PATCH`:
+
+- **MAJOR**: Breaking changes that require user intervention
+- **MINOR**: New features that are backward compatible
+- **PATCH**: Bug fixes and small improvements that are backward compatible
+
+### Version Update Protocol
+1. Check the last AI journal created in `.ai-journal/` directory
+2. Determine version increment based on changes made:
+   - **PATCH**: Bug fixes, documentation updates, refactoring
+   - **MINOR**: New features, components, or significant improvements
+   - **MAJOR**: Breaking API changes, architecture overhauls
+3. Update `version` field in `package.json`
+4. This versioning step is performed automatically and does not need journal documentation
 
 ## Important Files
 - `electron.vite.config.ts`: Build configuration for main, preload, and dual renderer processes
