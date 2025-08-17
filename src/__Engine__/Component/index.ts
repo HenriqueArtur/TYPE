@@ -1,3 +1,4 @@
+import { BodyComponent, RectangularBodyComponent } from "./Body";
 import { SpriteComponent } from "./SpriteComponent";
 import { TextureComponent } from "./TextureComponent";
 import { TransformComponent } from "./TransformComponent";
@@ -17,7 +18,12 @@ export type GameComponentJson = {
   readonly initial_values: object;
 };
 
-export type ComponentType = "SpriteComponent" | "TextureComponent" | "TransformComponent";
+export type ComponentType =
+  | "SpriteComponent"
+  | "TextureComponent"
+  | "TransformComponent"
+  | "BodyComponent"
+  | "RectangularBodyComponent";
 
 function createComponent(component_json: GameComponentJson): GameComponent {
   const contructor = COMPONENT_CLASSES[component_json.type];
@@ -31,6 +37,15 @@ const COMPONENT_CLASSES: Record<ComponentType, (typeof GameComponent)["jsonToGam
   SpriteComponent: SpriteComponent.jsonToGameObject,
   TextureComponent: TextureComponent.jsonToGameObject,
   TransformComponent: TransformComponent.jsonToGameObject,
+  BodyComponent: BodyComponent.jsonToGameObject,
+  RectangularBodyComponent: RectangularBodyComponent.jsonToGameObject,
 };
 
-export { SpriteComponent, TextureComponent, TransformComponent, createComponent };
+export {
+  SpriteComponent,
+  TextureComponent,
+  TransformComponent,
+  BodyComponent,
+  RectangularBodyComponent,
+  createComponent,
+};
