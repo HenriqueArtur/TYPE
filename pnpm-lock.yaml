@@ -17,12 +17,18 @@ importers:
       '@tailwindcss/vite':
         specifier: 4.1.11
         version: 4.1.11(vite@7.1.2(@types/node@22.15.21)(jiti@2.4.2)(lightningcss@1.30.1))
+      '@types/matter-js':
+        specifier: ^0.20.0
+        version: 0.20.0
       framer-motion:
         specifier: 12.23.12
         version: 12.23.12(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       material-symbols:
         specifier: 0.34.1
         version: 0.34.1
+      matter-js:
+        specifier: ^0.20.0
+        version: 0.20.0
       nanoid:
         specifier: 5.1.5
         version: 5.1.5
@@ -1787,6 +1793,9 @@ packages:
   '@types/keyv@3.1.4':
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
 
+  '@types/matter-js@0.20.0':
+    resolution: {integrity: sha512-jOroeU1wEoizJ3rUnhS2HWzqbQrMHEmShTPUf8sbAghuZCAEQT7y3ojXAzrcQOWYkP93KhegDZI4gvMu5odfWw==}
+
   '@types/ms@2.1.0':
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
 
@@ -2759,6 +2768,9 @@ packages:
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
+
+  matter-js@0.20.0:
+    resolution: {integrity: sha512-iC9fYR7zVT3HppNnsFsp9XOoQdQN2tUyfaKg4CHLH8bN+j6GT4Gw7IH2rP0tflAebrHFw730RR3DkVSZRX8hwA==}
 
   mime-db@1.52.0:
     resolution: {integrity: sha512-sPU4uV7dYlvtWJxwwxHD0PuihVNiE7TyAbQ5SWxDCB9mUYvOgroQOwYQQOKPJ8CIbE+1ETVlOoK1UC2nU3gYvg==}
@@ -5982,6 +5994,8 @@ snapshots:
     dependencies:
       '@types/node': 22.15.21
 
+  '@types/matter-js@0.20.0': {}
+
   '@types/ms@2.1.0': {}
 
   '@types/node@22.15.21':
@@ -7116,6 +7130,8 @@ snapshots:
   material-symbols@0.34.1: {}
 
   math-intrinsics@1.1.0: {}
+
+  matter-js@0.20.0: {}
 
   mime-db@1.52.0: {}
 

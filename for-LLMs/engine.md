@@ -12,6 +12,8 @@ Components are data containers that define properties and behaviors for game obj
 - **TransformComponent**: Position, rotation, and scale data
 - **SpriteComponent**: Visual sprite rendering with PIXI.js integration
 - **TextureComponent**: Texture loading and management
+- **BodyComponent**: Abstract base for Matter.js physics bodies
+- **RectangularBodyComponent**: Rectangular physics body implementation
 
 #### Component Registry
 All components must be registered in `COMPONENT_CLASSES` registry (`src/__Engine__/Component/index.ts`) with their JSON deserialization functions.
@@ -22,6 +24,75 @@ All components must be registered in `COMPONENT_CLASSES` registry (`src/__Engine
 3. Add to `ComponentType` union type
 4. Register in `COMPONENT_CLASSES` registry
 5. Document component in this file
+
+#### Body Components (`src/__Engine__/Component/Body/`)
+Physics components that integrate with Matter.js for realistic physics simulation.
+
+##### BodyComponent (Abstract)
+Abstract base class for all physics body components.
+
+**Features:**
+- Matter.js Body integration
+- Configurable physics properties (friction, restitution, density, static state)
+- Abstract createBody() method for subclass implementation
+- Body property synchronization and updates
+
+**Properties:**
+- `is_static`: Whether the body is static or dynamic
+- `friction`: Surface friction coefficient (0.0 - 1.0)
+- `restitution`: Bounciness factor (0.0 - 1.0) 
+- `density`: Mass density for physics calculations
+
+**Methods:**
+- `getBody()`: Returns the underlying Matter.js Body
+- `set(data)`: Updates physics properties and synchronizes with Matter.js
+- `value()`: Returns current component state for serialization
+
+##### RectangularBodyComponent
+Concrete implementation creating rectangular physics bodies.
+
+**Features:**
+- Rectangular Matter.js body creation
+- Position and dimension control
+- Dynamic body shape updates
+- Proper constructor initialization order
+
+**Additional Properties:**
+- `width`: Rectangle width in pixels
+- `height`: Rectangle height in pixels
+- `x`: Body position X coordinate
+- `y`: Body position Y coordinate
+
+**Usage Example:**
+```typescript
+const bodyComponent = new RectangularBodyComponent({
+  width: 100,
+  height: 50,
+  x: 400,
+  y: 300,
+  is_static: false,
+  friction: 0.7,
+  restitution: 0.3
+});
+```
+
+**JSON Configuration:**
+```json
+{
+  "type": "RectangularBodyComponent",
+  "name": "physics_body",
+  "initial_values": {
+    "width": 100,
+    "height": 50,
+    "x": 400,
+    "y": 300,
+    "is_static": false,
+    "friction": 0.7,
+    "restitution": 0.3,
+    "density": 0.001
+  }
+}
+```
 
 ### Game Objects (`src/__Engine__/GameObject/`)
 Game objects are entities that hold components and implement game logic.
