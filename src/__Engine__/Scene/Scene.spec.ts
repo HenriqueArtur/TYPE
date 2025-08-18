@@ -52,6 +52,7 @@ describe("GameScene", () => {
         gameObjects: [mockGameObject],
         components: {
           sprites: [mockSpriteComponent],
+          bodies: [],
         },
       };
 
@@ -67,7 +68,7 @@ describe("GameScene", () => {
       const sceneData: GameSceneData = {
         name: "TestScene",
         gameObjects: [],
-        components: { sprites: [] },
+        components: { sprites: [], bodies: [] },
       };
 
       new GameScene(sceneData);
@@ -79,7 +80,7 @@ describe("GameScene", () => {
       const sceneData: GameSceneData = {
         name: "EmptyScene",
         gameObjects: [],
-        components: { sprites: [] },
+        components: { sprites: [], bodies: [] },
       };
 
       const scene = new GameScene(sceneData);
@@ -95,7 +96,7 @@ describe("GameScene", () => {
       const sceneData: GameSceneData = {
         name: "MultiObjectScene",
         gameObjects: [mockGameObject1, mockGameObject2],
-        components: { sprites: [] },
+        components: { sprites: [], bodies: [] },
       };
 
       const scene = new GameScene(sceneData);
@@ -114,6 +115,7 @@ describe("GameScene", () => {
         gameObjects: [],
         components: {
           sprites: [mockSprite1, mockSprite2],
+          bodies: [],
         },
       };
 

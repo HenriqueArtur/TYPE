@@ -27,6 +27,10 @@ export async function Game() {
   game_scene.gameObjects.forEach((gb: GameObject) => {
     ticker.add((t) => gb.update({ deltaTime: t.deltaTime, mouse: MOUSE }));
   });
+
+  // Add scene update for collision detection
+  ticker.add(() => game_scene.update());
+
   ticker.start();
 }
 
