@@ -8,6 +8,7 @@ export abstract class GameComponent {
   static readonly prefix: string;
   abstract readonly type: string;
   static jsonToGameObject: JsonToGameObject;
+  abstract destroy(): void;
 }
 
 export type JsonToGameObject = (json: string | object) => GameComponent;

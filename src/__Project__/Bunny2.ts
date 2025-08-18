@@ -20,11 +20,13 @@ export class Bunny2 extends GameObject {
   update(_update: GameObjectUpdate) {}
 
   destroy() {
-    if (this.sprite) {
-      const spriteInstance = this.sprite.instance();
-      if (spriteInstance.parent) {
-        spriteInstance.parent.removeChild(spriteInstance);
-      }
-    }
+    console.log(`${this.name} destroyed!`);
+
+    // Destroy components
+    this.sprite.destroy();
+    this.body.destroy();
+
+    // Call parent destroy
+    super.destroy();
   }
 }

@@ -238,4 +238,28 @@ describe("RectangularBodyComponent", () => {
       expect(component.getBody()).toBeDefined();
     });
   });
+
+  describe("destroy", () => {
+    it("should have destroy method defined", () => {
+      const component = new RectangularBodyComponent();
+
+      expect(typeof component.destroy).toBe("function");
+    });
+
+    it("should call destroy without errors", () => {
+      const component = new RectangularBodyComponent();
+
+      expect(() => component.destroy()).not.toThrow();
+    });
+
+    it("should be callable multiple times without errors", () => {
+      const component = new RectangularBodyComponent();
+
+      expect(() => {
+        component.destroy();
+        component.destroy();
+        component.destroy();
+      }).not.toThrow();
+    });
+  });
 });

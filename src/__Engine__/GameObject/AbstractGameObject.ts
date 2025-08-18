@@ -20,5 +20,5 @@ export abstract class GameObject {
 
   onStart?(): void {}
   abstract update(args?: GameObjectUpdate): void;
-  onDestroy?(): void {}
+  destroy(): void {}
 }

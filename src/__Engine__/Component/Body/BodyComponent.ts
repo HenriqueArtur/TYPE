@@ -37,6 +37,14 @@ export abstract class BodyComponent implements GameComponent {
     MatterBody.setPosition(this.body, { x, y });
   }
 
+  destroy(): void {
+    // Reset body properties to defaults
+    this.is_static = false;
+    this.friction = 0.1;
+    this.restitution = 0.3;
+    this.density = 0.001;
+  }
+
   set(data: Omit<BodyComponentData, "id">) {
     if (data.is_static !== undefined) {
       this.is_static = data.is_static;

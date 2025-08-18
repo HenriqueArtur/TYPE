@@ -66,6 +66,26 @@ export class SpriteComponent implements GameComponent {
     return this._instance as Sprite;
   }
 
+  destroy(): void {
+    if (this._instance) {
+      // Remove from parent if it has one
+      if (this._instance.parent) {
+        this._instance.parent.removeChild(this._instance);
+      }
+      // Destroy the sprite instance only if it has a destroy method
+      if (typeof this._instance.destroy === "function") {
+        this._instance.destroy();
+      }
+      this._instance = null;
+    }
+
+    // Destroy the texture component
+    this.texture.destroy();
+
+    // Destroy the transform component
+    this._transform.destroy();
+  }
+
   static jsonToGameObject(json: string | object): SpriteComponent {
     const data: SpriteComponentDataJson = typeof json === "string" ? JSON.parse(json) : json;
     const texture = new TextureComponent({ path: data.texture });

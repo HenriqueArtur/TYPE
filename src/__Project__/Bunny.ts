@@ -35,8 +35,13 @@ export class Bunny extends GameObject {
   }
 
   destroy() {
-    // Method to handle bunny destruction
     console.log(`${this.name} destroyed!`);
-    // Additional cleanup logic can be added here
+
+    // Destroy components
+    this.sprite.destroy();
+    this.body.destroy();
+
+    // Call parent destroy
+    super.destroy();
   }
 }

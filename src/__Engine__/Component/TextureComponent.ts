@@ -37,6 +37,13 @@ export class TextureComponent implements GameComponent {
     return this._instance as Texture;
   }
 
+  destroy(): void {
+    if (this._instance) {
+      this._instance.destroy();
+      this._instance = null;
+    }
+  }
+
   static jsonToGameObject(json: string | object): TextureComponent {
     const data: TextureComponent = typeof json === "string" ? JSON.parse(json) : json;
     return new TextureComponent(data);

@@ -162,6 +162,30 @@ describe("BodyComponent", () => {
     });
   });
 
+  describe("destroy", () => {
+    it("should have destroy method defined", () => {
+      const component = new TestBodyComponent();
+
+      expect(typeof component.destroy).toBe("function");
+    });
+
+    it("should call destroy without errors", () => {
+      const component = new TestBodyComponent();
+
+      expect(() => component.destroy()).not.toThrow();
+    });
+
+    it("should be callable multiple times without errors", () => {
+      const component = new TestBodyComponent();
+
+      expect(() => {
+        component.destroy();
+        component.destroy();
+        component.destroy();
+      }).not.toThrow();
+    });
+  });
+
   describe("static methods", () => {
     it("should throw error when calling abstract jsonToGameObject", () => {
       expect(() => {
