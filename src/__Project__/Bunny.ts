@@ -1,4 +1,3 @@
-import { Body as MatterBody } from "matter-js";
 import { GameObject, type RectangularBodyComponent, type SpriteComponent } from "../__Engine__";
 import type { GameObjectUpdate } from "../__Engine__/GameObject/AbstractGameObject";
 import { Angle } from "../__Engine__/Utils/Angle";
@@ -32,10 +31,7 @@ export class Bunny extends GameObject {
     });
 
     // Update body position to match sprite
-    MatterBody.setPosition(this.body.getBody(), {
-      x: mouse.position.x,
-      y: mouse.position.y,
-    });
+    this.body.setPosition(mouse.position.x, mouse.position.y);
   }
 
   destroy() {

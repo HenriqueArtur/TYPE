@@ -1,4 +1,4 @@
-import type { Body } from "matter-js";
+import { type Body, Body as MatterBody } from "matter-js";
 import type { GameComponent } from "..";
 
 export interface BodyComponentData {
@@ -31,6 +31,10 @@ export abstract class BodyComponent implements GameComponent {
 
   getBody(): Body {
     return this.body;
+  }
+
+  setPosition(x: number, y: number): void {
+    MatterBody.setPosition(this.body, { x, y });
   }
 
   set(data: Omit<BodyComponentData, "id">) {

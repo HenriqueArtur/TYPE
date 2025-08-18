@@ -90,6 +90,12 @@ export class RectangularBodyComponent extends BodyComponent {
     };
   }
 
+  setPosition(x: number, y: number): void {
+    this.x = x;
+    this.y = y;
+    super.setPosition(x, y);
+  }
+
   static jsonToGameObject(json: string | object): RectangularBodyComponent {
     const data: RectangularBodyComponentData = typeof json === "string" ? JSON.parse(json) : json;
     return new RectangularBodyComponent(data);
