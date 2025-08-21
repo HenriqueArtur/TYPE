@@ -1,12 +1,12 @@
-# 🚀 Engine-Ts: Game Engine & Editor
+# 🚀 TYPE: Game Engine & Editor
 
-A TypeScript-based game engine and visual editor built with Electron, React, and PIXI.js. This project serves as both a functional game development platform and an academic exploration of modern software architecture patterns.
+**TYPE** _(TypeScript Yields Powerful Engines)_ - A TypeScript-based game engine and visual editor built with Electron, React, and PIXI.js. This project serves as both a functional game development platform and an academic exploration of modern software architecture patterns.
 
 **Academic Context**: Final project for MBA in Software Engineering at USP Brazil 🎓🇧🇷
 
 ## 🎯 Project Overview
 
-Engine-Ts is a desktop application that provides:
+TYPE is a desktop application that provides:
 
 - **Visual Game Editor**: React-based interface for game development
 - **Lightweight Game Runtime**: PIXI.js-powered 2D rendering engine
@@ -86,8 +86,8 @@ Editor (React) ←→ src/__Project__/*.json ←→ Game Runtime (PIXI.js)
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/HenriqueArtur/Engine-Ts.git
-   cd Engine-Ts
+   git clone https://github.com/HenriqueArtur/TYPE.git
+   cd TYPE
    ```
 
 2. **Install dependencies**

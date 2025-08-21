@@ -1,8 +1,8 @@
 {
-  "name": "engine-ts",
+  "name": "type",
   "author": "Henrique Artur <contato@henriqueartur.com>",
-  "homepage": "github.com/HenriqueArtur/Engine-Ts",
-  "repository": "github.com/HenriqueArtur/Engine-Ts",
+  "homepage": "github.com/HenriqueArtur/TYPE",
+  "repository": "github.com/HenriqueArtur/TYPE",
   "private": true,
   "version": "0.2.0",
   "type": "module",
@@ -28,8 +28,8 @@
     ]
   },
   "build": {
-    "appId": "com.henriqueartur.engine-ts",
-    "productName": "Engine",
+    "appId": "com.henriqueartur.type",
+    "productName": "TYPE",
     "directories": {
       "output": "release",
       "buildResources": "assets"
