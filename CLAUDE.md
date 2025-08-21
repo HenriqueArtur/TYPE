@@ -119,6 +119,8 @@ At the **first interaction**, create an AI journal file in `.ai-journal/` direct
 **File naming convention**: `year-month-day-hour-minute-second-<ai-action>.md`
 - Example: `2024-03-15-14-30-45-feature-implementation.md`
 
+**Important**: The `.ai-journal/` directory is excluded from git tracking via `.gitignore` to keep development journals local and prevent repository pollution. Journals are for AI development assistance only and should not be committed to version control.
+
 ### Journal File Structure
 ```markdown
 # AI Development Journal
@@ -218,13 +220,12 @@ This project follows [Semantic Versioning](https://semver.org/) (SemVer) with fo
 - **PATCH**: Bug fixes and small improvements that are backward compatible
 
 ### Version Update Protocol
-1. Check the last AI journal created in `.ai-journal/` directory
-2. Determine version increment based on changes made:
+1. Determine version increment based on changes made in the session:
    - **PATCH**: Bug fixes, documentation updates, refactoring
    - **MINOR**: New features, components, or significant improvements
    - **MAJOR**: Breaking API changes, architecture overhauls
-3. Update `version` field in `package.json`
-4. This versioning step is performed automatically and does not need journal documentation
+2. Update `version` field in `package.json`
+3. This versioning step is performed automatically and does not need journal documentation
 
 ## Important Files
 - `electron.vite.config.ts`: Build configuration for main, preload, and dual renderer processes
