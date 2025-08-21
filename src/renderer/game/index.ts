@@ -1,7 +1,6 @@
 import * as PIXI from "pixi.js";
-import { Ticker } from "pixi.js";
-import type { GameObject } from "../../__Engine__/GameObject";
 import { Mouse } from "../../__Engine__/InputDevices/Mouse";
+import { TypeEngine } from "../../__Engine__/TypeEngine";
 import INITIAL_SCENE from "../../__Project__";
 
 export async function Game() {
@@ -9,10 +8,20 @@ export async function Game() {
   await app.init({ width: 800, height: 600, backgroundColor: 0x1099bb });
   document.getElementById("game")?.appendChild(app.canvas as unknown as Node);
 
-  const game_scene = INITIAL_SCENE;
+  // Initialize TypeEngine and load the scene
+  const engine = TypeEngine.getInstance();
+  engine.loadScene(INITIAL_SCENE);
 
-  for (const sprite of game_scene.components.sprites) {
-    await sprite.load();
+  const currentScene = engine.getCurrentScene();
+  if (!currentScene) {
+    throw new Error("Failed to load initial scene");
+  }
+
+  // Load and add sprites from RenderEngine
+  const renderEngine = engine.getRenderEngine();
+  await renderEngine.loadAllSprites();
+
+  for (const sprite of renderEngine.getSprites()) {
     app.stage.addChild(sprite.instance());
   }
 
@@ -23,15 +32,8 @@ export async function Game() {
   }
   app.canvas.addEventListener("mousemove", onMouseMove);
 
-  const ticker = new Ticker();
-  game_scene.gameObjects.forEach((gb: GameObject) => {
-    ticker.add((t) => gb.update({ deltaTime: t.deltaTime, mouse: MOUSE }));
-  });
-
-  // Add scene update for collision detection
-  ticker.add(() => game_scene.update());
-
-  ticker.start();
+  // Start the game loop using TypeEngine
+  engine.startGameLoop(undefined, MOUSE);
 }
 
 Game();
