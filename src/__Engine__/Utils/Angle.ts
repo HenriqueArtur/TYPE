@@ -9,6 +9,10 @@ export class Angle {
     return new Angle(degrees * (Math.PI / 180));
   }
 
+  static fromRadians(radians: number): Angle {
+    return new Angle(radians);
+  }
+
   get degrees(): number {
     return this._radians * (180 / Math.PI);
   }
