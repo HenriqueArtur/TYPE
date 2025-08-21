@@ -136,6 +136,79 @@ describe("RectangularBodyComponent", () => {
     });
   });
 
+  describe("setPosition", () => {
+    it("should update both internal coordinates and body position", () => {
+      const component = new RectangularBodyComponent();
+      const body = component.getBody();
+
+      component.setPosition(150, 250);
+
+      expect(component.value().x).toBe(150);
+      expect(component.value().y).toBe(250);
+      expect(body.position.x).toBe(150);
+      expect(body.position.y).toBe(250);
+    });
+
+    it("should override position set through constructor", () => {
+      const component = new RectangularBodyComponent({ x: 10, y: 20 });
+      const body = component.getBody();
+
+      expect(body.position.x).toBe(10);
+      expect(body.position.y).toBe(20);
+
+      component.setPosition(100, 200);
+
+      expect(component.value().x).toBe(100);
+      expect(component.value().y).toBe(200);
+      expect(body.position.x).toBe(100);
+      expect(body.position.y).toBe(200);
+    });
+
+    it("should handle negative coordinates", () => {
+      const component = new RectangularBodyComponent();
+
+      component.setPosition(-75, -125);
+
+      expect(component.value().x).toBe(-75);
+      expect(component.value().y).toBe(-125);
+      expect(component.getBody().position.x).toBe(-75);
+      expect(component.getBody().position.y).toBe(-125);
+    });
+
+    it("should handle decimal coordinates", () => {
+      const component = new RectangularBodyComponent();
+
+      component.setPosition(123.45, 678.9);
+
+      expect(component.value().x).toBe(123.45);
+      expect(component.value().y).toBe(678.9);
+      expect(component.getBody().position.x).toBe(123.45);
+      expect(component.getBody().position.y).toBe(678.9);
+    });
+
+    it("should maintain body properties after position change", () => {
+      const component = new RectangularBodyComponent({
+        width: 100,
+        height: 50,
+        is_static: true,
+        friction: 0.8,
+      });
+      const body = component.getBody();
+
+      component.setPosition(300, 400);
+
+      // Position should change
+      expect(body.position.x).toBe(300);
+      expect(body.position.y).toBe(400);
+
+      // Other properties should remain unchanged
+      expect(body.isStatic).toBe(true);
+      expect(component.value().friction).toBe(0.8);
+      expect(component.value().width).toBe(100);
+      expect(component.value().height).toBe(50);
+    });
+  });
+
   describe("body physics properties", () => {
     it("should maintain body consistency after updates", () => {
       const component = new RectangularBodyComponent({ width: 50, height: 50 });
@@ -163,6 +236,30 @@ describe("RectangularBodyComponent", () => {
       expect(component.value().width).toBe(1000);
       expect(component.value().height).toBe(2000);
       expect(component.getBody()).toBeDefined();
+    });
+  });
+
+  describe("destroy", () => {
+    it("should have destroy method defined", () => {
+      const component = new RectangularBodyComponent();
+
+      expect(typeof component.destroy).toBe("function");
+    });
+
+    it("should call destroy without errors", () => {
+      const component = new RectangularBodyComponent();
+
+      expect(() => component.destroy()).not.toThrow();
+    });
+
+    it("should be callable multiple times without errors", () => {
+      const component = new RectangularBodyComponent();
+
+      expect(() => {
+        component.destroy();
+        component.destroy();
+        component.destroy();
+      }).not.toThrow();
     });
   });
 });

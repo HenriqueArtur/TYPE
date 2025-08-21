@@ -90,6 +90,23 @@ export class RectangularBodyComponent extends BodyComponent {
     };
   }
 
+  setPosition(x: number, y: number): void {
+    this.x = x;
+    this.y = y;
+    super.setPosition(x, y);
+  }
+
+  destroy(): void {
+    // Reset dimensions and position to defaults
+    this.width = 50;
+    this.height = 50;
+    this.x = 0;
+    this.y = 0;
+
+    // Call parent destroy
+    super.destroy();
+  }
+
   static jsonToGameObject(json: string | object): RectangularBodyComponent {
     const data: RectangularBodyComponentData = typeof json === "string" ? JSON.parse(json) : json;
     return new RectangularBodyComponent(data);

@@ -40,6 +40,26 @@ describe("Angle", () => {
     });
   });
 
+  describe("fromRadians static method", () => {
+    it("should create angle from radians", () => {
+      const angle = Angle.fromRadians(Math.PI / 2);
+      expect(angle.radians).toBeCloseTo(Math.PI / 2);
+      expect(angle.degrees).toBeCloseTo(90);
+    });
+
+    it("should handle zero radians", () => {
+      const angle = Angle.fromRadians(0);
+      expect(angle.radians).toBe(0);
+      expect(angle.degrees).toBe(0);
+    });
+
+    it("should handle negative radians", () => {
+      const angle = Angle.fromRadians(-Math.PI / 4);
+      expect(angle.radians).toBeCloseTo(-Math.PI / 4);
+      expect(angle.degrees).toBeCloseTo(-45);
+    });
+  });
+
   describe("trigonometric functions", () => {
     it("should calculate sin correctly", () => {
       const angle90 = Angle.fromDegrees(90);

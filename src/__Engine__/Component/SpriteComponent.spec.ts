@@ -428,4 +428,95 @@ describe("SpriteComponent", () => {
       expect(transformValue.rotation.degrees).toBeCloseTo(33.333333, 5);
     });
   });
+
+  describe("destroy", () => {
+    it("should have destroy method defined", () => {
+      const textureComponent = new TextureComponent({ path: "test.png" });
+      const sprite = new SpriteComponent({ texture: textureComponent });
+
+      expect(typeof sprite.destroy).toBe("function");
+    });
+
+    it("should call destroy without errors", () => {
+      const textureComponent = new TextureComponent({ path: "test.png" });
+      const sprite = new SpriteComponent({ texture: textureComponent });
+
+      expect(() => sprite.destroy()).not.toThrow();
+    });
+
+    it("should destroy sprite instance and remove from parent", async () => {
+      const textureComponent = new TextureComponent({ path: "test.png" });
+      const sprite = new SpriteComponent({ texture: textureComponent });
+
+      vi.spyOn(textureComponent, "load").mockResolvedValue(mockTexture);
+
+      const mockParent = {
+        removeChild: vi.fn(),
+      };
+
+      const mockSpriteInstance = {
+        parent: mockParent,
+        destroy: vi.fn(),
+      };
+
+      // Mock the Sprite constructor to return our mock instance
+      (Sprite as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockSpriteInstance);
+
+      await sprite.load();
+      sprite.destroy();
+
+      expect(mockParent.removeChild).toHaveBeenCalledWith(mockSpriteInstance);
+      expect(mockSpriteInstance.destroy).toHaveBeenCalled();
+    });
+
+    it("should handle destroy when sprite has no parent", async () => {
+      const textureComponent = new TextureComponent({ path: "test.png" });
+      const sprite = new SpriteComponent({ texture: textureComponent });
+
+      vi.spyOn(textureComponent, "load").mockResolvedValue(mockTexture);
+
+      const mockSpriteInstance = {
+        parent: null,
+        destroy: vi.fn(),
+      };
+
+      (Sprite as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockSpriteInstance);
+
+      await sprite.load();
+      sprite.destroy();
+
+      expect(mockSpriteInstance.destroy).toHaveBeenCalled();
+    });
+
+    it("should be callable multiple times without errors", async () => {
+      const textureComponent = new TextureComponent({ path: "test.png" });
+      const sprite = new SpriteComponent({ texture: textureComponent });
+
+      vi.spyOn(textureComponent, "load").mockResolvedValue(mockTexture);
+      await sprite.load();
+
+      expect(() => {
+        sprite.destroy();
+        sprite.destroy();
+        sprite.destroy();
+      }).not.toThrow();
+    });
+
+    it("should handle destroy before sprite is loaded", () => {
+      const textureComponent = new TextureComponent({ path: "test.png" });
+      const sprite = new SpriteComponent({ texture: textureComponent });
+
+      expect(() => sprite.destroy()).not.toThrow();
+    });
+
+    it("should call texture component destroy", () => {
+      const textureComponent = new TextureComponent({ path: "test.png" });
+      const destroySpy = vi.spyOn(textureComponent, "destroy");
+      const sprite = new SpriteComponent({ texture: textureComponent });
+
+      sprite.destroy();
+
+      expect(destroySpy).toHaveBeenCalled();
+    });
+  });
 });

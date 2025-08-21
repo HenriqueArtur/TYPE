@@ -289,4 +289,28 @@ describe("TransformComponent", () => {
       expect(value.position.y).toBeCloseTo(precision_value, 9);
     });
   });
+
+  describe("destroy", () => {
+    it("should have destroy method defined", () => {
+      const transform = new TransformComponent();
+
+      expect(typeof transform.destroy).toBe("function");
+    });
+
+    it("should call destroy without errors", () => {
+      const transform = new TransformComponent();
+
+      expect(() => transform.destroy()).not.toThrow();
+    });
+
+    it("should be callable multiple times without errors", () => {
+      const transform = new TransformComponent();
+
+      expect(() => {
+        transform.destroy();
+        transform.destroy();
+        transform.destroy();
+      }).not.toThrow();
+    });
+  });
 });

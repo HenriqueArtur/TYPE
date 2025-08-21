@@ -2,6 +2,7 @@ import { createComponent, type RectangularBodyComponent, TextureComponent } from
 import type { SpriteComponent, SpriteComponentDataJson } from "../Component/SpriteComponent";
 import type { GameObject, GameObjectDataJson } from "../GameObject";
 import { ConcreteGameObject } from "../GameObject/ConcreteGameObject";
+import { PhysicsWorldManager } from "../Physics";
 import { type CollidableGameObject, CollisionManager } from "../Utils/CollisionManager";
 import { generateId } from "../Utils/id";
 
@@ -29,6 +30,7 @@ export class GameScene {
   readonly gameObjects: GameObject[];
   readonly components: SceneComponents;
   readonly collisionManager: CollisionManager;
+  readonly physicsWorldManager: PhysicsWorldManager;
 
   constructor(data: GameSceneData) {
     this.id = generateId(GameScene.prefix);
@@ -36,12 +38,18 @@ export class GameScene {
     this.gameObjects = data.gameObjects;
     this.components = data.components;
     this.collisionManager = new CollisionManager();
+    this.physicsWorldManager = new PhysicsWorldManager();
 
     // Add collidable objects to collision manager
     this.gameObjects.forEach((obj) => {
       if ("body" in obj && "destroy" in obj && typeof obj.destroy === "function") {
         this.collisionManager.addObject(obj as unknown as CollidableGameObject);
       }
+    });
+
+    // Add bodies to physics world
+    this.components.bodies.forEach((body) => {
+      this.physicsWorldManager.addBodyComponent(body);
     });
   }
 
@@ -97,7 +105,10 @@ export class GameScene {
     });
   }
 
-  update() {
+  update(deltaTime: number = 16.67) {
+    // Update physics world (this will also sync sprites with bodies)
+    this.physicsWorldManager.update(deltaTime);
+
     // Check for collisions and handle destruction
     const destroyedObjects = this.collisionManager.checkCollisions();
 
@@ -111,9 +122,8 @@ export class GameScene {
 
         // Remove sprite from components if object has one
         if ("sprite" in destroyedObj) {
-          const spriteIndex = this.components.sprites.indexOf(
-            (destroyedObj as unknown as { sprite: SpriteComponent }).sprite,
-          );
+          const sprite = (destroyedObj as unknown as { sprite: SpriteComponent }).sprite;
+          const spriteIndex = this.components.sprites.indexOf(sprite);
           if (spriteIndex > -1) {
             this.components.sprites.splice(spriteIndex, 1);
           }
@@ -121,12 +131,13 @@ export class GameScene {
 
         // Remove body from components if object has one
         if ("body" in destroyedObj) {
-          const bodyIndex = this.components.bodies.indexOf(
-            (destroyedObj as unknown as { body: RectangularBodyComponent }).body,
-          );
+          const body = (destroyedObj as unknown as { body: RectangularBodyComponent }).body;
+          const bodyIndex = this.components.bodies.indexOf(body);
           if (bodyIndex > -1) {
             this.components.bodies.splice(bodyIndex, 1);
           }
+          // Remove body from physics world
+          this.physicsWorldManager.removeBodyComponent(body);
         }
       }
     }

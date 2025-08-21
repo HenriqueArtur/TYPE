@@ -116,6 +116,76 @@ describe("BodyComponent", () => {
     });
   });
 
+  describe("setPosition", () => {
+    it("should update the body position", () => {
+      const component = new TestBodyComponent();
+      const body = component.getBody();
+
+      component.setPosition(100, 200);
+
+      expect(body.position.x).toBe(100);
+      expect(body.position.y).toBe(200);
+    });
+
+    it("should update position from initial position", () => {
+      const component = new TestBodyComponent();
+      const body = component.getBody();
+
+      // Initial position should be (0, 0) from createBody
+      expect(body.position.x).toBe(0);
+      expect(body.position.y).toBe(0);
+
+      component.setPosition(50, 75);
+
+      expect(body.position.x).toBe(50);
+      expect(body.position.y).toBe(75);
+    });
+
+    it("should handle negative coordinates", () => {
+      const component = new TestBodyComponent();
+      const body = component.getBody();
+
+      component.setPosition(-25, -50);
+
+      expect(body.position.x).toBe(-25);
+      expect(body.position.y).toBe(-50);
+    });
+
+    it("should handle decimal coordinates", () => {
+      const component = new TestBodyComponent();
+      const body = component.getBody();
+
+      component.setPosition(123.456, 789.123);
+
+      expect(body.position.x).toBe(123.456);
+      expect(body.position.y).toBe(789.123);
+    });
+  });
+
+  describe("destroy", () => {
+    it("should have destroy method defined", () => {
+      const component = new TestBodyComponent();
+
+      expect(typeof component.destroy).toBe("function");
+    });
+
+    it("should call destroy without errors", () => {
+      const component = new TestBodyComponent();
+
+      expect(() => component.destroy()).not.toThrow();
+    });
+
+    it("should be callable multiple times without errors", () => {
+      const component = new TestBodyComponent();
+
+      expect(() => {
+        component.destroy();
+        component.destroy();
+        component.destroy();
+      }).not.toThrow();
+    });
+  });
+
   describe("static methods", () => {
     it("should throw error when calling abstract jsonToGameObject", () => {
       expect(() => {

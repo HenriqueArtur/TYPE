@@ -17,23 +17,16 @@ export class Bunny2 extends GameObject {
     this.body = body;
   }
 
-  update(_update: GameObjectUpdate) {
-    // Bunny2 stays at fixed position, no movement logic needed
-    // Just keeping the update method in case we want to add animations later
-  }
+  update(_update: GameObjectUpdate) {}
 
   destroy() {
-    // Method to handle bunny destruction
     console.log(`${this.name} destroyed!`);
 
-    // Remove sprite from PIXI stage
-    if (this.sprite) {
-      const spriteInstance = this.sprite.instance();
-      if (spriteInstance.parent) {
-        spriteInstance.parent.removeChild(spriteInstance);
-      }
-    }
+    // Destroy components
+    this.sprite.destroy();
+    this.body.destroy();
 
-    // Additional cleanup logic can be added here
+    // Call parent destroy
+    super.destroy();
   }
 }

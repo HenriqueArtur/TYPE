@@ -70,6 +70,15 @@ export class TransformComponent implements GameComponent {
     };
   }
 
+  destroy(): void {
+    // Reset to default values
+    this.position.x = 0;
+    this.position.y = 0;
+    this.scale.x = 1;
+    this.scale.y = 1;
+    this.rotation = Angle.fromDegrees(0);
+  }
+
   static jsonToGameObject(json: string | object): TransformComponent {
     const data: TransformComponentData = typeof json === "string" ? JSON.parse(json) : json;
     return new TransformComponent(data);

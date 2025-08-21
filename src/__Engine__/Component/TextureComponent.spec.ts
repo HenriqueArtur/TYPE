@@ -328,4 +328,31 @@ describe("TextureComponent", () => {
       expect(texture.type).toBe("TextureComponent");
     });
   });
+
+  describe("destroy", () => {
+    it("should have destroy method defined", () => {
+      const data: TextureComponentData = { path: "test.png" };
+      const texture = new TextureComponent(data);
+
+      expect(typeof texture.destroy).toBe("function");
+    });
+
+    it("should call destroy without errors", () => {
+      const data: TextureComponentData = { path: "test.png" };
+      const texture = new TextureComponent(data);
+
+      expect(() => texture.destroy()).not.toThrow();
+    });
+
+    it("should be callable multiple times without errors", () => {
+      const data: TextureComponentData = { path: "test.png" };
+      const texture = new TextureComponent(data);
+
+      expect(() => {
+        texture.destroy();
+        texture.destroy();
+        texture.destroy();
+      }).not.toThrow();
+    });
+  });
 });
