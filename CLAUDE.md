@@ -111,63 +111,6 @@ For detailed information about the game engine architecture, components, scene s
 
 **Important**: When creating new engine artifacts (components, utilities, input devices), they must be documented in `engine.md`.
 
-## AI Journal System
-
-### Journal Creation and Management
-At the **first interaction**, create an AI journal file in `.ai-journal/` directory:
-
-**File naming convention**: `year-month-day-hour-minute-second-<ai-action>.md`
-- Example: `2024-03-15-14-30-45-feature-implementation.md`
-
-**Important**: The `.ai-journal/` directory is excluded from git tracking via `.gitignore` to keep development journals local and prevent repository pollution. Journals are for AI development assistance only and should not be committed to version control.
-
-### Journal File Structure
-```markdown
-# AI Development Journal
-
-**AI Agent**: Claude Code
-**Created**: YYYY-MM-DD HH:MM:SS
-**Commit Hash**: <last commit hash from origin/main>
-
-## Summary
-**Session Impact**: [Comprehensive overview of all interactions and their collective impact on the project]
-
-## Interaction Log
-
-### [UTC-Timestamp] - [Brief interaction description]
-**User Request**: [Concise summary of what was asked]
-
-**Planned Steps**:
-1. [What I plan to do]
-2. [Step by step approach]
-3. [Expected actions]
-
-**What Actually Happened**:
-- [Detailed execution of the work]
-- [What tools were used]
-- [Any issues encountered]
-- [Actual steps taken]
-
-**Result**: [Clear outcome and impact of this interaction]
-```
-
-### Journal Workflow
-1. **First Interaction**: Create journal file with initial analysis and planned steps
-2. **Each Interaction**: Add concise entry with user request and any new steps identified
-3. **Mid-Session Commits**: If operator requests commits, capture git diff from journal's initial commit hash
-4. **Task Completion**: When operator indicates all tasks are finished:
-   - Fill the Summary section with comprehensive task overview
-   - Update `<ai-action>` in filename if more descriptive name is appropriate
-   - Commit the journal file with changes
-
-### Journal Commands
-- Always check if `.ai-journal/` directory exists, create if needed
-- Use `git log -1 --format="%H" origin/main` to get last commit hash from origin/main
-- Use `git diff <journal-commit-hash> HEAD` to capture changes during mid-session commits
-- Use `TZ=UTC date "+%Y-%m-%d-%H-%M-%S"` to get UTC timestamp for file naming (macOS/Linux)
-- Use `TZ=UTC date "+%H:%M:%S"` to get UTC time for interaction timestamps (macOS/Linux)
-- For Windows: Use `powershell -Command "Get-Date -Format 'yyyy-MM-dd-HH-mm-ss' -AsUTC"` for file naming
-- For Windows: Use `powershell -Command "Get-Date -Format 'HH:mm:ss' -AsUTC"` for interaction timestamps
 
 ## Commit Message Protocol
 
