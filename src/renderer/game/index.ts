@@ -21,8 +21,11 @@ export async function Game() {
   const renderEngine = engine.getRenderEngine();
   await renderEngine.loadAllSprites();
 
-  for (const sprite of renderEngine.getSprites()) {
-    app.stage.addChild(sprite.instance());
+  for (const drawable of renderEngine.getDrawables()) {
+    const instance = drawable.getDrawable();
+    if (instance) {
+      app.stage.addChild(instance as unknown as PIXI.ContainerChild);
+    }
   }
 
   const MOUSE = new Mouse();

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { RectangularBodyComponent } from "../Component/Body/RectangularBodyComponent";
+import type { RectangularBodyComponent } from "../Component/Physics/RectangularBodyComponent";
 import { PhysicsEngine } from "./PhysicsEngine";
 import { PhysicsWorldManager } from "./PhysicsWorldManager";
 
@@ -15,6 +15,13 @@ describe("PhysicsWorldManager", () => {
     mockPhysicsEngine = {
       addBody: vi.fn(),
       removeBody: vi.fn(),
+      addPhysicsComponent: vi.fn(),
+      removePhysicsComponent: vi.fn(),
+      getPhysicsComponents: vi.fn().mockReturnValue([]),
+      getStaticComponents: vi.fn().mockReturnValue([]),
+      getDynamicComponents: vi.fn().mockReturnValue([]),
+      applyForceToAll: vi.fn(),
+      setAllVelocity: vi.fn(),
       update: vi.fn(),
       setGravity: vi.fn(),
       getEngine: vi.fn(),
@@ -47,7 +54,7 @@ describe("PhysicsWorldManager", () => {
   });
 
   describe("addBodyComponent", () => {
-    it("should add body to physics engine", () => {
+    it("should add physics component to physics engine", () => {
       const manager = new PhysicsWorldManager();
       const mockBodyComponent: Partial<RectangularBodyComponent> = {
         getBody: vi.fn().mockReturnValue({ id: 1 }),
@@ -55,15 +62,19 @@ describe("PhysicsWorldManager", () => {
 
       manager.addBodyComponent(mockBodyComponent as RectangularBodyComponent);
 
-      expect(mockBodyComponent.getBody).toHaveBeenCalled();
-      expect(mockPhysicsEngine.addBody).toHaveBeenCalledWith({ id: 1 });
+      expect(mockPhysicsEngine.addPhysicsComponent).toHaveBeenCalledWith(mockBodyComponent);
     });
 
-    it("should track added body components", () => {
+    it("should track added physics components", () => {
       const manager = new PhysicsWorldManager();
       const mockBodyComponent: Partial<RectangularBodyComponent> = {
         getBody: vi.fn().mockReturnValue({ id: 1 }),
       };
+
+      // Mock the physics engine to return the component
+      (mockPhysicsEngine.getPhysicsComponents as ReturnType<typeof vi.fn>).mockReturnValue([
+        mockBodyComponent,
+      ]);
 
       manager.addBodyComponent(mockBodyComponent as RectangularBodyComponent);
 
@@ -72,7 +83,7 @@ describe("PhysicsWorldManager", () => {
   });
 
   describe("removeBodyComponent", () => {
-    it("should remove body from physics engine", () => {
+    it("should remove physics component from physics engine", () => {
       const manager = new PhysicsWorldManager();
       const mockBodyComponent: Partial<RectangularBodyComponent> = {
         getBody: vi.fn().mockReturnValue({ id: 1 }),
@@ -81,7 +92,7 @@ describe("PhysicsWorldManager", () => {
       manager.addBodyComponent(mockBodyComponent as RectangularBodyComponent);
       manager.removeBodyComponent(mockBodyComponent as RectangularBodyComponent);
 
-      expect(mockPhysicsEngine.removeBody).toHaveBeenCalledWith({ id: 1 });
+      expect(mockPhysicsEngine.removePhysicsComponent).toHaveBeenCalledWith(mockBodyComponent);
     });
 
     it("should stop tracking removed body components", () => {

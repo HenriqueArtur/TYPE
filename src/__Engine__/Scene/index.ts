@@ -1,8 +1,12 @@
 import { createComponent, type RectangularBodyComponent, TextureComponent } from "../Component";
-import type { SpriteComponent, SpriteComponentDataJson } from "../Component/SpriteComponent";
+import type {
+  SpriteComponent,
+  SpriteComponentDataJson,
+} from "../Component/Drawable/SpriteComponent";
+import type { DrawableComponent } from "../Component/DrawableComponent";
+import type { PhysicsComponent } from "../Component/PhysicsComponent";
 import type { GameObject, GameObjectDataJson } from "../GameObject";
 import { ConcreteGameObject } from "../GameObject/ConcreteGameObject";
-import { PhysicsWorldManager } from "../Physics";
 import { type CollidableGameObject, CollisionManager } from "../Utils/CollisionManager";
 import { generateId } from "../Utils/id";
 
@@ -18,8 +22,8 @@ interface SceneData {
 }
 
 interface SceneComponents {
-  sprites: SpriteComponent[];
-  bodies: RectangularBodyComponent[];
+  sprites: DrawableComponent[];
+  bodies: PhysicsComponent[];
 }
 
 export class GameScene {
@@ -30,7 +34,6 @@ export class GameScene {
   readonly gameObjects: GameObject[];
   readonly components: SceneComponents;
   readonly collisionManager: CollisionManager;
-  readonly physicsWorldManager: PhysicsWorldManager;
 
   constructor(data: GameSceneData) {
     this.id = generateId(GameScene.prefix);
@@ -38,18 +41,12 @@ export class GameScene {
     this.gameObjects = data.gameObjects;
     this.components = data.components;
     this.collisionManager = new CollisionManager();
-    this.physicsWorldManager = new PhysicsWorldManager();
 
     // Add collidable objects to collision manager
     this.gameObjects.forEach((obj) => {
       if ("body" in obj && "destroy" in obj && typeof obj.destroy === "function") {
         this.collisionManager.addObject(obj as unknown as CollidableGameObject);
       }
-    });
-
-    // Add bodies to physics world
-    this.components.bodies.forEach((body) => {
-      this.physicsWorldManager.addBodyComponent(body);
     });
   }
 
@@ -105,12 +102,10 @@ export class GameScene {
     });
   }
 
-  update(deltaTime: number = 16.67) {
-    // Update physics world (this will also sync sprites with bodies)
-    this.physicsWorldManager.update(deltaTime);
-
+  update(_deltaTime: number = 16.67): PhysicsComponent[] {
     // Check for collisions and handle destruction
     const destroyedObjects = this.collisionManager.checkCollisions();
+    const physicsComponentsToRemove: PhysicsComponent[] = [];
 
     if (destroyedObjects.length > 0) {
       // Remove destroyed objects from gameObjects array
@@ -122,24 +117,107 @@ export class GameScene {
 
         // Remove sprite from components if object has one
         if ("sprite" in destroyedObj) {
-          const sprite = (destroyedObj as unknown as { sprite: SpriteComponent }).sprite;
+          const sprite = (destroyedObj as unknown as { sprite: DrawableComponent }).sprite;
           const spriteIndex = this.components.sprites.indexOf(sprite);
           if (spriteIndex > -1) {
             this.components.sprites.splice(spriteIndex, 1);
           }
         }
 
-        // Remove body from components if object has one
+        // Remove physics component from components if object has one
         if ("body" in destroyedObj) {
-          const body = (destroyedObj as unknown as { body: RectangularBodyComponent }).body;
-          const bodyIndex = this.components.bodies.indexOf(body);
+          const physicsComponent = (destroyedObj as unknown as { body: PhysicsComponent }).body;
+          const bodyIndex = this.components.bodies.indexOf(physicsComponent);
           if (bodyIndex > -1) {
             this.components.bodies.splice(bodyIndex, 1);
+            physicsComponentsToRemove.push(physicsComponent);
           }
-          // Remove body from physics world
-          this.physicsWorldManager.removeBodyComponent(body);
         }
       }
     }
+
+    return physicsComponentsToRemove;
+  }
+
+  // Game object categorization methods
+  getCollidableObjects(): CollidableGameObject[] {
+    return this.gameObjects.filter(
+      (obj) => "body" in obj && "destroy" in obj && typeof obj.destroy === "function",
+    ) as unknown as CollidableGameObject[];
+  }
+
+  getObjectsWithSprites(): GameObject[] {
+    return this.gameObjects.filter((obj) => "sprite" in obj);
+  }
+
+  getObjectsWithBodies(): GameObject[] {
+    return this.gameObjects.filter((obj) => "body" in obj);
+  }
+
+  getObjectsByType<T extends GameObject>(predicate: (obj: GameObject) => obj is T): T[] {
+    return this.gameObjects.filter(predicate);
+  }
+
+  addGameObject(gameObject: GameObject): void {
+    this.gameObjects.push(gameObject);
+
+    // Add to collision manager if collidable
+    if (
+      "body" in gameObject &&
+      "destroy" in gameObject &&
+      typeof gameObject.destroy === "function"
+    ) {
+      this.collisionManager.addObject(gameObject as unknown as CollidableGameObject);
+    }
+
+    // Add drawable component if object has one
+    if ("sprite" in gameObject) {
+      const drawable = (gameObject as unknown as { sprite: DrawableComponent }).sprite;
+      this.components.sprites.push(drawable);
+    }
+
+    // Add physics component if object has one
+    if ("body" in gameObject) {
+      const physicsComponent = (gameObject as unknown as { body: PhysicsComponent }).body;
+      this.components.bodies.push(physicsComponent);
+    }
+  }
+
+  removeGameObject(gameObject: GameObject): PhysicsComponent | null {
+    const index = this.gameObjects.indexOf(gameObject);
+    if (index === -1) return null;
+
+    this.gameObjects.splice(index, 1);
+
+    // Remove from collision manager if collidable
+    if (
+      "body" in gameObject &&
+      "destroy" in gameObject &&
+      typeof gameObject.destroy === "function"
+    ) {
+      this.collisionManager.removeObject(gameObject as unknown as CollidableGameObject);
+    }
+
+    // Remove drawable from components if object has one
+    if ("sprite" in gameObject) {
+      const drawable = (gameObject as unknown as { sprite: DrawableComponent }).sprite;
+      const spriteIndex = this.components.sprites.indexOf(drawable);
+      if (spriteIndex > -1) {
+        this.components.sprites.splice(spriteIndex, 1);
+      }
+    }
+
+    // Remove physics component from components if object has one
+    let physicsComponentToRemove: PhysicsComponent | null = null;
+    if ("body" in gameObject) {
+      const physicsComponent = (gameObject as unknown as { body: PhysicsComponent }).body;
+      const bodyIndex = this.components.bodies.indexOf(physicsComponent);
+      if (bodyIndex > -1) {
+        this.components.bodies.splice(bodyIndex, 1);
+        physicsComponentToRemove = physicsComponent;
+      }
+    }
+
+    return physicsComponentToRemove;
   }
 }

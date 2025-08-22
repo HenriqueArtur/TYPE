@@ -1,11 +1,11 @@
 import { Assets, type Texture } from "pixi.js";
-import type { GameComponent } from ".";
+import type { DrawableComponent } from "../DrawableComponent";
 
 export interface TextureComponentData {
   path: string;
 }
 
-export class TextureComponent implements GameComponent {
+export class TextureComponent implements DrawableComponent {
   static readonly _type = "TextureComponent";
   readonly type = TextureComponent._type;
   static readonly prefix = "TX";
@@ -35,6 +35,35 @@ export class TextureComponent implements GameComponent {
 
   instance() {
     return this._instance as Texture;
+  }
+
+  // DrawableComponent interface implementation
+  getDrawable(): Texture | null {
+    return this._instance;
+  }
+
+  updateVisual(_data: Record<string, unknown>): void {
+    // Texture doesn't have updatable visual properties, but implement for interface
+    console.warn("TextureComponent: updateVisual called but textures are immutable");
+  }
+
+  isVisible(): boolean {
+    return this._instance !== null;
+  }
+
+  setVisible(_visible: boolean): void {
+    // Texture visibility is handled by the sprite that uses it
+    console.warn("TextureComponent: setVisible called but visibility is handled by sprite");
+  }
+
+  getDimensions(): { width: number; height: number } | null {
+    if (this._instance) {
+      return {
+        width: this._instance.width,
+        height: this._instance.height,
+      };
+    }
+    return null;
   }
 
   destroy(): void {

@@ -1,28 +1,44 @@
-import type { RectangularBodyComponent } from "../Component/Body/RectangularBodyComponent";
+import type { RectangularBodyComponent } from "../Component/Physics/RectangularBodyComponent";
+import type { PhysicsComponent } from "../Component/PhysicsComponent";
 import { PhysicsEngine, type PhysicsEngineOptions } from "./PhysicsEngine";
 
 export class PhysicsWorldManager {
   private physicsEngine: PhysicsEngine;
-  private bodyComponents: RectangularBodyComponent[] = [];
 
   constructor(options?: PhysicsEngineOptions) {
     this.physicsEngine = new PhysicsEngine(options);
   }
 
-  addBodyComponent(bodyComponent: RectangularBodyComponent): void {
-    const body = bodyComponent.getBody();
-    this.physicsEngine.addBody(body);
-    this.bodyComponents.push(bodyComponent);
+  addPhysicsComponent(component: PhysicsComponent): void {
+    this.physicsEngine.addPhysicsComponent(component);
   }
 
-  removeBodyComponent(bodyComponent: RectangularBodyComponent): void {
-    const body = bodyComponent.getBody();
-    this.physicsEngine.removeBody(body);
+  removePhysicsComponent(component: PhysicsComponent): void {
+    this.physicsEngine.removePhysicsComponent(component);
+  }
 
-    const index = this.bodyComponents.indexOf(bodyComponent);
-    if (index > -1) {
-      this.bodyComponents.splice(index, 1);
-    }
+  getPhysicsComponents(): PhysicsComponent[] {
+    return this.physicsEngine.getPhysicsComponents();
+  }
+
+  getStaticComponents(): PhysicsComponent[] {
+    return this.physicsEngine.getStaticComponents();
+  }
+
+  getDynamicComponents(): PhysicsComponent[] {
+    return this.physicsEngine.getDynamicComponents();
+  }
+
+  applyForceToAll(force: { x: number; y: number }): void {
+    this.physicsEngine.applyForceToAll(force);
+  }
+
+  setAllVelocity(velocity: { x: number; y: number }): void {
+    this.physicsEngine.setAllVelocity(velocity);
+  }
+
+  setGravity(gravity: { x: number; y: number }): void {
+    this.physicsEngine.setGravity(gravity);
   }
 
   update(deltaTime: number): void {
@@ -34,15 +50,21 @@ export class PhysicsWorldManager {
     return this.physicsEngine;
   }
 
-  getBodyComponents(): RectangularBodyComponent[] {
-    return [...this.bodyComponents];
-  }
-
   destroy(): void {
-    // Clear body components
-    this.bodyComponents.length = 0;
-
     // Destroy physics engine
     this.physicsEngine.destroy();
+  }
+
+  // Legacy methods for backward compatibility
+  addBodyComponent(bodyComponent: RectangularBodyComponent): void {
+    this.addPhysicsComponent(bodyComponent);
+  }
+
+  removeBodyComponent(bodyComponent: RectangularBodyComponent): void {
+    this.removePhysicsComponent(bodyComponent);
+  }
+
+  getBodyComponents(): RectangularBodyComponent[] {
+    return this.getPhysicsComponents() as RectangularBodyComponent[];
   }
 }

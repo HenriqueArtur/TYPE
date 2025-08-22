@@ -1,5 +1,5 @@
 import { type Body, Body as MatterBody } from "matter-js";
-import type { GameComponent } from "..";
+import type { PhysicsComponent } from "../PhysicsComponent";
 
 export interface BodyComponentData {
   is_static?: boolean;
@@ -8,7 +8,7 @@ export interface BodyComponentData {
   density?: number;
 }
 
-export abstract class BodyComponent implements GameComponent {
+export abstract class BodyComponent implements PhysicsComponent {
   static readonly _type: string;
   abstract readonly type: string;
   static readonly prefix: string;
@@ -35,6 +35,41 @@ export abstract class BodyComponent implements GameComponent {
 
   setPosition(x: number, y: number): void {
     MatterBody.setPosition(this.body, { x, y });
+  }
+
+  // PhysicsComponent interface implementation
+  getPosition(): { x: number; y: number } {
+    return { x: this.body.position.x, y: this.body.position.y };
+  }
+
+  setRotation(angle: number): void {
+    MatterBody.setAngle(this.body, angle);
+  }
+
+  getRotation(): number {
+    return this.body.angle;
+  }
+
+  applyForce(force: { x: number; y: number }, point?: { x: number; y: number }): void {
+    const applyPoint = point ?? this.body.position;
+    MatterBody.applyForce(this.body, applyPoint, force);
+  }
+
+  setVelocity(velocity: { x: number; y: number }): void {
+    MatterBody.setVelocity(this.body, velocity);
+  }
+
+  getVelocity(): { x: number; y: number } {
+    return { x: this.body.velocity.x, y: this.body.velocity.y };
+  }
+
+  isStatic(): boolean {
+    return this.body.isStatic;
+  }
+
+  setStatic(isStatic: boolean): void {
+    this.is_static = isStatic;
+    MatterBody.setStatic(this.body, isStatic);
   }
 
   destroy(): void {

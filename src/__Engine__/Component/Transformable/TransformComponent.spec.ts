@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Angle } from "../Utils/Angle";
+import { Angle } from "../../Utils/Angle";
 import { TransformComponent, type TransformComponentData } from "./TransformComponent";
 
 describe("TransformComponent", () => {

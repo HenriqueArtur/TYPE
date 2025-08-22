@@ -1,7 +1,6 @@
-import { BodyComponent, RectangularBodyComponent } from "./Body";
-import { SpriteComponent } from "./SpriteComponent";
-import { TextureComponent } from "./TextureComponent";
-import { TransformComponent } from "./TransformComponent";
+import { SpriteComponent, TextureComponent } from "./Drawable";
+import { BodyComponent, RectangularBodyComponent } from "./Physics";
+import { TransformComponent } from "./Transformable";
 
 export abstract class GameComponent {
   static readonly _type: string;
@@ -42,6 +41,12 @@ const COMPONENT_CLASSES: Record<ComponentType, (typeof GameComponent)["jsonToGam
   RectangularBodyComponent: RectangularBodyComponent.jsonToGameObject,
 };
 
+export type { DrawableComponent } from "./DrawableComponent";
+export type { PhysicsComponent } from "./PhysicsComponent";
+// Export component type interfaces
+export type { TransformableComponent } from "./TransformableComponent";
+
+// Export concrete components
 export {
   SpriteComponent,
   TextureComponent,

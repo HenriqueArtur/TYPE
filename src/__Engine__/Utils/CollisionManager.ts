@@ -1,4 +1,4 @@
-import type { RectangularBodyComponent } from "../Component/Body";
+import type { RectangularBodyComponent } from "../Component/Physics";
 
 export interface CollidableGameObject {
   body: RectangularBodyComponent;
