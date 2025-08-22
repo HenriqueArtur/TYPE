@@ -1,31 +1,69 @@
-import type { SpriteComponent } from "../Component/Drawable/SpriteComponent";
+import type { DrawableComponent } from "../Component/DrawableComponent";
 
 export class RenderEngine {
-  private sprites: SpriteComponent[] = [];
+  private drawables: DrawableComponent[] = [];
 
-  addSprite(sprite: SpriteComponent): void {
-    if (!this.sprites.includes(sprite)) {
-      this.sprites.push(sprite);
+  addDrawable(drawable: DrawableComponent): void {
+    if (!this.drawables.includes(drawable)) {
+      this.drawables.push(drawable);
     }
   }
 
-  removeSprite(sprite: SpriteComponent): void {
-    const index = this.sprites.indexOf(sprite);
+  removeDrawable(drawable: DrawableComponent): void {
+    const index = this.drawables.indexOf(drawable);
     if (index > -1) {
-      this.sprites.splice(index, 1);
+      this.drawables.splice(index, 1);
     }
   }
 
-  getSprites(): SpriteComponent[] {
-    return [...this.sprites];
+  getDrawables(): DrawableComponent[] {
+    return [...this.drawables];
   }
 
-  async loadAllSprites(): Promise<void> {
-    await Promise.all(this.sprites.map((sprite) => sprite.load()));
+  getVisibleDrawables(): DrawableComponent[] {
+    return this.drawables.filter((drawable) => drawable.isVisible());
+  }
+
+  async loadAllDrawables(): Promise<void> {
+    // Load drawable components that have a load method (like SpriteComponent)
+    const loadPromises = this.drawables
+      .filter((drawable) => "load" in drawable && typeof drawable.load === "function")
+      .map((drawable) => (drawable as unknown as { load: () => Promise<void> }).load());
+
+    await Promise.all(loadPromises);
+  }
+
+  updateVisuals(data: Record<string, unknown>): void {
+    this.drawables.forEach((drawable) => {
+      drawable.updateVisual(data);
+    });
+  }
+
+  setAllVisible(visible: boolean): void {
+    this.drawables.forEach((drawable) => {
+      drawable.setVisible(visible);
+    });
   }
 
   destroy(): void {
-    // Clear all sprites
-    this.sprites.length = 0;
+    // Clear all drawables
+    this.drawables.length = 0;
+  }
+
+  // Legacy methods for backward compatibility
+  addSprite(sprite: DrawableComponent): void {
+    this.addDrawable(sprite);
+  }
+
+  removeSprite(sprite: DrawableComponent): void {
+    this.removeDrawable(sprite);
+  }
+
+  getSprites(): DrawableComponent[] {
+    return this.getDrawables();
+  }
+
+  async loadAllSprites(): Promise<void> {
+    return this.loadAllDrawables();
   }
 }

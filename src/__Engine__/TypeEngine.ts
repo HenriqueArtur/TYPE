@@ -1,4 +1,6 @@
+import type { DrawableComponent } from "./Component/DrawableComponent";
 import type { RectangularBodyComponent } from "./Component/Physics/RectangularBodyComponent";
+import type { PhysicsComponent } from "./Component/PhysicsComponent";
 import type { GameObject } from "./GameObject";
 import type { Mouse } from "./InputDevices/Mouse";
 import { PhysicsWorldManager } from "./Physics";
@@ -40,14 +42,14 @@ export class TypeEngine {
     // Clear and reinitialize physics
     this.physicsWorldManager = new PhysicsWorldManager();
 
-    // Add all sprites to render engine
-    scene.components.sprites.forEach((sprite) => {
-      this.renderEngine.addSprite(sprite);
+    // Add all drawable components to render engine
+    scene.components.sprites.forEach((drawable) => {
+      this.renderEngine.addDrawable(drawable);
     });
 
-    // Add all bodies to physics world
-    scene.components.bodies.forEach((body) => {
-      this.physicsWorldManager.addBodyComponent(body);
+    // Add all physics components to physics world
+    scene.components.bodies.forEach((physicsComponent) => {
+      this.physicsWorldManager.addPhysicsComponent(physicsComponent);
     });
   }
 
@@ -71,17 +73,30 @@ export class TypeEngine {
       // Update scene (collision detection and game object management)
       const bodiesToRemove = this.currentScene.update(deltaTime);
 
-      // Remove destroyed bodies from physics world
+      // Remove destroyed physics components from physics world
       if (bodiesToRemove) {
-        bodiesToRemove.forEach((body) => {
-          this.physicsWorldManager.removeBodyComponent(body);
+        bodiesToRemove.forEach((physicsComponent) => {
+          this.physicsWorldManager.removePhysicsComponent(physicsComponent);
         });
       }
     }
   }
 
+  removePhysicsComponent(component: PhysicsComponent): void {
+    this.physicsWorldManager.removePhysicsComponent(component);
+  }
+
+  addDrawableComponent(component: DrawableComponent): void {
+    this.renderEngine.addDrawable(component);
+  }
+
+  removeDrawableComponent(component: DrawableComponent): void {
+    this.renderEngine.removeDrawable(component);
+  }
+
+  // Legacy method for backward compatibility
   removeBodyFromPhysics(body: RectangularBodyComponent): void {
-    this.physicsWorldManager.removeBodyComponent(body);
+    this.physicsWorldManager.removePhysicsComponent(body);
   }
 
   startGameLoop(updateCallback?: (deltaTime: number) => void, mouse?: Mouse): void {
