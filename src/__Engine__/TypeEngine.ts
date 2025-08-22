@@ -1,23 +1,22 @@
 import type { RectangularBodyComponent } from "./Component/Body/RectangularBodyComponent";
-import type { SpriteComponent } from "./Component/SpriteComponent";
 import type { GameObject } from "./GameObject";
 import type { Mouse } from "./InputDevices/Mouse";
-import type { PhysicsWorldManager } from "./Physics";
+import { PhysicsWorldManager } from "./Physics";
 import { RenderEngine } from "./Render";
 import type { GameScene } from "./Scene";
-import { Angle } from "./Utils/Angle";
 
 export class TypeEngine {
   private static instance: TypeEngine | null = null;
   private currentScene: GameScene | null = null;
   private renderEngine: RenderEngine;
-  private spriteBodyLinks = new Map<SpriteComponent, RectangularBodyComponent>();
+  private physicsWorldManager: PhysicsWorldManager;
   private gameLoopId: number | null = null;
   private lastTime: number = 0;
 
   private constructor() {
     // Private constructor to prevent direct instantiation
     this.renderEngine = new RenderEngine();
+    this.physicsWorldManager = new PhysicsWorldManager();
   }
 
   static getInstance(): TypeEngine {
@@ -37,22 +36,18 @@ export class TypeEngine {
     // Clear previous render data
     this.renderEngine.destroy();
     this.renderEngine = new RenderEngine();
-    this.spriteBodyLinks.clear();
+
+    // Clear and reinitialize physics
+    this.physicsWorldManager = new PhysicsWorldManager();
 
     // Add all sprites to render engine
     scene.components.sprites.forEach((sprite) => {
       this.renderEngine.addSprite(sprite);
     });
 
-    // Link sprites to their corresponding bodies for render updates
-    scene.gameObjects.forEach((obj) => {
-      if ("sprite" in obj && "body" in obj) {
-        const gameObj = obj as unknown as {
-          sprite: SpriteComponent;
-          body: RectangularBodyComponent;
-        };
-        this.spriteBodyLinks.set(gameObj.sprite, gameObj.body);
-      }
+    // Add all bodies to physics world
+    scene.components.bodies.forEach((body) => {
+      this.physicsWorldManager.addBodyComponent(body);
     });
   }
 
@@ -60,8 +55,8 @@ export class TypeEngine {
     return this.currentScene;
   }
 
-  getPhysicsManager(): PhysicsWorldManager | null {
-    return this.currentScene?.physicsWorldManager ?? null;
+  getPhysicsManager(): PhysicsWorldManager {
+    return this.physicsWorldManager;
   }
 
   getRenderEngine(): RenderEngine {
@@ -70,26 +65,23 @@ export class TypeEngine {
 
   update(deltaTime: number): void {
     if (this.currentScene) {
-      this.currentScene.update(deltaTime);
-      // Update sprite positions based on physics
-      this.updateSpritePositions();
+      // Update physics world
+      this.physicsWorldManager.update(deltaTime);
+
+      // Update scene (collision detection and game object management)
+      const bodiesToRemove = this.currentScene.update(deltaTime);
+
+      // Remove destroyed bodies from physics world
+      if (bodiesToRemove) {
+        bodiesToRemove.forEach((body) => {
+          this.physicsWorldManager.removeBodyComponent(body);
+        });
+      }
     }
   }
 
-  private updateSpritePositions(): void {
-    // Sync sprites with their linked physics bodies
-    for (const [sprite, bodyComponent] of this.spriteBodyLinks) {
-      const body = bodyComponent.getBody();
-
-      // Update sprite transform to match physics body position and rotation
-      sprite.transform({
-        position: {
-          x: body.position.x,
-          y: body.position.y,
-        },
-        rotation: Angle.fromRadians(body.angle),
-      });
-    }
+  removeBodyFromPhysics(body: RectangularBodyComponent): void {
+    this.physicsWorldManager.removeBodyComponent(body);
   }
 
   startGameLoop(updateCallback?: (deltaTime: number) => void, mouse?: Mouse): void {
@@ -130,7 +122,6 @@ export class TypeEngine {
   destroy(): void {
     this.stopGameLoop();
     this.renderEngine.destroy();
-    this.spriteBodyLinks.clear();
     this.currentScene = null;
   }
 }

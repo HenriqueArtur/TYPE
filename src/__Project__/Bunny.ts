@@ -21,11 +21,16 @@ export class Bunny extends GameObject {
   update({ deltaTime, mouse }: GameObjectUpdate) {
     const value = this.sprite._transform.value();
 
-    // Update body position to follow mouse (physics world will sync sprite)
+    // Update body position to follow mouse
     this.body.setPosition(mouse.position.x, mouse.position.y);
 
-    // Update rotation independently since physics doesn't control this for mouse following
+    // Sync sprite position with physics body
+    const body = this.body.getBody();
     this.sprite.transform({
+      position: {
+        x: body.position.x,
+        y: body.position.y,
+      },
       rotation: Angle.fromDegrees(value.rotation.degrees + 0.1 * deltaTime),
     });
   }

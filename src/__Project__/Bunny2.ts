@@ -17,7 +17,17 @@ export class Bunny2 extends GameObject {
     this.body = body;
   }
 
-  update(_update: GameObjectUpdate) {}
+  update(_update: GameObjectUpdate) {
+    // Sync sprite position with physics body
+    const body = this.body.getBody();
+    this.sprite.transform({
+      position: {
+        x: body.position.x,
+        y: body.position.y,
+      },
+      rotation: this.sprite._transform.value().rotation,
+    });
+  }
 
   destroy() {
     console.log(`${this.name} destroyed!`);

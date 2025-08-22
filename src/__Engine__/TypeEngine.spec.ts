@@ -87,20 +87,24 @@ describe("TypeEngine", () => {
   });
 
   describe("physics access", () => {
-    it("should return null physics manager when no scene is loaded", () => {
+    it("should return physics manager from TypeEngine", () => {
       const engine = TypeEngine.getInstance();
 
-      expect(engine.getPhysicsManager()).toBeNull();
+      const physicsManager = engine.getPhysicsManager();
+
+      expect(physicsManager).toBeDefined();
+      expect(physicsManager).toBe(engine.getPhysicsManager());
     });
 
-    it("should return physics manager from current scene", () => {
+    it("should return same physics manager instance", () => {
       const engine = TypeEngine.getInstance();
       const mockScene = createMockScene();
       engine.loadScene(mockScene);
 
-      const physicsManager = engine.getPhysicsManager();
+      const physicsManager1 = engine.getPhysicsManager();
+      const physicsManager2 = engine.getPhysicsManager();
 
-      expect(physicsManager).toBe(mockScene.physicsWorldManager);
+      expect(physicsManager1).toBe(physicsManager2);
     });
   });
 
@@ -286,6 +290,12 @@ function createMockScene(): GameScene {
     components: { sprites: [], bodies: [] },
     collisionManager: mockCollisionManager,
     physicsWorldManager: mockPhysicsWorldManager,
-    update: vi.fn(),
-  } as GameScene;
+    update: vi.fn().mockReturnValue([]),
+    getCollidableObjects: vi.fn().mockReturnValue([]),
+    getObjectsWithSprites: vi.fn().mockReturnValue([]),
+    getObjectsWithBodies: vi.fn().mockReturnValue([]),
+    getObjectsByType: vi.fn().mockReturnValue([]),
+    addGameObject: vi.fn(),
+    removeGameObject: vi.fn().mockReturnValue(null),
+  } as unknown as GameScene;
 }
