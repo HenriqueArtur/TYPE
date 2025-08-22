@@ -1,4 +1,4 @@
-import type { RectangularBodyComponent } from "./Component/Body/RectangularBodyComponent";
+import type { RectangularBodyComponent } from "./Component/Physics/RectangularBodyComponent";
 import type { GameObject } from "./GameObject";
 import type { Mouse } from "./InputDevices/Mouse";
 import { PhysicsWorldManager } from "./Physics";

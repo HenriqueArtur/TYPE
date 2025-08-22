@@ -1,4 +1,4 @@
-import type { RectangularBodyComponent } from "../Component/Body/RectangularBodyComponent";
+import type { RectangularBodyComponent } from "../Component/Physics/RectangularBodyComponent";
 import { PhysicsEngine, type PhysicsEngineOptions } from "./PhysicsEngine";
 
 export class PhysicsWorldManager {

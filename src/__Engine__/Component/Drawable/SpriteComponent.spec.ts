@@ -1,6 +1,6 @@
 import { Assets, Sprite, type Texture } from "pixi.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Angle } from "../Utils/Angle";
+import { Angle } from "../../Utils/Angle";
 import {
   SpriteComponent,
   type SpriteComponentData,

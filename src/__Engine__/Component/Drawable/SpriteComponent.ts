@@ -1,8 +1,11 @@
 import { Sprite } from "pixi.js";
-import { Angle } from "../Utils/Angle";
-import type { GameComponent } from ".";
+import { Angle } from "../../Utils/Angle";
+import type { DrawableComponent } from "../DrawableComponent";
+import {
+  TransformComponent,
+  type TransformComponentData,
+} from "../Transformable/TransformComponent";
 import { TextureComponent } from "./TextureComponent";
-import { TransformComponent, type TransformComponentData } from "./TransformComponent";
 
 export type SpriteComponentData = TransformComponentData & {
   texture: TextureComponent;
@@ -13,7 +16,7 @@ export type SpriteComponentDataJson = Omit<SpriteComponentData, "texture" | "rot
   readonly rotation: number;
 };
 
-export class SpriteComponent implements GameComponent {
+export class SpriteComponent implements DrawableComponent {
   static readonly _type = "SpriteComponent";
   readonly type = SpriteComponent._type;
   static readonly prefix = "SP";
@@ -64,6 +67,45 @@ export class SpriteComponent implements GameComponent {
 
   instance() {
     return this._instance as Sprite;
+  }
+
+  // DrawableComponent interface implementation
+  getDrawable(): Sprite | null {
+    return this._instance;
+  }
+
+  updateVisual(data: Record<string, unknown>): void {
+    if (this._instance) {
+      if (data.alpha !== undefined && typeof data.alpha === "number") {
+        this._instance.alpha = data.alpha;
+      }
+      if (data.tint !== undefined && typeof data.tint === "number") {
+        this._instance.tint = data.tint;
+      }
+      if (data.blendMode !== undefined && typeof data.blendMode === "string") {
+        // Handle blend mode if needed
+      }
+    }
+  }
+
+  isVisible(): boolean {
+    return this._instance?.visible ?? false;
+  }
+
+  setVisible(visible: boolean): void {
+    if (this._instance) {
+      this._instance.visible = visible;
+    }
+  }
+
+  getDimensions(): { width: number; height: number } | null {
+    if (this._instance) {
+      return {
+        width: this._instance.width,
+        height: this._instance.height,
+      };
+    }
+    return null;
   }
 
   destroy(): void {

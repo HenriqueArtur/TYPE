@@ -1,5 +1,8 @@
 import { createComponent, type RectangularBodyComponent, TextureComponent } from "../Component";
-import type { SpriteComponent, SpriteComponentDataJson } from "../Component/SpriteComponent";
+import type {
+  SpriteComponent,
+  SpriteComponentDataJson,
+} from "../Component/Drawable/SpriteComponent";
 import type { GameObject, GameObjectDataJson } from "../GameObject";
 import { ConcreteGameObject } from "../GameObject/ConcreteGameObject";
 import { type CollidableGameObject, CollisionManager } from "../Utils/CollisionManager";

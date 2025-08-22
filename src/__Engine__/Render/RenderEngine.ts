@@ -1,4 +1,4 @@
-import type { SpriteComponent } from "../Component/SpriteComponent";
+import type { SpriteComponent } from "../Component/Drawable/SpriteComponent";
 
 export class RenderEngine {
   private sprites: SpriteComponent[] = [];

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createComponent, TextureComponent } from "../Component";
-import type { SpriteComponent } from "../Component/SpriteComponent";
+import type { SpriteComponent } from "../Component/Drawable/SpriteComponent";
 import type { GameObject, GameObjectDataJson } from "../GameObject";
 import { ConcreteGameObject } from "../GameObject/ConcreteGameObject";
 import { generateId } from "../Utils/id";
