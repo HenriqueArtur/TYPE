@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { PhysicsWorldManager } from "./Engines";
 import type { Mouse } from "./InputDevices/Mouse";
-import type { PhysicsWorldManager } from "./Physics";
 import type { GameScene } from "./Scene";
 import { TypeEngine } from "./TypeEngine";
 import type { CollisionManager } from "./Utils/CollisionManager";

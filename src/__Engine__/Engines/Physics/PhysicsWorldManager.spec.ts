@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { RectangularBodyComponent } from "../Component/Physics/RectangularBodyComponent";
+import type { RectangularBodyComponent } from "../../Component/Physics/RectangularBodyComponent";
 import { PhysicsEngine } from "./PhysicsEngine";
 import { PhysicsWorldManager } from "./PhysicsWorldManager";
 

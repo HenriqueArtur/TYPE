@@ -6,9 +6,13 @@ import {
   TextureComponent,
   TransformComponent,
 } from "./Component";
+import {
+  PhysicsEngine,
+  type PhysicsEngineOptions,
+  PhysicsWorldManager,
+  RenderEngine,
+} from "./Engines";
 import { ConcreteGameObject, GameObject } from "./GameObject";
-import { PhysicsEngine, type PhysicsEngineOptions, PhysicsWorldManager } from "./Physics";
-import { RenderEngine } from "./Render";
 import { GameScene } from "./Scene";
 import { TypeEngine } from "./TypeEngine";
 import { Angle } from "./Utils/Angle";

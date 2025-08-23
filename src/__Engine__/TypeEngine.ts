@@ -1,10 +1,9 @@
 import type { DrawableComponent } from "./Component/DrawableComponent";
 import type { RectangularBodyComponent } from "./Component/Physics/RectangularBodyComponent";
 import type { PhysicsComponent } from "./Component/PhysicsComponent";
+import { PhysicsWorldManager, RenderEngine } from "./Engines";
 import type { GameObject } from "./GameObject";
 import type { Mouse } from "./InputDevices/Mouse";
-import { PhysicsWorldManager } from "./Physics";
-import { RenderEngine } from "./Render";
 import type { GameScene } from "./Scene";
 
 export class TypeEngine {

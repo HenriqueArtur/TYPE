@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { DrawableComponent } from "../Component/DrawableComponent";
+import type { DrawableComponent } from "../../Component/DrawableComponent";
 import { RenderEngine } from "./RenderEngine";
 
 describe("RenderEngine", () => {

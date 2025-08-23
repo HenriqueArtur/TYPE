@@ -1,4 +1,4 @@
-import type { DrawableComponent } from "../Component/DrawableComponent";
+import type { DrawableComponent } from "../../Component/DrawableComponent";
 
 export class RenderEngine {
   private drawables: DrawableComponent[] = [];

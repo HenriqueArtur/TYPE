@@ -1,5 +1,5 @@
 import { type Body, Engine, World } from "matter-js";
-import type { PhysicsComponent } from "../Component/PhysicsComponent";
+import type { PhysicsComponent } from "../../Component/PhysicsComponent";
 
 export interface PhysicsEngineOptions {
   gravity?: {
