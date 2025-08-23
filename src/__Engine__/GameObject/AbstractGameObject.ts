@@ -1,5 +1,5 @@
 import type { GameComponent } from "../Component";
-import type { Mouse } from "../InputDevices/Mouse";
+import type { Mouse } from "../InputEngine/Mouse";
 import { generateId } from "../Utils/id";
 
 export type GameObjectData = {

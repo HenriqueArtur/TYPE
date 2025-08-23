@@ -3,7 +3,7 @@ import type { RectangularBodyComponent } from "./Component/Physics/RectangularBo
 import type { PhysicsComponent } from "./Component/PhysicsComponent";
 import { PhysicsWorldManager, RenderEngine } from "./Engines";
 import type { GameObject } from "./GameObject";
-import type { Mouse } from "./InputDevices/Mouse";
+import type { Mouse } from "./InputEngine/Mouse";
 import type { GameScene } from "./Scene";
 
 export class TypeEngine {

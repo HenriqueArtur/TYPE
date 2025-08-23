@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { Mouse } from "../../__Engine__/InputDevices/Mouse";
+import { Mouse } from "../../__Engine__/InputEngine/Mouse";
 import { TypeEngine } from "../../__Engine__/TypeEngine";
 import INITIAL_SCENE from "../../__Project__";
 

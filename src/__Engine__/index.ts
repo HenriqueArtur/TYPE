@@ -13,6 +13,7 @@ import {
   RenderEngine,
 } from "./Engines";
 import { ConcreteGameObject, GameObject } from "./GameObject";
+import { Mouse } from "./InputEngine";
 import { GameScene } from "./Scene";
 import { TypeEngine } from "./TypeEngine";
 import { Angle } from "./Utils/Angle";
@@ -33,6 +34,7 @@ export {
   PhysicsEngine,
   PhysicsWorldManager,
   type PhysicsEngineOptions,
+  Mouse,
   Angle,
   generateId,
 };
