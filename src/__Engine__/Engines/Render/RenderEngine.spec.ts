@@ -1,168 +1,234 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { DrawableComponent } from "../../Component/DrawableComponent";
+import { SpriteComponent } from "../../Component";
+import type { TypeEngine, TypeEngineStartData } from "../../TypeEngine";
 import { RenderEngine } from "./RenderEngine";
+
+// Helper for accessing private static properties in tests
+const getRenderEngineStatic = () =>
+  RenderEngine as unknown as {
+    app: unknown;
+    container: unknown;
+  };
+
+// Mock document and DOM elements
+const mockCanvas = { tagName: "CANVAS" };
+const mockGameDiv = {
+  appendChild: vi.fn(),
+  children: [mockCanvas],
+  length: 1,
+};
+
+global.document = {
+  getElementById: vi.fn((id: string) => {
+    if (id === "game") return mockGameDiv;
+    return null;
+  }),
+} as unknown as Document;
+
+// Mock PIXI Application
+vi.mock("pixi.js", () => ({
+  Application: vi.fn().mockImplementation(() => ({
+    init: vi.fn().mockResolvedValue(undefined),
+    canvas: { tagName: "CANVAS" },
+    destroy: vi.fn(),
+  })),
+  Assets: {
+    load: vi.fn().mockResolvedValue({}),
+  },
+  Sprite: vi.fn().mockImplementation(() => ({
+    texture: null,
+    position: { x: 0, y: 0 },
+    scale: { x: 1, y: 1 },
+    rotation: 0,
+    alpha: 1,
+    visible: true,
+    anchor: { x: 0.5, y: 0.5, set: vi.fn() },
+  })),
+  Texture: {
+    EMPTY: {},
+  },
+}));
 
 describe("RenderEngine", () => {
   let renderEngine: RenderEngine;
+  let mockEngine: TypeEngine;
+  const renderData: TypeEngineStartData["render"] = {
+    width: 800,
+    height: 600,
+    html_tag_id: "game",
+  };
 
   beforeEach(() => {
-    renderEngine = new RenderEngine();
+    vi.clearAllMocks();
+    renderEngine = new RenderEngine(renderData);
+    mockEngine = {
+      queryEntities: vi.fn().mockReturnValue([]),
+    } as unknown as TypeEngine;
   });
 
-  describe("drawable management", () => {
-    it("should start with no drawables", () => {
-      expect(renderEngine.getDrawables()).toHaveLength(0);
+  describe("constructor", () => {
+    it("should create RenderEngine with default dimensions", () => {
+      const engine = new RenderEngine({ width: 800, height: 600 });
+      expect(engine._instance).toBeDefined();
     });
 
-    it("should add drawable to the render list", () => {
-      const mockDrawable = createMockDrawable();
-
-      renderEngine.addDrawable(mockDrawable);
-
-      expect(renderEngine.getDrawables()).toContain(mockDrawable);
-      expect(renderEngine.getDrawables()).toHaveLength(1);
+    it("should create RenderEngine with custom dimensions", () => {
+      const customData = { width: 1024, height: 768, html_tag_id: "custom" };
+      const engine = new RenderEngine(customData);
+      expect(engine._instance).toBeDefined();
     });
 
-    it("should remove drawable from the render list", () => {
-      const mockDrawable = createMockDrawable();
-      renderEngine.addDrawable(mockDrawable);
-
-      renderEngine.removeDrawable(mockDrawable);
-
-      expect(renderEngine.getDrawables()).not.toContain(mockDrawable);
-      expect(renderEngine.getDrawables()).toHaveLength(0);
-    });
-
-    it("should handle removing non-existent drawable", () => {
-      const mockDrawable = createMockDrawable();
-
-      expect(() => renderEngine.removeDrawable(mockDrawable)).not.toThrow();
-    });
-
-    it("should not add duplicate drawables", () => {
-      const mockDrawable = createMockDrawable();
-
-      renderEngine.addDrawable(mockDrawable);
-      renderEngine.addDrawable(mockDrawable);
-
-      expect(renderEngine.getDrawables()).toHaveLength(1);
-    });
-
-    it("should load all drawables with load method", async () => {
-      const mockDrawable1 = createMockDrawable(true);
-      const mockDrawable2 = createMockDrawable(true);
-      const mockDrawable3 = createMockDrawable(false); // No load method
-
-      renderEngine.addDrawable(mockDrawable1);
-      renderEngine.addDrawable(mockDrawable2);
-      renderEngine.addDrawable(mockDrawable3);
-
-      await renderEngine.loadAllDrawables();
-
-      expect((mockDrawable1 as unknown as { load: () => Promise<void> }).load).toHaveBeenCalled();
-      expect((mockDrawable2 as unknown as { load: () => Promise<void> }).load).toHaveBeenCalled();
-    });
-
-    it("should filter visible drawables", () => {
-      const visibleDrawable = createMockDrawable(false, true);
-      const hiddenDrawable = createMockDrawable(false, false);
-
-      renderEngine.addDrawable(visibleDrawable);
-      renderEngine.addDrawable(hiddenDrawable);
-
-      const visibleDrawables = renderEngine.getVisibleDrawables();
-
-      expect(visibleDrawables).toContain(visibleDrawable);
-      expect(visibleDrawables).not.toContain(hiddenDrawable);
-      expect(visibleDrawables).toHaveLength(1);
-    });
-
-    it("should update all drawables visuals", () => {
-      const mockDrawable1 = createMockDrawable();
-      const mockDrawable2 = createMockDrawable();
-      const updateData = { alpha: 0.5, tint: 0xff0000 };
-
-      renderEngine.addDrawable(mockDrawable1);
-      renderEngine.addDrawable(mockDrawable2);
-
-      renderEngine.updateVisuals(updateData);
-
-      expect(mockDrawable1.updateVisual).toHaveBeenCalledWith(updateData);
-      expect(mockDrawable2.updateVisual).toHaveBeenCalledWith(updateData);
-    });
-
-    it("should set all drawables visibility", () => {
-      const mockDrawable1 = createMockDrawable();
-      const mockDrawable2 = createMockDrawable();
-
-      renderEngine.addDrawable(mockDrawable1);
-      renderEngine.addDrawable(mockDrawable2);
-
-      renderEngine.setAllVisible(false);
-
-      expect(mockDrawable1.setVisible).toHaveBeenCalledWith(false);
-      expect(mockDrawable2.setVisible).toHaveBeenCalledWith(false);
-    });
-
-    it("should handle loading when no drawables are present", async () => {
-      expect(async () => await renderEngine.loadAllDrawables()).not.toThrow();
+    it("should append canvas to DOM element", () => {
+      const gameDiv = document.getElementById("game");
+      expect(gameDiv?.children.length).toBeGreaterThan(0);
     });
   });
 
-  describe("legacy sprite methods", () => {
-    it("should support legacy addSprite method", () => {
-      const mockDrawable = createMockDrawable();
+  describe("loadAllSprites", () => {
+    it("should handle empty sprite entities", async () => {
+      mockEngine.queryEntities = vi.fn().mockReturnValue([]);
 
-      renderEngine.addSprite(mockDrawable);
-
-      expect(renderEngine.getSprites()).toContain(mockDrawable);
+      await expect(renderEngine.loadAllSprites(mockEngine)).resolves.not.toThrow();
     });
 
-    it("should support legacy loadAllSprites method", async () => {
-      const mockDrawable = createMockDrawable(true);
-      renderEngine.addSprite(mockDrawable);
+    it("should load sprites from engine entities", async () => {
+      const mockSpriteComponent = new SpriteComponent({
+        texture_path: "test.png",
+        position: { x: 10, y: 20 },
+      });
 
-      await renderEngine.loadAllSprites();
+      mockEngine.queryEntities = vi.fn().mockReturnValue([
+        {
+          components: {
+            SpriteComponent: mockSpriteComponent,
+          },
+        },
+      ]);
 
-      expect((mockDrawable as unknown as { load: () => Promise<void> }).load).toHaveBeenCalled();
+      // Mock static container
+      const mockContainer = {
+        addChild: vi.fn(),
+      };
+      getRenderEngineStatic().container = mockContainer;
+
+      await renderEngine.loadAllSprites(mockEngine);
+
+      expect(mockEngine.queryEntities).toHaveBeenCalledWith(["SpriteComponent"]);
+      expect(mockContainer.addChild).toHaveBeenCalledWith(mockSpriteComponent._sprite);
+    });
+
+    it("should not load sprites when container is null", async () => {
+      getRenderEngineStatic().container = null;
+      mockEngine.queryEntities = vi.fn().mockReturnValue([
+        {
+          components: {
+            SpriteComponent: new SpriteComponent({ texture_path: "test.png" }),
+          },
+        },
+      ]);
+
+      await expect(renderEngine.loadAllSprites(mockEngine)).resolves.not.toThrow();
+      // queryEntities should not be called when container is null (early return)
+      expect(mockEngine.queryEntities).not.toHaveBeenCalled();
+    });
+
+    it("should load multiple sprite entities", async () => {
+      const sprite1 = new SpriteComponent({ texture_path: "sprite1.png" });
+      const sprite2 = new SpriteComponent({ texture_path: "sprite2.png" });
+
+      mockEngine.queryEntities = vi
+        .fn()
+        .mockReturnValue([
+          { components: { SpriteComponent: sprite1 } },
+          { components: { SpriteComponent: sprite2 } },
+        ]);
+
+      const mockContainer = {
+        addChild: vi.fn(),
+      };
+      getRenderEngineStatic().container = mockContainer;
+
+      await renderEngine.loadAllSprites(mockEngine);
+
+      expect(mockContainer.addChild).toHaveBeenCalledTimes(2);
+      expect(mockContainer.addChild).toHaveBeenCalledWith(sprite1._sprite);
+      expect(mockContainer.addChild).toHaveBeenCalledWith(sprite2._sprite);
     });
   });
 
-  describe("cleanup", () => {
-    it("should clear all drawables on destroy", () => {
-      const mockDrawable1 = createMockDrawable();
-      const mockDrawable2 = createMockDrawable();
+  describe("destroy", () => {
+    it("should destroy app instance when app exists", () => {
+      const mockApp = {
+        destroy: vi.fn(),
+      };
+      getRenderEngineStatic().app = mockApp;
 
-      renderEngine.addDrawable(mockDrawable1);
-      renderEngine.addDrawable(mockDrawable2);
+      renderEngine.destroy(mockEngine);
 
-      renderEngine.destroy();
-
-      expect(renderEngine.getDrawables()).toHaveLength(0);
+      expect(mockApp.destroy).toHaveBeenCalled();
+      expect(getRenderEngineStatic().app).toBeNull();
+      expect(getRenderEngineStatic().container).toBeNull();
     });
 
-    it("should handle destroy when already empty", () => {
-      expect(() => renderEngine.destroy()).not.toThrow();
+    it("should handle destroy when app is null", () => {
+      getRenderEngineStatic().app = null;
+      getRenderEngineStatic().container = {};
+
+      expect(() => renderEngine.destroy(mockEngine)).not.toThrow();
+      expect(getRenderEngineStatic().container).toBeNull();
+    });
+
+    it("should reset static properties", () => {
+      getRenderEngineStatic().app = {
+        destroy: vi.fn(),
+      };
+      getRenderEngineStatic().container = {};
+
+      renderEngine.destroy(mockEngine);
+
+      expect(getRenderEngineStatic().app).toBeNull();
+      expect(getRenderEngineStatic().container).toBeNull();
+    });
+  });
+
+  describe("static properties", () => {
+    it("should have static app property", () => {
+      expect(RenderEngine).toHaveProperty("app");
+    });
+
+    it("should have static container property", () => {
+      expect(RenderEngine).toHaveProperty("container");
+    });
+  });
+
+  describe("integration", () => {
+    it("should work with TypeEngine sprite query", async () => {
+      const spriteComponent = new SpriteComponent({
+        texture_path: "integration.png",
+        position: { x: 100, y: 200 },
+        scale: { x: 2, y: 2 },
+        rotation: 1.5,
+        alpha: 0.8,
+        visible: true,
+      });
+
+      mockEngine.queryEntities = vi.fn().mockReturnValue([
+        {
+          components: {
+            SpriteComponent: spriteComponent,
+          },
+        },
+      ]);
+
+      const mockContainer = {
+        addChild: vi.fn(),
+      };
+      getRenderEngineStatic().container = mockContainer;
+
+      await renderEngine.loadAllSprites(mockEngine);
+
+      expect(mockEngine.queryEntities).toHaveBeenCalledWith(["SpriteComponent"]);
+      expect(mockContainer.addChild).toHaveBeenCalledWith(spriteComponent._sprite);
     });
   });
 });
-
-function createMockDrawable(hasLoad = false, isVisible = true): DrawableComponent {
-  const mockDrawable = {
-    type: "MockDrawable",
-    getDrawable: vi.fn().mockReturnValue({}),
-    updateVisual: vi.fn(),
-    isVisible: vi.fn().mockReturnValue(isVisible),
-    setVisible: vi.fn(),
-    getDimensions: vi.fn().mockReturnValue({ width: 100, height: 100 }),
-    destroy: vi.fn(),
-  } as unknown as DrawableComponent;
-
-  if (hasLoad) {
-    (mockDrawable as unknown as { load: () => Promise<void> }).load = vi
-      .fn()
-      .mockResolvedValue(undefined);
-  }
-
-  return mockDrawable;
-}

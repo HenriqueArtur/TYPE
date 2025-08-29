@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/complexity/useLiteralKeys: false positive */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EventBus } from "./EventBus";
-import type { System } from "./Systems";
+import type { System } from "./Systems/System";
 import { TypeEngine } from "./TypeEngine";
 
 describe("TypeEngine", () => {

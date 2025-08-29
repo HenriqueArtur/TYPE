@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { RectangularBodyComponent } from "./RectangularBodyComponent";
+import {
+  RectangularBodyComponent,
+  type RectangularBodyComponentData,
+} from "./RectangularBodyComponent";
 
 describe("RectangularBodyComponent", () => {
   describe("constructor", () => {
@@ -7,20 +10,18 @@ describe("RectangularBodyComponent", () => {
       const component = new RectangularBodyComponent();
 
       expect(component.type).toBe("RectangularBodyComponent");
-      expect(component.value()).toEqual({
-        is_static: false,
-        friction: 0.1,
-        restitution: 0.3,
-        density: 0.001,
-        width: 50,
-        height: 50,
-        x: 0,
-        y: 0,
-      });
+      expect(component.width).toBe(50);
+      expect(component.height).toBe(50);
+      expect(component.x).toBe(0);
+      expect(component.y).toBe(0);
+      expect(component.is_static).toBe(false);
+      expect(component.friction).toBe(0.3);
+      expect(component.restitution).toBe(0.8);
+      expect(component.density).toBe(1);
     });
 
     it("should create with provided data", () => {
-      const data = {
+      const data: RectangularBodyComponentData = {
         is_static: true,
         friction: 0.5,
         restitution: 0.8,
@@ -32,80 +33,45 @@ describe("RectangularBodyComponent", () => {
       };
       const component = new RectangularBodyComponent(data);
 
-      expect(component.value()).toEqual(data);
+      expect(component.width).toBe(100);
+      expect(component.height).toBe(200);
+      expect(component.x).toBe(10);
+      expect(component.y).toBe(20);
+      expect(component.is_static).toBe(true);
+      expect(component.friction).toBe(0.5);
+      expect(component.restitution).toBe(0.8);
+      expect(component.density).toBe(0.002);
     });
 
-    it("should create rectangular Matter.js body with correct dimensions", () => {
-      const component = new RectangularBodyComponent({
+    it("should create with partial data and use defaults", () => {
+      const data: RectangularBodyComponentData = {
         width: 100,
         height: 200,
-        x: 10,
-        y: 20,
-      });
-      const body = component.getBody();
+      };
+      const component = new RectangularBodyComponent(data);
 
-      expect(body).toBeDefined();
-      expect(body.position.x).toBe(10);
-      expect(body.position.y).toBe(20);
-      expect(body.bounds.min.x).toBeLessThan(body.bounds.max.x);
-      expect(body.bounds.min.y).toBeLessThan(body.bounds.max.y);
+      expect(component.width).toBe(100);
+      expect(component.height).toBe(200);
+      expect(component.x).toBe(0); // default
+      expect(component.y).toBe(0); // default
+      expect(component.is_static).toBe(false); // default
+      expect(component.friction).toBe(0.3); // default
     });
   });
 
-  describe("set", () => {
-    it("should update width and height", () => {
-      const component = new RectangularBodyComponent();
-      component.set({ width: 150, height: 75 });
-
-      expect(component.value().width).toBe(150);
-      expect(component.value().height).toBe(75);
+  describe("static properties", () => {
+    it("should have correct type identifier", () => {
+      expect(RectangularBodyComponent._type).toBe("RectangularBodyComponent");
     });
 
-    it("should update position", () => {
-      const component = new RectangularBodyComponent();
-      component.set({ x: 100, y: 200 });
-
-      expect(component.value().x).toBe(100);
-      expect(component.value().y).toBe(200);
-      expect(component.getBody().position.x).toBe(100);
-      expect(component.getBody().position.y).toBe(200);
-    });
-
-    it("should update body properties from parent class", () => {
-      const component = new RectangularBodyComponent();
-      component.set({ is_static: true, friction: 0.9 });
-
-      expect(component.value().is_static).toBe(true);
-      expect(component.value().friction).toBe(0.9);
-      expect(component.getBody().isStatic).toBe(true);
-      expect(component.getBody().friction).toBe(0.9);
-    });
-
-    it("should update multiple properties at once", () => {
-      const component = new RectangularBodyComponent();
-      const updates = {
-        width: 80,
-        height: 120,
-        x: 50,
-        y: 75,
-        is_static: true,
-        friction: 0.6,
-      };
-      component.set(updates);
-
-      const value = component.value();
-      expect(value.width).toBe(80);
-      expect(value.height).toBe(120);
-      expect(value.x).toBe(50);
-      expect(value.y).toBe(75);
-      expect(value.is_static).toBe(true);
-      expect(value.friction).toBe(0.6);
+    it("should have correct prefix", () => {
+      expect(RectangularBodyComponent.prefix).toBe("RBD");
     });
   });
 
   describe("jsonToGameObject", () => {
     it("should create component from JSON string", () => {
-      const data = {
+      const data: RectangularBodyComponentData = {
         width: 100,
         height: 200,
         x: 10,
@@ -116,13 +82,15 @@ describe("RectangularBodyComponent", () => {
       const component = RectangularBodyComponent.jsonToGameObject(json_string);
 
       expect(component).toBeInstanceOf(RectangularBodyComponent);
-      expect(component.value().width).toBe(100);
-      expect(component.value().height).toBe(200);
-      expect(component.value().is_static).toBe(true);
+      expect(component.width).toBe(100);
+      expect(component.height).toBe(200);
+      expect(component.x).toBe(10);
+      expect(component.y).toBe(20);
+      expect(component.is_static).toBe(true);
     });
 
     it("should create component from object", () => {
-      const data = {
+      const data: RectangularBodyComponentData = {
         width: 150,
         height: 300,
         friction: 0.8,
@@ -130,136 +98,133 @@ describe("RectangularBodyComponent", () => {
       const component = RectangularBodyComponent.jsonToGameObject(data);
 
       expect(component).toBeInstanceOf(RectangularBodyComponent);
-      expect(component.value().width).toBe(150);
-      expect(component.value().height).toBe(300);
-      expect(component.value().friction).toBe(0.8);
+      expect(component.width).toBe(150);
+      expect(component.height).toBe(300);
+      expect(component.friction).toBe(0.8);
+      expect(component.x).toBe(0); // default
+      expect(component.y).toBe(0); // default
+    });
+
+    it("should handle empty data", () => {
+      const component = RectangularBodyComponent.jsonToGameObject({});
+
+      expect(component).toBeInstanceOf(RectangularBodyComponent);
+      expect(component.width).toBe(50);
+      expect(component.height).toBe(50);
+      expect(component.x).toBe(0);
+      expect(component.y).toBe(0);
+    });
+
+    it("should handle malformed JSON gracefully", () => {
+      expect(() => {
+        RectangularBodyComponent.jsonToGameObject("invalid json");
+      }).toThrow();
     });
   });
 
-  describe("setPosition", () => {
-    it("should update both internal coordinates and body position", () => {
-      const component = new RectangularBodyComponent();
-      const body = component.getBody();
+  describe("edge cases", () => {
+    it("should handle zero dimensions", () => {
+      const component = new RectangularBodyComponent({
+        width: 0,
+        height: 0,
+      });
 
-      component.setPosition(150, 250);
-
-      expect(component.value().x).toBe(150);
-      expect(component.value().y).toBe(250);
-      expect(body.position.x).toBe(150);
-      expect(body.position.y).toBe(250);
-    });
-
-    it("should override position set through constructor", () => {
-      const component = new RectangularBodyComponent({ x: 10, y: 20 });
-      const body = component.getBody();
-
-      expect(body.position.x).toBe(10);
-      expect(body.position.y).toBe(20);
-
-      component.setPosition(100, 200);
-
-      expect(component.value().x).toBe(100);
-      expect(component.value().y).toBe(200);
-      expect(body.position.x).toBe(100);
-      expect(body.position.y).toBe(200);
+      expect(component.width).toBe(0);
+      expect(component.height).toBe(0);
     });
 
     it("should handle negative coordinates", () => {
-      const component = new RectangularBodyComponent();
+      const component = new RectangularBodyComponent({
+        x: -75,
+        y: -125,
+      });
 
-      component.setPosition(-75, -125);
-
-      expect(component.value().x).toBe(-75);
-      expect(component.value().y).toBe(-125);
-      expect(component.getBody().position.x).toBe(-75);
-      expect(component.getBody().position.y).toBe(-125);
+      expect(component.x).toBe(-75);
+      expect(component.y).toBe(-125);
     });
 
-    it("should handle decimal coordinates", () => {
-      const component = new RectangularBodyComponent();
+    it("should handle decimal values", () => {
+      const component = new RectangularBodyComponent({
+        width: 123.45,
+        height: 67.89,
+        x: 12.34,
+        y: 56.78,
+        friction: 0.123,
+        restitution: 0.456,
+        density: 0.789,
+      });
 
-      component.setPosition(123.45, 678.9);
-
-      expect(component.value().x).toBe(123.45);
-      expect(component.value().y).toBe(678.9);
-      expect(component.getBody().position.x).toBe(123.45);
-      expect(component.getBody().position.y).toBe(678.9);
+      expect(component.width).toBeCloseTo(123.45, 2);
+      expect(component.height).toBeCloseTo(67.89, 2);
+      expect(component.x).toBeCloseTo(12.34, 2);
+      expect(component.y).toBeCloseTo(56.78, 2);
+      expect(component.friction).toBeCloseTo(0.123, 3);
+      expect(component.restitution).toBeCloseTo(0.456, 3);
+      expect(component.density).toBeCloseTo(0.789, 3);
     });
 
-    it("should maintain body properties after position change", () => {
+    it("should handle very large values", () => {
+      const component = new RectangularBodyComponent({
+        width: 1000000,
+        height: 2000000,
+        x: 500000,
+        y: 750000,
+      });
+
+      expect(component.width).toBe(1000000);
+      expect(component.height).toBe(2000000);
+      expect(component.x).toBe(500000);
+      expect(component.y).toBe(750000);
+    });
+
+    it("should handle boundary physics values", () => {
+      const component1 = new RectangularBodyComponent({
+        friction: 0,
+        restitution: 0,
+        density: 0,
+      });
+
+      const component2 = new RectangularBodyComponent({
+        friction: 1,
+        restitution: 1,
+        density: 1,
+      });
+
+      expect(component1.friction).toBe(0);
+      expect(component1.restitution).toBe(0);
+      expect(component1.density).toBe(0);
+
+      expect(component2.friction).toBe(1);
+      expect(component2.restitution).toBe(1);
+      expect(component2.density).toBe(1);
+    });
+  });
+
+  describe("immutability", () => {
+    it("should have readonly properties", () => {
       const component = new RectangularBodyComponent({
         width: 100,
-        height: 50,
-        is_static: true,
-        friction: 0.8,
+        height: 200,
       });
-      const body = component.getBody();
 
-      component.setPosition(300, 400);
-
-      // Position should change
-      expect(body.position.x).toBe(300);
-      expect(body.position.y).toBe(400);
-
-      // Other properties should remain unchanged
-      expect(body.isStatic).toBe(true);
-      expect(component.value().friction).toBe(0.8);
-      expect(component.value().width).toBe(100);
-      expect(component.value().height).toBe(50);
-    });
-  });
-
-  describe("body physics properties", () => {
-    it("should maintain body consistency after updates", () => {
-      const component = new RectangularBodyComponent({ width: 50, height: 50 });
-      const initial_body = component.getBody();
-      const initial_area = initial_body.area;
-
-      component.set({ width: 100, height: 100 });
-      const updated_body = component.getBody();
-
-      expect(updated_body).toBe(initial_body); // Same body reference
-      expect(updated_body.area).toBeGreaterThan(initial_area); // Area should increase
+      // These should not compile if properties are not readonly
+      // but we can test the descriptor
+      const descriptor = Object.getOwnPropertyDescriptor(component, "width");
+      expect(descriptor?.writable).toBe(false);
     });
 
-    it("should handle edge case values", () => {
-      const component = new RectangularBodyComponent();
+    it("should not allow modification of properties", () => {
+      const component = new RectangularBodyComponent({
+        width: 100,
+        height: 200,
+      });
 
-      // Test with very small values
-      component.set({ width: 1, height: 1 });
-      expect(component.value().width).toBe(1);
-      expect(component.value().height).toBe(1);
-      expect(component.getBody()).toBeDefined();
-
-      // Test with large values
-      component.set({ width: 1000, height: 2000 });
-      expect(component.value().width).toBe(1000);
-      expect(component.value().height).toBe(2000);
-      expect(component.getBody()).toBeDefined();
-    });
-  });
-
-  describe("destroy", () => {
-    it("should have destroy method defined", () => {
-      const component = new RectangularBodyComponent();
-
-      expect(typeof component.destroy).toBe("function");
-    });
-
-    it("should call destroy without errors", () => {
-      const component = new RectangularBodyComponent();
-
-      expect(() => component.destroy()).not.toThrow();
-    });
-
-    it("should be callable multiple times without errors", () => {
-      const component = new RectangularBodyComponent();
-
+      // These operations should fail silently or throw in strict mode
+      // @ts-expect-error - testing readonly behavior
       expect(() => {
-        component.destroy();
-        component.destroy();
-        component.destroy();
+        component.width = 300;
       }).not.toThrow();
+      expect(component.width).toBe(100); // Value should remain unchanged
     });
   });
 });

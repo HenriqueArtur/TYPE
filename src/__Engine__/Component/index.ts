@@ -1,4 +1,4 @@
-import { SpriteComponent, TextureComponent } from "./Drawable";
+import { SpriteComponent } from "./Drawable";
 import { BodyComponent, RectangularBodyComponent } from "./Physics";
 import { TransformComponent } from "./Transformable";
 
@@ -7,7 +7,6 @@ export abstract class GameComponent {
   static readonly prefix: string;
   abstract readonly type: string;
   static jsonToGameObject: JsonToGameObject;
-  abstract destroy(): void;
 }
 
 export type JsonToGameObject = (json: string | object) => GameComponent;
@@ -20,7 +19,6 @@ export type GameComponentJson = {
 
 export type ComponentType =
   | "SpriteComponent"
-  | "TextureComponent"
   | "TransformComponent"
   | "BodyComponent"
   | "RectangularBodyComponent";
@@ -35,7 +33,6 @@ function createComponent(component_json: GameComponentJson): GameComponent {
 
 const COMPONENT_CLASSES: Record<ComponentType, (typeof GameComponent)["jsonToGameObject"]> = {
   SpriteComponent: SpriteComponent.jsonToGameObject,
-  TextureComponent: TextureComponent.jsonToGameObject,
   TransformComponent: TransformComponent.jsonToGameObject,
   BodyComponent: BodyComponent.jsonToGameObject,
   RectangularBodyComponent: RectangularBodyComponent.jsonToGameObject,
@@ -49,7 +46,6 @@ export type { TransformableComponent } from "./TransformableComponent";
 // Export concrete components
 export {
   SpriteComponent,
-  TextureComponent,
   TransformComponent,
   BodyComponent,
   RectangularBodyComponent,

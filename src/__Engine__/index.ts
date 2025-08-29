@@ -3,7 +3,6 @@ import {
   GameComponent,
   RectangularBodyComponent,
   SpriteComponent,
-  TextureComponent,
   TransformComponent,
 } from "./Component";
 import {
@@ -15,6 +14,7 @@ import {
 import { ConcreteGameObject, GameObject } from "./GameObject";
 import { Mouse } from "./InputEngine";
 import { GameScene } from "./Scene";
+import { RenderPixiSystem, type SpriteInstance } from "./Systems";
 import { TypeEngine } from "./TypeEngine";
 import { Angle } from "./Utils/Angle";
 import { generateId } from "./Utils/id";
@@ -23,7 +23,6 @@ export {
   GameObject,
   GameComponent,
   SpriteComponent,
-  TextureComponent,
   TransformComponent,
   BodyComponent,
   RectangularBodyComponent,
@@ -34,6 +33,8 @@ export {
   PhysicsEngine,
   PhysicsWorldManager,
   type PhysicsEngineOptions,
+  RenderPixiSystem,
+  type SpriteInstance,
   Mouse,
   Angle,
   generateId,

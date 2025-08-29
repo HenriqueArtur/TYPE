@@ -1,69 +1,42 @@
-import type { DrawableComponent } from "../../Component/DrawableComponent";
+import { Application, Assets, type Container, type Renderer, type Texture } from "pixi.js";
+import type { SpriteComponent } from "../../Component";
+import type { TypeEngine, TypeEngineStartData } from "../../TypeEngine";
 
 export class RenderEngine {
-  private drawables: DrawableComponent[] = [];
+  private static app: Application | null = null;
+  private static container: Container | null = null;
+  _instance: Application<Renderer>;
 
-  addDrawable(drawable: DrawableComponent): void {
-    if (!this.drawables.includes(drawable)) {
-      this.drawables.push(drawable);
+  constructor(data: TypeEngineStartData["render"]) {
+    this._instance = new Application();
+    const render_window = {
+      width: data?.width ?? 800,
+      height: data?.height ?? 600,
+    };
+    this._instance.init({ ...render_window, backgroundColor: 0x1099bb });
+    document
+      .getElementById(data?.html_tag_id ?? "game")
+      ?.appendChild(this._instance.canvas as unknown as Node);
+  }
+
+  destroy(_engine: TypeEngine): void {
+    if (RenderEngine.app) {
+      RenderEngine.app.destroy();
+      RenderEngine.app = null;
     }
+    RenderEngine.container = null;
   }
 
-  removeDrawable(drawable: DrawableComponent): void {
-    const index = this.drawables.indexOf(drawable);
-    if (index > -1) {
-      this.drawables.splice(index, 1);
+  async loadAllSprites(engine: TypeEngine): Promise<void> {
+    if (!RenderEngine.container) return;
+    const sprite_entities = engine.queryEntities<{ SpriteComponent: SpriteComponent }>([
+      "SpriteComponent",
+    ]);
+    for (const { components } of sprite_entities) {
+      const sprite_component = components.SpriteComponent;
+      const texture = await Assets.load<Texture>(sprite_component.texture_path);
+      sprite_component._sprite.texture = texture;
+      RenderEngine.container.addChild(sprite_component._sprite);
     }
-  }
-
-  getDrawables(): DrawableComponent[] {
-    return [...this.drawables];
-  }
-
-  getVisibleDrawables(): DrawableComponent[] {
-    return this.drawables.filter((drawable) => drawable.isVisible());
-  }
-
-  async loadAllDrawables(): Promise<void> {
-    // Load drawable components that have a load method (like SpriteComponent)
-    const loadPromises = this.drawables
-      .filter((drawable) => "load" in drawable && typeof drawable.load === "function")
-      .map((drawable) => (drawable as unknown as { load: () => Promise<void> }).load());
-
-    await Promise.all(loadPromises);
-  }
-
-  updateVisuals(data: Record<string, unknown>): void {
-    this.drawables.forEach((drawable) => {
-      drawable.updateVisual(data);
-    });
-  }
-
-  setAllVisible(visible: boolean): void {
-    this.drawables.forEach((drawable) => {
-      drawable.setVisible(visible);
-    });
-  }
-
-  destroy(): void {
-    // Clear all drawables
-    this.drawables.length = 0;
-  }
-
-  // Legacy methods for backward compatibility
-  addSprite(sprite: DrawableComponent): void {
-    this.addDrawable(sprite);
-  }
-
-  removeSprite(sprite: DrawableComponent): void {
-    this.removeDrawable(sprite);
-  }
-
-  getSprites(): DrawableComponent[] {
-    return this.getDrawables();
-  }
-
-  async loadAllSprites(): Promise<void> {
-    return this.loadAllDrawables();
   }
 }

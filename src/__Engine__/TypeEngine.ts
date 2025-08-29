@@ -1,6 +1,16 @@
+import { RenderEngine } from "./Engines";
 import { EventBus } from "./EventBus";
-import type { System } from "./Systems";
+import { RenderPixiSystem } from "./Systems";
+import type { System } from "./Systems/System";
 import { generateId } from "./Utils/id";
+
+export interface TypeEngineStartData {
+  render?: {
+    html_tag_id?: string;
+    width: number;
+    height: number;
+  };
+}
 
 /**
  * TypeEngine - Entity Component System (ECS) architecture implementation
@@ -16,14 +26,19 @@ export class TypeEngine {
   private isRunning: boolean;
   private componentFactories: Map<string, (...args: unknown[]) => unknown>;
   private eventBus: EventBus;
+  private Render: RenderEngine;
+  private DefaultSystems = {
+    Render: new RenderPixiSystem(),
+  };
 
-  private constructor() {
+  private constructor(data?: TypeEngineStartData) {
+    this.Render = new RenderEngine(data?.render);
     this.entities = new Map();
     this.components = new Map();
-    this.systems = [];
     this.isRunning = false;
     this.componentFactories = new Map();
     this.eventBus = EventBus.getInstance();
+    this.systems = [];
   }
 
   // ========================================
@@ -34,9 +49,9 @@ export class TypeEngine {
    * Gets the singleton instance of TypeEngine
    * @returns The TypeEngine instance
    */
-  static getInstance(): TypeEngine {
+  static getInstance(data?: TypeEngineStartData): TypeEngine {
     if (!TypeEngine.instance) {
-      TypeEngine.instance = new TypeEngine();
+      TypeEngine.instance = new TypeEngine(data);
     }
     return TypeEngine.instance;
   }
@@ -225,6 +240,10 @@ export class TypeEngine {
   // ========================================
   // SYSTEM MANAGEMENT
   // ========================================
+
+  async initDefaultSystems() {
+    await this.DefaultSystems.Render.init(this, this.Render);
+  }
 
   /**
    * Adds a system to the engine and sorts systems by priority
