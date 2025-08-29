@@ -1,23 +1,24 @@
-import { EventBus } from "../../EventBus";
 import { generateId } from "../../Utils/id";
+import type { EventEngine } from "../Event";
 
 /**
  * EntityEngine - Entity and Component Management
  *
  * Manages entities, components, and their relationships in an ECS pattern.
  * Handles entity creation, component registration, and entity queries.
+ * Uses dependency injection for EventEngine instead of singleton pattern.
  */
 export class EntityEngine {
   private entities: Map<string, Set<string>>;
   private components: Map<string, Map<string, unknown>>;
   private componentFactories: Map<string, (...args: unknown[]) => unknown>;
-  private eventBus: EventBus;
+  private eventEngine: EventEngine;
 
-  constructor() {
+  constructor(eventEngine: EventEngine) {
     this.entities = new Map();
     this.components = new Map();
     this.componentFactories = new Map();
-    this.eventBus = EventBus.getInstance();
+    this.eventEngine = eventEngine;
   }
 
   // ========================================
@@ -34,7 +35,7 @@ export class EntityEngine {
     this.entities.set(entity_id, new Set());
 
     // Emit entity created event
-    this.eventBus.emit("entity:created", entity_id);
+    this.eventEngine.emit("entity:created", entity_id);
 
     return entity_id;
   }
@@ -54,7 +55,7 @@ export class EntityEngine {
     }
 
     // Emit entity removing event (before removal)
-    this.eventBus.emit("entity:removing", entityId, Array.from(entityComponents));
+    this.eventEngine.emit("entity:removing", entityId, Array.from(entityComponents));
 
     // Remove entity from all component maps
     for (const componentName of entityComponents) {
@@ -68,7 +69,7 @@ export class EntityEngine {
     this.entities.delete(entityId);
 
     // Emit entity removed event (after removal)
-    this.eventBus.emit("entity:removed", entityId);
+    this.eventEngine.emit("entity:removed", entityId);
   }
 
   // ========================================
@@ -124,7 +125,7 @@ export class EntityEngine {
       entityComponents.add(componentName);
 
       // Emit component added event
-      this.eventBus.emit("component:added", entityId, componentName, componentData);
+      this.eventEngine.emit("component:added", entityId, componentName, componentData);
     }
   }
 
@@ -178,7 +179,7 @@ export class EntityEngine {
 
     // Emit component removed event
     if (componentData !== undefined) {
-      this.eventBus.emit("component:removed", entityId, componentName, componentData);
+      this.eventEngine.emit("component:removed", entityId, componentName, componentData);
     }
   }
 

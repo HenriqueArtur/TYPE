@@ -1,12 +1,11 @@
-import type { EntityEngine, RenderEngine } from "./Engines";
-import type { EventBus } from "./EventBus";
+import type { EntityEngine, EventEngine, RenderEngine } from "./Engines";
 import { RenderPixiSystem } from "./Systems";
 import type { System } from "./Systems/System";
 
 export interface TypeEngineOptions {
   renderEngine: RenderEngine;
   entityEngine: EntityEngine;
-  eventBus: EventBus;
+  eventEngine: EventEngine;
 }
 
 /**
@@ -18,7 +17,7 @@ export interface TypeEngineOptions {
 export class TypeEngine {
   private systems: Array<System<TypeEngine>>;
   private isRunning: boolean;
-  private eventBus: EventBus;
+  private eventEngine: EventEngine;
   private Render: RenderEngine;
   private Entity: EntityEngine;
   private DefaultSystems = {
@@ -28,7 +27,7 @@ export class TypeEngine {
   constructor(options: TypeEngineOptions) {
     this.Render = options.renderEngine;
     this.Entity = options.entityEngine;
-    this.eventBus = options.eventBus;
+    this.eventEngine = options.eventEngine;
     this.isRunning = false;
     this.systems = [];
   }
@@ -38,11 +37,11 @@ export class TypeEngine {
   // ========================================
 
   /**
-   * Gets the EventBus instance for event communication
-   * @returns The EventBus instance
+   * Gets the EventEngine instance for event communication
+   * @returns The EventEngine instance
    */
-  getEventBus(): EventBus {
-    return this.eventBus;
+  getEventEngine(): EventEngine {
+    return this.eventEngine;
   }
 
   // ========================================
@@ -235,28 +234,28 @@ export class TypeEngine {
     }
 
     // Emit engine update start event
-    this.eventBus.emit("engine:update:start", deltaTime);
+    this.eventEngine.emit("engine:update:start", deltaTime);
 
     // Process any queued events before system updates
-    this.eventBus.processEvents();
+    this.eventEngine.processEvents();
 
     // Update all enabled systems
     for (const system of this.systems) {
       if (system.enabled) {
         // Emit system update start event
-        this.eventBus.emit("system:update:start", system, deltaTime);
+        this.eventEngine.emit("system:update:start", system, deltaTime);
 
         system.update(this, deltaTime);
 
         // Emit system update end event
-        this.eventBus.emit("system:update:end", system, deltaTime);
+        this.eventEngine.emit("system:update:end", system, deltaTime);
       }
     }
 
     // Process any events that were queued during system updates
-    this.eventBus.processEvents();
+    this.eventEngine.processEvents();
 
     // Emit engine update end event
-    this.eventBus.emit("engine:update:end", deltaTime);
+    this.eventEngine.emit("engine:update:end", deltaTime);
   }
 }

@@ -1,7 +1,6 @@
 /** biome-ignore-all lint/complexity/useLiteralKeys: false positive */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { EntityEngine, RenderEngine } from "./Engines";
-import { EventBus } from "./EventBus";
+import { EntityEngine, EventEngine, RenderEngine } from "./Engines";
 import type { System } from "./Systems/System";
 import { TypeEngine } from "./TypeEngine";
 
@@ -48,21 +47,18 @@ describe("TypeEngine", () => {
   let engine: TypeEngine;
   let mockRenderEngine: RenderEngine;
   let mockEntityEngine: EntityEngine;
-  let mockEventBus: EventBus;
+  let mockEventEngine: EventEngine;
 
   beforeEach(() => {
-    // Reset EventBus singleton for clean state
-    (EventBus as unknown as { instance: EventBus | null }).instance = null;
-
     // Create fresh instances for each test
     mockRenderEngine = new RenderEngine({ width: 800, height: 600 });
-    mockEntityEngine = new EntityEngine();
-    mockEventBus = EventBus.getInstance();
+    mockEventEngine = new EventEngine();
+    mockEntityEngine = new EntityEngine(mockEventEngine);
 
     engine = new TypeEngine({
       renderEngine: mockRenderEngine,
       entityEngine: mockEntityEngine,
-      eventBus: mockEventBus,
+      eventEngine: mockEventEngine,
     });
   });
 
@@ -71,18 +67,18 @@ describe("TypeEngine", () => {
       expect(engine).toBeInstanceOf(TypeEngine);
       expect(engine["Render"]).toBe(mockRenderEngine);
       expect(engine["Entity"]).toBe(mockEntityEngine);
-      expect(engine["eventBus"]).toBe(mockEventBus);
+      expect(engine["eventEngine"]).toBe(mockEventEngine);
     });
 
     it("should create different instances with different dependencies", () => {
       const anotherRenderEngine = new RenderEngine({ width: 800, height: 600 });
-      const anotherEntityEngine = new EntityEngine();
-      const anotherEventBus = EventBus.getInstance(); // EventBus is singleton
+      const anotherEventEngine = new EventEngine();
+      const anotherEntityEngine = new EntityEngine(anotherEventEngine);
 
       const engine2 = new TypeEngine({
         renderEngine: anotherRenderEngine,
         entityEngine: anotherEntityEngine,
-        eventBus: anotherEventBus,
+        eventEngine: anotherEventEngine,
       });
 
       expect(engine).not.toBe(engine2);
@@ -428,66 +424,70 @@ describe("TypeEngine", () => {
     });
   });
 
-  describe("EventBus integration", () => {
-    it("should provide access to EventBus", () => {
-      const eventBus = engine.getEventBus();
+  describe("EventEngine integration", () => {
+    it("should provide access to EventEngine", () => {
+      const eventEngine = engine.getEventEngine();
 
-      expect(eventBus).toBeInstanceOf(EventBus);
-      expect(eventBus).toBe(EventBus.getInstance());
+      expect(eventEngine).toBeInstanceOf(EventEngine);
+      expect(eventEngine).toBe(mockEventEngine);
     });
 
     it("should emit entity creation events", () => {
-      const eventBus = engine.getEventBus();
+      const eventEngine = engine.getEventEngine();
       const listener = vi.fn();
 
-      eventBus.on("entity:created", listener);
+      eventEngine.on("entity:created", listener);
       const entityId = engine.createEntity();
+      eventEngine.processEvents();
 
       expect(listener).toHaveBeenCalledWith(entityId);
     });
 
     it("should emit entity removal events", () => {
-      const eventBus = engine.getEventBus();
+      const eventEngine = engine.getEventEngine();
       const removingListener = vi.fn();
       const removedListener = vi.fn();
 
-      eventBus.on("entity:removing", removingListener);
-      eventBus.on("entity:removed", removedListener);
+      eventEngine.on("entity:removing", removingListener);
+      eventEngine.on("entity:removed", removedListener);
 
       const entityId = engine.createEntity();
       engine.removeEntity(entityId);
+      eventEngine.processEvents();
 
       expect(removingListener).toHaveBeenCalledWith(entityId, []);
       expect(removedListener).toHaveBeenCalledWith(entityId);
     });
 
     it("should emit component events", () => {
-      const eventBus = engine.getEventBus();
+      const eventEngine = engine.getEventEngine();
       const addedListener = vi.fn();
       const removedListener = vi.fn();
       const mockComponent = vi.fn();
 
       engine.registerComponent("Position", mockComponent);
-      eventBus.on("component:added", addedListener);
-      eventBus.on("component:removed", removedListener);
+      eventEngine.on("component:added", addedListener);
+      eventEngine.on("component:removed", removedListener);
 
       const entityId = engine.createEntity();
       const componentData = { x: 10, y: 20 };
 
       engine.addComponent(entityId, "Position", componentData);
+      eventEngine.processEvents();
       expect(addedListener).toHaveBeenCalledWith(entityId, "Position", componentData);
 
       engine.removeComponent(entityId, "Position");
+      eventEngine.processEvents();
       expect(removedListener).toHaveBeenCalledWith(entityId, "Position", componentData);
     });
 
     it("should emit engine update events", () => {
-      const eventBus = engine.getEventBus();
+      const eventEngine = engine.getEventEngine();
       const startListener = vi.fn();
       const endListener = vi.fn();
 
-      eventBus.on("engine:update:start", startListener);
-      eventBus.on("engine:update:end", endListener);
+      eventEngine.on("engine:update:start", startListener);
+      eventEngine.on("engine:update:end", endListener);
 
       engine.start();
       engine.update(16.67);
@@ -497,7 +497,7 @@ describe("TypeEngine", () => {
     });
 
     it("should emit system update events", () => {
-      const eventBus = engine.getEventBus();
+      const eventEngine = engine.getEventEngine();
       const startListener = vi.fn();
       const endListener = vi.fn();
       const system: System<TypeEngine> = {
@@ -507,8 +507,8 @@ describe("TypeEngine", () => {
         update: vi.fn(),
       };
 
-      eventBus.on("system:update:start", startListener);
-      eventBus.on("system:update:end", endListener);
+      eventEngine.on("system:update:start", startListener);
+      eventEngine.on("system:update:end", endListener);
 
       engine.addSystem(system);
       engine.start();
@@ -519,11 +519,11 @@ describe("TypeEngine", () => {
     });
 
     it("should process queued events during update", () => {
-      const eventBus = engine.getEventBus();
+      const eventEngine = engine.getEventEngine();
       const listener = vi.fn();
 
-      eventBus.on("test:event", listener);
-      eventBus.emit("test:event", "queued-data");
+      eventEngine.on("test:event", listener);
+      eventEngine.emit("test:event", "queued-data");
 
       engine.start();
       engine.update(16.67);
