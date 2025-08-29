@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SpriteComponent } from "../../Component";
-import type { TypeEngine, TypeEngineStartData } from "../../TypeEngine";
-import { RenderEngine } from "./RenderEngine";
+import type { TypeEngine } from "../../TypeEngine";
+import { RenderEngine, type RenderEngineOptions } from "./RenderEngine";
 
 // Helper for accessing private static properties in tests
 const getRenderEngineStatic = () =>
@@ -52,7 +52,7 @@ vi.mock("pixi.js", () => ({
 describe("RenderEngine", () => {
   let renderEngine: RenderEngine;
   let mockEngine: TypeEngine;
-  const renderData: TypeEngineStartData["render"] = {
+  const renderData: RenderEngineOptions = {
     width: 800,
     height: 600,
     html_tag_id: "game",

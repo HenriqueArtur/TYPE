@@ -1,13 +1,19 @@
 import { Application, Assets, type Container, type Renderer, type Texture } from "pixi.js";
 import type { SpriteComponent } from "../../Component";
-import type { TypeEngine, TypeEngineStartData } from "../../TypeEngine";
+import type { TypeEngine } from "../../TypeEngine";
+
+export interface RenderEngineOptions {
+  html_tag_id?: string;
+  width: number;
+  height: number;
+}
 
 export class RenderEngine {
   private static app: Application | null = null;
   private static container: Container | null = null;
   _instance: Application<Renderer>;
 
-  constructor(data: TypeEngineStartData["render"]) {
+  constructor(data?: RenderEngineOptions) {
     this._instance = new Application();
     const render_window = {
       width: data?.width ?? 800,

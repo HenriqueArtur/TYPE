@@ -1,66 +1,36 @@
-import { RenderEngine } from "./Engines";
-import { EventBus } from "./EventBus";
+import type { EntityEngine, RenderEngine } from "./Engines";
+import type { EventBus } from "./EventBus";
 import { RenderPixiSystem } from "./Systems";
 import type { System } from "./Systems/System";
-import { generateId } from "./Utils/id";
 
-export interface TypeEngineStartData {
-  render?: {
-    html_tag_id?: string;
-    width: number;
-    height: number;
-  };
+export interface TypeEngineOptions {
+  renderEngine: RenderEngine;
+  entityEngine: EntityEngine;
+  eventBus: EventBus;
 }
 
 /**
  * TypeEngine - Entity Component System (ECS) architecture implementation
  *
- * The main engine class that manages entities, components, and systems in an ECS pattern.
- * Provides a singleton instance for global access and lifecycle management.
+ * The main engine class that manages systems and coordinates between different engine components.
+ * Uses dependency injection for better testability and modularity.
  */
 export class TypeEngine {
-  private static instance: TypeEngine | null = null;
-  private entities: Map<string, Set<string>>;
-  private components: Map<string, Map<string, unknown>>;
   private systems: Array<System<TypeEngine>>;
   private isRunning: boolean;
-  private componentFactories: Map<string, (...args: unknown[]) => unknown>;
   private eventBus: EventBus;
   private Render: RenderEngine;
+  private Entity: EntityEngine;
   private DefaultSystems = {
     Render: new RenderPixiSystem(),
   };
 
-  private constructor(data?: TypeEngineStartData) {
-    this.Render = new RenderEngine(data?.render);
-    this.entities = new Map();
-    this.components = new Map();
+  constructor(options: TypeEngineOptions) {
+    this.Render = options.renderEngine;
+    this.Entity = options.entityEngine;
+    this.eventBus = options.eventBus;
     this.isRunning = false;
-    this.componentFactories = new Map();
-    this.eventBus = EventBus.getInstance();
     this.systems = [];
-  }
-
-  // ========================================
-  // SINGLETON MANAGEMENT
-  // ========================================
-
-  /**
-   * Gets the singleton instance of TypeEngine
-   * @returns The TypeEngine instance
-   */
-  static getInstance(data?: TypeEngineStartData): TypeEngine {
-    if (!TypeEngine.instance) {
-      TypeEngine.instance = new TypeEngine(data);
-    }
-    return TypeEngine.instance;
-  }
-
-  /**
-   * Resets the singleton instance (primarily for testing)
-   */
-  static resetInstance(): void {
-    TypeEngine.instance = null;
   }
 
   // ========================================
@@ -76,7 +46,7 @@ export class TypeEngine {
   }
 
   // ========================================
-  // ENTITY MANAGEMENT
+  // ENTITY MANAGEMENT (DELEGATED)
   // ========================================
 
   /**
@@ -85,13 +55,7 @@ export class TypeEngine {
    * @returns The entity ID
    */
   createEntity(id?: string): string {
-    const entity_id = id || generateId("ENT");
-    this.entities.set(entity_id, new Set());
-
-    // Emit entity created event
-    this.eventBus.emit("entity:created", entity_id);
-
-    return entity_id;
+    return this.Entity.createEntity(id);
   }
 
   /**
@@ -99,35 +63,11 @@ export class TypeEngine {
    * @param entityId - The ID of the entity to remove
    */
   removeEntity(entityId: string): void {
-    if (!this.entities.has(entityId)) {
-      return;
-    }
-
-    const entityComponents = this.entities.get(entityId);
-    if (!entityComponents) {
-      return;
-    }
-
-    // Emit entity removing event (before removal)
-    this.eventBus.emit("entity:removing", entityId, Array.from(entityComponents));
-
-    // Remove entity from all component maps
-    for (const componentName of entityComponents) {
-      const componentMap = this.components.get(componentName);
-      if (componentMap) {
-        componentMap.delete(entityId);
-      }
-    }
-
-    // Remove entity from entities map
-    this.entities.delete(entityId);
-
-    // Emit entity removed event (after removal)
-    this.eventBus.emit("entity:removed", entityId);
+    this.Entity.removeEntity(entityId);
   }
 
   // ========================================
-  // COMPONENT REGISTRATION
+  // COMPONENT REGISTRATION (DELEGATED)
   // ========================================
 
   /**
@@ -137,8 +77,7 @@ export class TypeEngine {
    * @returns This TypeEngine instance for method chaining
    */
   registerComponent(name: string, func: (...args: unknown[]) => unknown): this {
-    this.componentFactories.set(name, func);
-    this.components.set(name, new Map());
+    this.Entity.registerComponent(name, func);
     return this;
   }
 
@@ -147,11 +86,11 @@ export class TypeEngine {
    * @returns Array of registered component names
    */
   getRegisteredComponents(): string[] {
-    return Array.from(this.componentFactories.keys());
+    return this.Entity.getRegisteredComponents();
   }
 
   // ========================================
-  // COMPONENT MANAGEMENT
+  // COMPONENT MANAGEMENT (DELEGATED)
   // ========================================
 
   /**
@@ -163,24 +102,7 @@ export class TypeEngine {
    * @throws Error if entity doesn't exist or component type isn't registered
    */
   addComponent<T>(entityId: string, componentName: string, componentData: T): void {
-    if (!this.entities.has(entityId)) {
-      throw new Error(`Entity with ID ${entityId} does not exist`);
-    }
-
-    if (!this.components.has(componentName)) {
-      throw new Error(`Component ${componentName} is not registered`);
-    }
-
-    const componentMap = this.components.get(componentName);
-    const entityComponents = this.entities.get(entityId);
-
-    if (componentMap && entityComponents) {
-      componentMap.set(entityId, componentData);
-      entityComponents.add(componentName);
-
-      // Emit component added event
-      this.eventBus.emit("component:added", entityId, componentName, componentData);
-    }
+    this.Entity.addComponent(entityId, componentName, componentData);
   }
 
   /**
@@ -191,11 +113,7 @@ export class TypeEngine {
    * @returns The component data or undefined if not found
    */
   getComponent<T>(entityId: string, componentName: string): T | undefined {
-    const componentMap = this.components.get(componentName);
-    if (!componentMap) {
-      return undefined;
-    }
-    return componentMap.get(entityId) as T;
+    return this.Entity.getComponent<T>(entityId, componentName);
   }
 
   /**
@@ -205,11 +123,7 @@ export class TypeEngine {
    * @returns True if the entity has the component, false otherwise
    */
   hasComponent(entityId: string, componentName: string): boolean {
-    const componentMap = this.components.get(componentName);
-    if (!componentMap) {
-      return false;
-    }
-    return componentMap.has(entityId);
+    return this.Entity.hasComponent(entityId, componentName);
   }
 
   /**
@@ -218,23 +132,7 @@ export class TypeEngine {
    * @param componentName - The name of the component type
    */
   removeComponent(entityId: string, componentName: string): void {
-    const componentMap = this.components.get(componentName);
-    let componentData: unknown;
-
-    if (componentMap) {
-      componentData = componentMap.get(entityId);
-      componentMap.delete(entityId);
-    }
-
-    const entityComponents = this.entities.get(entityId);
-    if (entityComponents) {
-      entityComponents.delete(componentName);
-    }
-
-    // Emit component removed event
-    if (componentData !== undefined) {
-      this.eventBus.emit("component:removed", entityId, componentName, componentData);
-    }
+    this.Entity.removeComponent(entityId, componentName);
   }
 
   // ========================================
@@ -281,7 +179,7 @@ export class TypeEngine {
   }
 
   // ========================================
-  // ENTITY QUERYING
+  // ENTITY QUERYING (DELEGATED)
   // ========================================
 
   /**
@@ -293,23 +191,7 @@ export class TypeEngine {
   queryEntities<T extends Record<string, unknown>>(
     componentNames: string[],
   ): Array<{ entityId: string; components: T }> {
-    const result: Array<{ entityId: string; components: T }> = [];
-
-    for (const [entityId, entityComponents] of this.entities) {
-      const hasAllComponents = componentNames.every((componentName) =>
-        entityComponents.has(componentName),
-      );
-
-      if (hasAllComponents) {
-        const components: Record<string, unknown> = {};
-        for (const componentName of componentNames) {
-          components[componentName] = this.getComponent(entityId, componentName);
-        }
-        result.push({ entityId, components: components as T });
-      }
-    }
-
-    return result;
+    return this.Entity.queryEntities<T>(componentNames);
   }
 
   /**
@@ -321,25 +203,7 @@ export class TypeEngine {
   queryEntitiesWithAny<T extends Record<string, unknown>>(
     componentNames: string[],
   ): Array<{ entityId: string; components: T }> {
-    const result: Array<{ entityId: string; components: T }> = [];
-
-    for (const [entityId, entityComponents] of this.entities) {
-      const hasAnyComponent = componentNames.some((componentName) =>
-        entityComponents.has(componentName),
-      );
-
-      if (hasAnyComponent) {
-        const components: Record<string, unknown> = {};
-        for (const componentName of componentNames) {
-          if (entityComponents.has(componentName)) {
-            components[componentName] = this.getComponent(entityId, componentName);
-          }
-        }
-        result.push({ entityId, components: components as T });
-      }
-    }
-
-    return result;
+    return this.Entity.queryEntitiesWithAny<T>(componentNames);
   }
 
   // ========================================

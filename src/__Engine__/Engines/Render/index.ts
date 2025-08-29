@@ -1,1 +1,1 @@
-export { RenderEngine } from "./RenderEngine";
+export { RenderEngine, type RenderEngineOptions } from "./RenderEngine";

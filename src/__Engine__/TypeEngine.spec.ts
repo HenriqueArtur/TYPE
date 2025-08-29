@@ -1,94 +1,142 @@
 /** biome-ignore-all lint/complexity/useLiteralKeys: false positive */
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { EntityEngine, RenderEngine } from "./Engines";
 import { EventBus } from "./EventBus";
 import type { System } from "./Systems/System";
 import { TypeEngine } from "./TypeEngine";
 
+// Mock document and DOM elements for RenderEngine
+const mockCanvas = { tagName: "CANVAS" };
+const mockGameDiv = {
+  appendChild: vi.fn(),
+  children: [mockCanvas],
+  length: 1,
+};
+
+global.document = {
+  getElementById: vi.fn((id: string) => {
+    if (id === "game") return mockGameDiv;
+    return null;
+  }),
+} as unknown as Document;
+
+// Mock PIXI Application
+vi.mock("pixi.js", () => ({
+  Application: vi.fn().mockImplementation(() => ({
+    init: vi.fn().mockResolvedValue(undefined),
+    canvas: mockCanvas,
+    stage: {
+      addChild: vi.fn(),
+      removeChild: vi.fn(),
+    },
+    ticker: {
+      add: vi.fn(),
+      remove: vi.fn(),
+    },
+    destroy: vi.fn(),
+  })),
+  Sprite: vi.fn().mockImplementation(() => ({
+    anchor: { set: vi.fn() },
+    texture: null,
+  })),
+  Texture: {
+    from: vi.fn().mockReturnValue({}),
+  },
+}));
+
 describe("TypeEngine", () => {
+  let engine: TypeEngine;
+  let mockRenderEngine: RenderEngine;
+  let mockEntityEngine: EntityEngine;
+  let mockEventBus: EventBus;
+
   beforeEach(() => {
-    TypeEngine.resetInstance();
-    EventBus.resetInstance();
+    // Reset EventBus singleton for clean state
+    (EventBus as unknown as { instance: EventBus | null }).instance = null;
+
+    // Create fresh instances for each test
+    mockRenderEngine = new RenderEngine({ width: 800, height: 600 });
+    mockEntityEngine = new EntityEngine();
+    mockEventBus = EventBus.getInstance();
+
+    engine = new TypeEngine({
+      renderEngine: mockRenderEngine,
+      entityEngine: mockEntityEngine,
+      eventBus: mockEventBus,
+    });
   });
 
-  describe("singleton pattern", () => {
-    it("should return the same instance when getInstance is called multiple times", () => {
-      const instance1 = TypeEngine.getInstance();
-      const instance2 = TypeEngine.getInstance();
-
-      expect(instance1).toBe(instance2);
+  describe("constructor injection", () => {
+    it("should create instance with injected dependencies", () => {
+      expect(engine).toBeInstanceOf(TypeEngine);
+      expect(engine["Render"]).toBe(mockRenderEngine);
+      expect(engine["Entity"]).toBe(mockEntityEngine);
+      expect(engine["eventBus"]).toBe(mockEventBus);
     });
 
-    it("should create a new instance after reset", () => {
-      const instance1 = TypeEngine.getInstance();
-      TypeEngine.resetInstance();
-      const instance2 = TypeEngine.getInstance();
+    it("should create different instances with different dependencies", () => {
+      const anotherRenderEngine = new RenderEngine({ width: 800, height: 600 });
+      const anotherEntityEngine = new EntityEngine();
+      const anotherEventBus = EventBus.getInstance(); // EventBus is singleton
 
-      expect(instance1).not.toBe(instance2);
+      const engine2 = new TypeEngine({
+        renderEngine: anotherRenderEngine,
+        entityEngine: anotherEntityEngine,
+        eventBus: anotherEventBus,
+      });
+
+      expect(engine).not.toBe(engine2);
+      expect(engine2["Render"]).toBe(anotherRenderEngine);
     });
   });
 
   describe("ECS initialization", () => {
-    it("should initialize with empty entities map", () => {
-      const engine = TypeEngine.getInstance();
-
-      expect(engine["entities"]).toBeInstanceOf(Map);
-      expect(engine["entities"].size).toBe(0);
+    it("should initialize with EntityEngine for entity management", () => {
+      expect(engine["Entity"]).toBeDefined();
+      expect(engine.getRegisteredComponents()).toEqual([]);
     });
 
-    it("should initialize with empty components map", () => {
-      const engine = TypeEngine.getInstance();
-
-      expect(engine["components"]).toBeInstanceOf(Map);
-      expect(engine["components"].size).toBe(0);
+    it("should initialize with RenderEngine for rendering", () => {
+      expect(engine["Render"]).toBeDefined();
     });
 
     it("should initialize with empty systems array", () => {
-      const engine = TypeEngine.getInstance();
-
       expect(Array.isArray(engine["systems"])).toBe(true);
       expect(engine["systems"].length).toBe(0);
     });
 
     it("should initialize with isRunning as false", () => {
-      const engine = TypeEngine.getInstance();
-
       expect(engine["isRunning"]).toBe(false);
     });
 
-    it("should initialize with empty componentFactories map", () => {
-      const engine = TypeEngine.getInstance();
-
-      expect(engine["componentFactories"]).toBeInstanceOf(Map);
-      expect(engine["componentFactories"].size).toBe(0);
+    it("should initialize with empty registered components", () => {
+      expect(engine.getRegisteredComponents()).toEqual([]);
     });
   });
 
   describe("entity management", () => {
     it("should create entity with generated ID when no ID provided", () => {
-      const engine = TypeEngine.getInstance();
-
       const entityId = engine.createEntity();
 
       expect(typeof entityId).toBe("string");
       expect(entityId).toMatch(/^ENT_/);
-      expect(engine["entities"].has(entityId)).toBe(true);
-      expect(engine["entities"].get(entityId)).toBeInstanceOf(Set);
+      // Entity exists - can add components to it without error
+      engine.registerComponent("TestComponent", (data) => data);
+      expect(() => engine.addComponent(entityId, "TestComponent", { test: true })).not.toThrow();
     });
 
     it("should create entity with provided ID", () => {
-      const engine = TypeEngine.getInstance();
       const customId = "custom-entity-id";
 
       const entityId = engine.createEntity(customId);
 
       expect(entityId).toBe(customId);
-      expect(engine["entities"].has(customId)).toBe(true);
-      expect(engine["entities"].get(customId)).toBeInstanceOf(Set);
+      // Entity exists - can add components to it without error
+      engine.registerComponent("TestComponent", (data) => data);
+      expect(() => engine.addComponent(entityId, "TestComponent", { test: true })).not.toThrow();
     });
 
     it("should create multiple entities with unique IDs", () => {
-      const engine = TypeEngine.getInstance();
-
       const entity1 = engine.createEntity();
       const entity2 = engine.createEntity();
       const entity3 = engine.createEntity("custom-id");
@@ -96,54 +144,54 @@ describe("TypeEngine", () => {
       expect(entity1).not.toBe(entity2);
       expect(entity1).not.toBe(entity3);
       expect(entity2).not.toBe(entity3);
-      expect(engine["entities"].size).toBe(3);
+      // All entities should be unique and valid
+      expect(typeof entity1).toBe("string");
+      expect(typeof entity2).toBe("string");
+      expect(typeof entity3).toBe("string");
     });
 
     it("should remove entity and all its components", () => {
-      const engine = TypeEngine.getInstance();
       const mockComponent = vi.fn();
 
       engine.registerComponent("Position", mockComponent);
       const entityId = engine.createEntity();
       engine.addComponent(entityId, "Position", { x: 10, y: 20 });
 
+      // Component should exist before removal
+      expect(engine.getComponent(entityId, "Position")).toEqual({ x: 10, y: 20 });
+
       engine.removeEntity(entityId);
 
-      expect(engine["entities"].has(entityId)).toBe(false);
+      // Component should be removed after entity removal
       expect(engine.getComponent(entityId, "Position")).toBeUndefined();
     });
 
     it("should not crash when removing non-existent entity", () => {
-      const engine = TypeEngine.getInstance();
-
       expect(() => engine.removeEntity("non-existent")).not.toThrow();
     });
   });
 
   describe("component registration", () => {
     it("should register component and return this for chaining", () => {
-      const engine = TypeEngine.getInstance();
       const mockComponent = vi.fn();
 
       const result = engine.registerComponent("TestComponent", mockComponent);
 
       expect(result).toBe(engine);
-      expect(engine["componentFactories"].has("TestComponent")).toBe(true);
-      expect(engine["componentFactories"].get("TestComponent")).toBe(mockComponent);
+      expect(engine.getRegisteredComponents()).toContain("TestComponent");
     });
 
     it("should create component map when registering component", () => {
-      const engine = TypeEngine.getInstance();
       const mockComponent = vi.fn();
 
       engine.registerComponent("TestComponent", mockComponent);
+      const entityId = engine.createEntity();
 
-      expect(engine["components"].has("TestComponent")).toBe(true);
-      expect(engine["components"].get("TestComponent")).toBeInstanceOf(Map);
+      // Should be able to add the registered component to an entity
+      expect(() => engine.addComponent(entityId, "TestComponent", { test: true })).not.toThrow();
     });
 
     it("should allow chaining multiple component registrations", () => {
-      const engine = TypeEngine.getInstance();
       const component1 = vi.fn();
       const component2 = vi.fn();
       const component3 = vi.fn();
@@ -154,12 +202,14 @@ describe("TypeEngine", () => {
         .registerComponent("Component3", component3);
 
       expect(result).toBe(engine);
-      expect(engine["componentFactories"].size).toBe(3);
-      expect(engine["components"].size).toBe(3);
+      const registered = engine.getRegisteredComponents();
+      expect(registered).toContain("Component1");
+      expect(registered).toContain("Component2");
+      expect(registered).toContain("Component3");
+      expect(registered).toHaveLength(3);
     });
 
     it("should get registered components", () => {
-      const engine = TypeEngine.getInstance();
       const component1 = vi.fn();
       const component2 = vi.fn();
 
@@ -171,8 +221,6 @@ describe("TypeEngine", () => {
     });
 
     it("should return empty array when no components registered", () => {
-      const engine = TypeEngine.getInstance();
-
       const registeredComponents = engine.getRegisteredComponents();
 
       expect(registeredComponents).toEqual([]);
@@ -181,14 +229,12 @@ describe("TypeEngine", () => {
 
   describe("component management", () => {
     beforeEach(() => {
-      const engine = TypeEngine.getInstance();
       const mockComponent = vi.fn();
       engine.registerComponent("Position", mockComponent);
       engine.registerComponent("Velocity", mockComponent);
     });
 
     it("should add component to entity", () => {
-      const engine = TypeEngine.getInstance();
       const entityId = engine.createEntity();
       const position = { x: 10, y: 20 };
 
@@ -199,15 +245,12 @@ describe("TypeEngine", () => {
     });
 
     it("should throw error when adding component to non-existent entity", () => {
-      const engine = TypeEngine.getInstance();
-
       expect(() => {
         engine.addComponent("non-existent", "Position", { x: 10, y: 20 });
       }).toThrow("Entity with ID non-existent does not exist");
     });
 
     it("should throw error when adding unregistered component", () => {
-      const engine = TypeEngine.getInstance();
       const entityId = engine.createEntity();
 
       expect(() => {
@@ -216,7 +259,6 @@ describe("TypeEngine", () => {
     });
 
     it("should remove component from entity", () => {
-      const engine = TypeEngine.getInstance();
       const entityId = engine.createEntity();
 
       engine.addComponent(entityId, "Position", { x: 10, y: 20 });
@@ -227,7 +269,6 @@ describe("TypeEngine", () => {
     });
 
     it("should return undefined for non-existent component", () => {
-      const engine = TypeEngine.getInstance();
       const entityId = engine.createEntity();
 
       expect(engine.getComponent(entityId, "Position")).toBeUndefined();
@@ -237,7 +278,6 @@ describe("TypeEngine", () => {
 
   describe("system management", () => {
     it("should add system and sort by priority", () => {
-      const engine = TypeEngine.getInstance();
       const system1: System<TypeEngine> = {
         priority: 10,
         enabled: true,
@@ -260,7 +300,6 @@ describe("TypeEngine", () => {
     });
 
     it("should remove system and call destroy", () => {
-      const engine = TypeEngine.getInstance();
       const system: System<TypeEngine> = {
         priority: 10,
         enabled: true,
@@ -277,7 +316,6 @@ describe("TypeEngine", () => {
     });
 
     it("should toggle system enabled state", () => {
-      const engine = TypeEngine.getInstance();
       const system: System<TypeEngine> = {
         priority: 10,
         enabled: true,
@@ -297,7 +335,6 @@ describe("TypeEngine", () => {
 
   describe("entity querying", () => {
     beforeEach(() => {
-      const engine = TypeEngine.getInstance();
       const mockComponent = vi.fn();
       engine.registerComponent("Position", mockComponent);
       engine.registerComponent("Velocity", mockComponent);
@@ -305,7 +342,6 @@ describe("TypeEngine", () => {
     });
 
     it("should query entities with all specified components", () => {
-      const engine = TypeEngine.getInstance();
       const entity1 = engine.createEntity();
       const entity2 = engine.createEntity();
       const entity3 = engine.createEntity();
@@ -327,7 +363,6 @@ describe("TypeEngine", () => {
     });
 
     it("should query entities with any specified components", () => {
-      const engine = TypeEngine.getInstance();
       const entity1 = engine.createEntity();
       const entity2 = engine.createEntity();
 
@@ -343,8 +378,6 @@ describe("TypeEngine", () => {
 
   describe("engine lifecycle", () => {
     it("should start and stop engine", () => {
-      const engine = TypeEngine.getInstance();
-
       expect(engine["isRunning"]).toBe(false);
 
       engine.start();
@@ -355,7 +388,6 @@ describe("TypeEngine", () => {
     });
 
     it("should update enabled systems when running", () => {
-      const engine = TypeEngine.getInstance();
       const system1: System<TypeEngine> = {
         priority: 10,
         enabled: true,
@@ -380,7 +412,6 @@ describe("TypeEngine", () => {
     });
 
     it("should not update systems when engine is stopped", () => {
-      const engine = TypeEngine.getInstance();
       const system: System<TypeEngine> = {
         priority: 10,
         enabled: true,
@@ -399,7 +430,6 @@ describe("TypeEngine", () => {
 
   describe("EventBus integration", () => {
     it("should provide access to EventBus", () => {
-      const engine = TypeEngine.getInstance();
       const eventBus = engine.getEventBus();
 
       expect(eventBus).toBeInstanceOf(EventBus);
@@ -407,7 +437,6 @@ describe("TypeEngine", () => {
     });
 
     it("should emit entity creation events", () => {
-      const engine = TypeEngine.getInstance();
       const eventBus = engine.getEventBus();
       const listener = vi.fn();
 
@@ -418,7 +447,6 @@ describe("TypeEngine", () => {
     });
 
     it("should emit entity removal events", () => {
-      const engine = TypeEngine.getInstance();
       const eventBus = engine.getEventBus();
       const removingListener = vi.fn();
       const removedListener = vi.fn();
@@ -434,7 +462,6 @@ describe("TypeEngine", () => {
     });
 
     it("should emit component events", () => {
-      const engine = TypeEngine.getInstance();
       const eventBus = engine.getEventBus();
       const addedListener = vi.fn();
       const removedListener = vi.fn();
@@ -455,7 +482,6 @@ describe("TypeEngine", () => {
     });
 
     it("should emit engine update events", () => {
-      const engine = TypeEngine.getInstance();
       const eventBus = engine.getEventBus();
       const startListener = vi.fn();
       const endListener = vi.fn();
@@ -471,7 +497,6 @@ describe("TypeEngine", () => {
     });
 
     it("should emit system update events", () => {
-      const engine = TypeEngine.getInstance();
       const eventBus = engine.getEventBus();
       const startListener = vi.fn();
       const endListener = vi.fn();
@@ -494,7 +519,6 @@ describe("TypeEngine", () => {
     });
 
     it("should process queued events during update", () => {
-      const engine = TypeEngine.getInstance();
       const eventBus = engine.getEventBus();
       const listener = vi.fn();
 

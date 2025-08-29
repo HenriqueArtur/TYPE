@@ -1,6 +1,6 @@
 import { SpriteComponent } from "./Drawable";
 import { BodyComponent, RectangularBodyComponent } from "./Physics";
-import { TransformComponent } from "./Transformable";
+import { TransformComponent } from "./TransformableComponent";
 
 export abstract class GameComponent {
   static readonly _type: string;
