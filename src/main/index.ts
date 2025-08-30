@@ -62,6 +62,14 @@ ipcMain.handle("open-game-window", () => {
   createGameWindow();
 });
 
+ipcMain.handle("path-parse", (_, filePath: string) => {
+  return path.parse(filePath);
+});
+
+ipcMain.handle("path-join", (_, ...paths: string[]) => {
+  return path.join(...paths);
+});
+
 app.on("window-all-closed", () => {
   app.quit();
 });
