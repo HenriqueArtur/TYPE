@@ -59,13 +59,13 @@ describe("TypeEngine", () => {
       renderEngine: mockRenderEngine,
       entityEngine: mockEntityEngine,
       eventEngine: mockEventEngine,
+      systemsList: [],
     });
   });
 
   describe("constructor injection", () => {
     it("should create instance with injected dependencies", () => {
       expect(engine).toBeInstanceOf(TypeEngine);
-      expect(engine["Render"]).toBe(mockRenderEngine);
       expect(engine["Entity"]).toBe(mockEntityEngine);
       expect(engine["eventEngine"]).toBe(mockEventEngine);
     });
@@ -83,10 +83,11 @@ describe("TypeEngine", () => {
         renderEngine: anotherRenderEngine,
         entityEngine: anotherEntityEngine,
         eventEngine: anotherEventEngine,
+        systemsList: [],
       });
 
       expect(engine).not.toBe(engine2);
-      expect(engine2["Render"]).toBe(anotherRenderEngine);
+      expect(engine2["Entity"]).toBe(anotherEntityEngine);
     });
   });
 
@@ -96,13 +97,29 @@ describe("TypeEngine", () => {
       expect(engine.getRegisteredComponents()).toEqual([]);
     });
 
-    it("should initialize with RenderEngine for rendering", () => {
-      expect(engine["Render"]).toBeDefined();
-    });
-
-    it("should initialize with empty systems array", () => {
+    it("should initialize with empty systems array when no systems provided", () => {
       expect(Array.isArray(engine["systems"])).toBe(true);
       expect(engine["systems"].length).toBe(0);
+    });
+
+    it("should initialize with provided systems list", () => {
+      const mockSystem: System<TypeEngine> = {
+        priority: 10,
+        enabled: true,
+        init: vi.fn(),
+        update: vi.fn(),
+      };
+
+      const engineWithSystems = new TypeEngine({
+        renderEngine: mockRenderEngine,
+        entityEngine: mockEntityEngine,
+        eventEngine: mockEventEngine,
+        systemsList: [mockSystem],
+      });
+
+      expect(Array.isArray(engineWithSystems["systems"])).toBe(true);
+      expect(engineWithSystems["systems"].length).toBe(1);
+      expect(engineWithSystems["systems"][0]).toBe(mockSystem);
     });
 
     it("should initialize with isRunning as false", () => {

@@ -1,11 +1,11 @@
 import type { EntityEngine, EventEngine, RenderEngine } from "./Engines";
-import { RenderPixiSystem } from "./Systems";
 import type { System } from "./Systems/System";
 
 export interface TypeEngineOptions {
   renderEngine: RenderEngine;
   entityEngine: EntityEngine;
   eventEngine: EventEngine;
+  systemsList: System<TypeEngine>[];
 }
 
 /**
@@ -15,21 +15,15 @@ export interface TypeEngineOptions {
  * Uses dependency injection for better testability and modularity.
  */
 export class TypeEngine {
-  private systems: Array<System<TypeEngine>>;
-  private isRunning: boolean;
+  private systems: System<TypeEngine>[];
   private eventEngine: EventEngine;
-  private Render: RenderEngine;
   private Entity: EntityEngine;
-  private DefaultSystems = {
-    Render: new RenderPixiSystem(),
-  };
+  private isRunning = false;
 
   constructor(options: TypeEngineOptions) {
-    this.Render = options.renderEngine;
     this.Entity = options.entityEngine;
     this.eventEngine = options.eventEngine;
-    this.isRunning = false;
-    this.systems = [];
+    this.systems = options.systemsList;
   }
 
   // ========================================
@@ -138,18 +132,14 @@ export class TypeEngine {
   // SYSTEM MANAGEMENT
   // ========================================
 
-  async initDefaultSystems() {
-    await this.DefaultSystems.Render.init(this, this.Render);
-  }
-
   /**
    * Adds a system to the engine and sorts systems by priority
    * @param system - The system to add
    */
-  addSystem(system: System<TypeEngine>): void {
+  addSystem(system: System<TypeEngine>, ...opt: unknown[]): void {
     this.systems.push(system);
     this.systems.sort((a, b) => a.priority - b.priority);
-    system.init(this);
+    system.init(this, ...opt);
   }
 
   /**
@@ -232,33 +222,17 @@ export class TypeEngine {
     if (!this.isRunning) {
       return;
     }
-
-    // Emit engine update start event
     this.eventEngine.emit("engine:update:start", deltaTime);
-
-    // Process any queued events before system updates
     this.eventEngine.processEvents();
-
-    // Update all enabled systems
     for (const system of this.systems) {
       if (system.enabled) {
-        // Emit system update start event
         this.eventEngine.emit("system:update:start", system, deltaTime);
-
         system.update(this, deltaTime);
-
-        // Emit system update end event
         this.eventEngine.emit("system:update:end", system, deltaTime);
       }
     }
-
-    // Process any events that were queued during system updates
     this.eventEngine.processEvents();
-
-    // Emit engine update end event
     this.eventEngine.emit("engine:update:end", deltaTime);
-
-    // Process the final events including engine:update:end
     this.eventEngine.processEvents();
   }
 }
