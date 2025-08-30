@@ -51,8 +51,8 @@ describe("TypeEngine", () => {
 
   beforeEach(() => {
     // Create fresh instances for each test
-    mockRenderEngine = new RenderEngine({ width: 800, height: 600 });
     mockEventEngine = new EventEngine();
+    mockRenderEngine = new RenderEngine({ width: 800, height: 600, eventEngine: mockEventEngine });
     mockEntityEngine = new EntityEngine(mockEventEngine);
 
     engine = new TypeEngine({
@@ -71,8 +71,12 @@ describe("TypeEngine", () => {
     });
 
     it("should create different instances with different dependencies", () => {
-      const anotherRenderEngine = new RenderEngine({ width: 800, height: 600 });
       const anotherEventEngine = new EventEngine();
+      const anotherRenderEngine = new RenderEngine({
+        width: 800,
+        height: 600,
+        eventEngine: anotherEventEngine,
+      });
       const anotherEntityEngine = new EntityEngine(anotherEventEngine);
 
       const engine2 = new TypeEngine({

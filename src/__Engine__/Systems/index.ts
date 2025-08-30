@@ -1,1 +1,1 @@
-export { RenderPixiSystem, type SpriteInstance } from "./Render";
+export { RenderPixiSystem } from "./Render";

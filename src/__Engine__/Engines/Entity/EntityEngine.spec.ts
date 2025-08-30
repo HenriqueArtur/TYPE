@@ -57,7 +57,7 @@ describe("EntityEngine", () => {
 
   describe("Component Registration", () => {
     it("should register component and return this for chaining", () => {
-      const factory = (data: Record<string, unknown>) => ({ ...data });
+      const factory = (...args: unknown[]) => ({ ...args });
       const result = entityEngine.registerComponent("TestComponent", factory);
 
       expect(result).toBe(entityEngine);
@@ -65,8 +65,8 @@ describe("EntityEngine", () => {
     });
 
     it("should allow chaining multiple component registrations", () => {
-      const factory1 = (data: Record<string, unknown>) => ({ ...data });
-      const factory2 = (data: Record<string, unknown>) => ({ ...data });
+      const factory1 = (...args: unknown[]) => ({ ...args });
+      const factory2 = (...args: unknown[]) => ({ ...args });
 
       entityEngine
         .registerComponent("Component1", factory1)

@@ -257,5 +257,8 @@ export class TypeEngine {
 
     // Emit engine update end event
     this.eventEngine.emit("engine:update:end", deltaTime);
+
+    // Process the final events including engine:update:end
+    this.eventEngine.processEvents();
   }
 }

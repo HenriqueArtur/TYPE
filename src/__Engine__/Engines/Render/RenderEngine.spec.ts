@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { SpriteComponent } from "../../Component";
+import { SpriteComponent } from "../../Component/Drawable/SpriteComponent";
 import type { TypeEngine } from "../../TypeEngine";
+import { EventEngine } from "../Event/EventEngine";
 import { RenderEngine, type RenderEngineOptions } from "./RenderEngine";
 
 // Helper for accessing private static properties in tests
@@ -8,6 +9,12 @@ const getRenderEngineStatic = () =>
   RenderEngine as unknown as {
     app: unknown;
     container: unknown;
+  };
+
+// Helper for accessing private instance properties in tests
+const getRenderEnginePrivate = (engine: RenderEngine) =>
+  engine as unknown as {
+    spriteMap: Map<string, SpriteComponent>;
   };
 
 // Mock document and DOM elements
@@ -52,14 +59,18 @@ vi.mock("pixi.js", () => ({
 describe("RenderEngine", () => {
   let renderEngine: RenderEngine;
   let mockEngine: TypeEngine;
-  const renderData: RenderEngineOptions = {
-    width: 800,
-    height: 600,
-    html_tag_id: "game",
-  };
+  let eventEngine: EventEngine;
+  let renderData: RenderEngineOptions;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    eventEngine = new EventEngine();
+    renderData = {
+      width: 800,
+      height: 600,
+      html_tag_id: "game",
+      eventEngine: eventEngine,
+    };
     renderEngine = new RenderEngine(renderData);
     mockEngine = {
       queryEntities: vi.fn().mockReturnValue([]),
@@ -68,14 +79,27 @@ describe("RenderEngine", () => {
 
   describe("constructor", () => {
     it("should create RenderEngine with default dimensions", () => {
-      const engine = new RenderEngine({ width: 800, height: 600 });
+      const engine = new RenderEngine({ width: 800, height: 600, eventEngine: new EventEngine() });
       expect(engine._instance).toBeDefined();
     });
 
     it("should create RenderEngine with custom dimensions", () => {
-      const customData = { width: 1024, height: 768, html_tag_id: "custom" };
+      const customData = {
+        width: 1024,
+        height: 768,
+        html_tag_id: "custom",
+        eventEngine: new EventEngine(),
+      };
       const engine = new RenderEngine(customData);
       expect(engine._instance).toBeDefined();
+    });
+
+    it("should set up event listeners for remove:drawable", () => {
+      const testEventEngine = new EventEngine();
+      new RenderEngine({ width: 800, height: 600, eventEngine: testEventEngine });
+
+      expect(testEventEngine.hasListeners("remove:drawable")).toBe(true);
+      expect(testEventEngine.getListenerCount("remove:drawable")).toBe(1);
     });
 
     it("should append canvas to DOM element", () => {
@@ -99,6 +123,7 @@ describe("RenderEngine", () => {
 
       mockEngine.queryEntities = vi.fn().mockReturnValue([
         {
+          entityId: "entity-1",
           components: {
             SpriteComponent: mockSpriteComponent,
           },
@@ -121,6 +146,7 @@ describe("RenderEngine", () => {
       getRenderEngineStatic().container = null;
       mockEngine.queryEntities = vi.fn().mockReturnValue([
         {
+          entityId: "entity-1",
           components: {
             SpriteComponent: new SpriteComponent({ texture_path: "test.png" }),
           },
@@ -136,12 +162,10 @@ describe("RenderEngine", () => {
       const sprite1 = new SpriteComponent({ texture_path: "sprite1.png" });
       const sprite2 = new SpriteComponent({ texture_path: "sprite2.png" });
 
-      mockEngine.queryEntities = vi
-        .fn()
-        .mockReturnValue([
-          { components: { SpriteComponent: sprite1 } },
-          { components: { SpriteComponent: sprite2 } },
-        ]);
+      mockEngine.queryEntities = vi.fn().mockReturnValue([
+        { entityId: "entity-1", components: { SpriteComponent: sprite1 } },
+        { entityId: "entity-2", components: { SpriteComponent: sprite2 } },
+      ]);
 
       const mockContainer = {
         addChild: vi.fn(),
@@ -168,6 +192,28 @@ describe("RenderEngine", () => {
       expect(mockApp.destroy).toHaveBeenCalled();
       expect(getRenderEngineStatic().app).toBeNull();
       expect(getRenderEngineStatic().container).toBeNull();
+    });
+
+    it("should clean up event listeners on destroy", () => {
+      const testEventEngine = new EventEngine();
+      const engine = new RenderEngine({ width: 800, height: 600, eventEngine: testEventEngine });
+
+      expect(testEventEngine.hasListeners("remove:drawable")).toBe(true);
+
+      engine.destroy(mockEngine);
+
+      expect(testEventEngine.hasListeners("remove:drawable")).toBe(false);
+    });
+
+    it("should clear spriteMap on destroy", () => {
+      const spriteComponent = new SpriteComponent({ texture_path: "test.png" });
+      getRenderEnginePrivate(renderEngine).spriteMap.set("test-entity", spriteComponent);
+
+      expect(getRenderEnginePrivate(renderEngine).spriteMap.size).toBe(1);
+
+      renderEngine.destroy(mockEngine);
+
+      expect(getRenderEnginePrivate(renderEngine).spriteMap.size).toBe(0);
     });
 
     it("should handle destroy when app is null", () => {
@@ -201,6 +247,96 @@ describe("RenderEngine", () => {
     });
   });
 
+  describe("remove:drawable event handling", () => {
+    it("should remove sprite from container when remove:drawable event is received", () => {
+      const mockContainer = {
+        addChild: vi.fn(),
+        removeChild: vi.fn(),
+      };
+      getRenderEngineStatic().container = mockContainer;
+
+      const spriteComponent = new SpriteComponent({
+        texture_path: "test.png",
+        position: { x: 10, y: 20 },
+      });
+
+      // Add sprite to the spriteMap (simulate loadAllSprites)
+      const entityId = "test-entity";
+      getRenderEnginePrivate(renderEngine).spriteMap.set(entityId, spriteComponent);
+
+      // Emit remove:drawable event
+      eventEngine.emit("remove:drawable", {
+        entityId,
+        componentName: "SpriteComponent",
+        componentData: { texture: "test.png" },
+      });
+      eventEngine.processEvents();
+
+      expect(mockContainer.removeChild).toHaveBeenCalledWith(spriteComponent._sprite);
+      expect(getRenderEnginePrivate(renderEngine).spriteMap.has(entityId)).toBe(false);
+    });
+
+    it("should handle remove:drawable event when sprite not found", () => {
+      const mockContainer = {
+        removeChild: vi.fn(),
+      };
+      getRenderEngineStatic().container = mockContainer;
+
+      eventEngine.emit("remove:drawable", {
+        entityId: "non-existent-entity",
+        componentName: "SpriteComponent",
+        componentData: { texture: "test.png" },
+      });
+      eventEngine.processEvents();
+
+      expect(mockContainer.removeChild).not.toHaveBeenCalled();
+    });
+
+    it("should handle remove:drawable event when container is null", () => {
+      getRenderEngineStatic().container = null;
+
+      const spriteComponent = new SpriteComponent({
+        texture_path: "test.png",
+      });
+
+      const entityId = "test-entity";
+      getRenderEnginePrivate(renderEngine).spriteMap.set(entityId, spriteComponent);
+
+      expect(() => {
+        eventEngine.emit("remove:drawable", {
+          entityId,
+          componentName: "SpriteComponent",
+          componentData: { texture: "test.png" },
+        });
+        eventEngine.processEvents();
+      }).not.toThrow();
+
+      // Sprite should be removed from map even if container is null
+      expect(getRenderEnginePrivate(renderEngine).spriteMap.has(entityId)).toBe(false);
+    });
+
+    it("should track sprites in spriteMap during loadAllSprites", async () => {
+      const sprite1 = new SpriteComponent({ texture_path: "sprite1.png" });
+      const sprite2 = new SpriteComponent({ texture_path: "sprite2.png" });
+
+      mockEngine.queryEntities = vi.fn().mockReturnValue([
+        { entityId: "entity-1", components: { SpriteComponent: sprite1 } },
+        { entityId: "entity-2", components: { SpriteComponent: sprite2 } },
+      ]);
+
+      const mockContainer = {
+        addChild: vi.fn(),
+      };
+      getRenderEngineStatic().container = mockContainer;
+
+      await renderEngine.loadAllSprites(mockEngine);
+
+      expect(getRenderEnginePrivate(renderEngine).spriteMap.size).toBe(2);
+      expect(getRenderEnginePrivate(renderEngine).spriteMap.get("entity-1")).toBe(sprite1);
+      expect(getRenderEnginePrivate(renderEngine).spriteMap.get("entity-2")).toBe(sprite2);
+    });
+  });
+
   describe("integration", () => {
     it("should work with TypeEngine sprite query", async () => {
       const spriteComponent = new SpriteComponent({
@@ -214,6 +350,7 @@ describe("RenderEngine", () => {
 
       mockEngine.queryEntities = vi.fn().mockReturnValue([
         {
+          entityId: "integration-entity",
           components: {
             SpriteComponent: spriteComponent,
           },

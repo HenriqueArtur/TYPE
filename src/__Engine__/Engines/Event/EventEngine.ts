@@ -129,13 +129,16 @@ export class EventEngine {
   /**
    * Process all queued events
    * This should be called at appropriate times in the game loop
+   * Handles events that are emitted during processing
    */
   processEvents(): void {
-    const eventsToProcess = [...this.eventQueue];
-    this.eventQueue.length = 0;
+    while (this.eventQueue.length > 0) {
+      const eventsToProcess = [...this.eventQueue];
+      this.eventQueue.length = 0;
 
-    for (const event of eventsToProcess) {
-      this.emitImmediate(event.eventName, ...event.args);
+      for (const event of eventsToProcess) {
+        this.emitImmediate(event.eventName, ...event.args);
+      }
     }
   }
 

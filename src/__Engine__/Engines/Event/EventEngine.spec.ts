@@ -241,7 +241,7 @@ describe("EventEngine", () => {
         name: string;
       }
 
-      const listener = vi.fn<[TestEventData], void>();
+      const listener = vi.fn<(data: TestEventData) => void>();
       eventEngine.on("typed-event", listener);
 
       const eventData: TestEventData = { id: 1, name: "test" };
@@ -251,7 +251,7 @@ describe("EventEngine", () => {
     });
 
     it("should handle multiple argument types", () => {
-      const listener = vi.fn<[string, number, boolean], void>();
+      const listener = vi.fn<(arg1: string, arg2: number, arg3: boolean) => void>();
       eventEngine.on("multi-arg-event", listener);
 
       eventEngine.emitImmediate("multi-arg-event", "hello", 42, true);
