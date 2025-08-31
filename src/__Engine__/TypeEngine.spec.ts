@@ -1,6 +1,6 @@
 /** biome-ignore-all lint/complexity/useLiteralKeys: false positive */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { EntityEngine, EventEngine, RenderEngine } from "./Engines";
+import { EntityEngine, EventEngine, RenderEngine, TimeEngine } from "./Engines";
 import type { Scene } from "./Engines/Scene/Scene";
 import { SceneEngine } from "./Engines/Scene/SceneEngine";
 import type { System } from "./Systems/System";
@@ -43,6 +43,20 @@ Object.defineProperty(global, "window", {
   writable: true,
 });
 
+// Mock requestAnimationFrame and cancelAnimationFrame for TimeEngine
+global.requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
+  return setTimeout(callback, 16); // Mock 60fps timing
+});
+
+global.cancelAnimationFrame = vi.fn((handle: number) => {
+  clearTimeout(handle);
+});
+
+// Mock performance.now() for TimeEngine
+global.performance = {
+  now: vi.fn(() => Date.now()),
+} as unknown as Performance;
+
 // Mock PIXI Application
 vi.mock("pixi.js", () => ({
   Application: vi.fn().mockImplementation(() => ({
@@ -73,6 +87,7 @@ describe("TypeEngine", () => {
   let mockEntityEngine: EntityEngine;
   let mockEventEngine: EventEngine;
   let mockSceneEngine: SceneEngine;
+  let mockTimeEngine: TimeEngine;
 
   beforeEach(() => {
     // Create fresh instances for each test
@@ -85,12 +100,14 @@ describe("TypeEngine", () => {
         test: "/scenes/test.scene.json",
       },
     });
+    mockTimeEngine = new TimeEngine({ fixedFps: 60 });
 
     engine = new TypeEngine({
       renderEngine: mockRenderEngine,
       entityEngine: mockEntityEngine,
       eventEngine: mockEventEngine,
       sceneEngine: mockSceneEngine,
+      timeEngine: mockTimeEngine,
       systemsList: [],
     });
   });
@@ -101,6 +118,7 @@ describe("TypeEngine", () => {
       expect(engine["Entity"]).toBe(mockEntityEngine);
       expect(engine["eventEngine"]).toBe(mockEventEngine);
       expect(engine["sceneEngine"]).toBe(mockSceneEngine);
+      expect(engine["timeEngine"]).toBe(mockTimeEngine);
     });
 
     it("should create different instances with different dependencies", () => {
@@ -117,18 +135,21 @@ describe("TypeEngine", () => {
           another: "/scenes/another.scene.json",
         },
       });
+      const anotherTimeEngine = new TimeEngine({ fixedFps: 30 });
 
       const engine2 = new TypeEngine({
         renderEngine: anotherRenderEngine,
         entityEngine: anotherEntityEngine,
         eventEngine: anotherEventEngine,
         sceneEngine: anotherSceneEngine,
+        timeEngine: anotherTimeEngine,
         systemsList: [],
       });
 
       expect(engine).not.toBe(engine2);
       expect(engine2["Entity"]).toBe(anotherEntityEngine);
       expect(engine2["sceneEngine"]).toBe(anotherSceneEngine);
+      expect(engine2["timeEngine"]).toBe(anotherTimeEngine);
     });
   });
 
@@ -156,6 +177,7 @@ describe("TypeEngine", () => {
         entityEngine: mockEntityEngine,
         eventEngine: mockEventEngine,
         sceneEngine: mockSceneEngine,
+        timeEngine: mockTimeEngine,
         systemsList: [mockSystem],
       });
 
@@ -465,15 +487,99 @@ describe("TypeEngine", () => {
     });
   });
 
+  describe("time engine integration", () => {
+    it("should provide access to TimeEngine via delegation methods", () => {
+      const mockFunc = vi.fn();
+      const mockFixedFunc = vi.fn();
+
+      engine.addTimeFunction(mockFunc);
+      engine.addFixedTimeFunction(mockFixedFunc);
+
+      expect(engine.getTimeFunctionCount()).toBe(1);
+      expect(engine.getFixedTimeFunctionCount()).toBe(1);
+      expect(engine.getFixedTimeStep()).toBe(16.666666666666668); // 1000/60
+    });
+
+    it("should remove time functions correctly", () => {
+      const mockFunc = vi.fn();
+      const mockFixedFunc = vi.fn();
+
+      engine.addTimeFunction(mockFunc);
+      engine.addFixedTimeFunction(mockFixedFunc);
+
+      expect(engine.getTimeFunctionCount()).toBe(1);
+      expect(engine.getFixedTimeFunctionCount()).toBe(1);
+
+      engine.removeTimeFunction(mockFunc);
+      engine.removeFixedTimeFunction(mockFixedFunc);
+
+      expect(engine.getTimeFunctionCount()).toBe(0);
+      expect(engine.getFixedTimeFunctionCount()).toBe(0);
+    });
+
+    it("should clear all time functions", () => {
+      const mockFunc = vi.fn();
+      const mockFixedFunc = vi.fn();
+
+      engine.addTimeFunction(mockFunc);
+      engine.addFixedTimeFunction(mockFixedFunc);
+
+      expect(engine.getTimeFunctionCount()).toBe(1);
+      expect(engine.getFixedTimeFunctionCount()).toBe(1);
+
+      engine.clearTimeFunctions();
+
+      expect(engine.getTimeFunctionCount()).toBe(0);
+      expect(engine.getFixedTimeFunctionCount()).toBe(0);
+    });
+
+    it("should delegate TimeEngine running state", () => {
+      expect(engine.getTimeEngineRunning()).toBe(false);
+
+      engine.start();
+      expect(engine.getTimeEngineRunning()).toBe(true);
+
+      engine.stop();
+      expect(engine.getTimeEngineRunning()).toBe(false);
+    });
+
+    it("should automatically add update method to TimeEngine on start", () => {
+      expect(engine.getTimeFunctionCount()).toBe(0);
+
+      engine.start();
+      expect(engine.getTimeFunctionCount()).toBe(1); // update method added
+
+      // Starting again should not add it twice
+      engine.stop();
+      engine.start();
+      expect(engine.getTimeFunctionCount()).toBe(1);
+    });
+
+    it("should reset update flag when clearing time functions", () => {
+      engine.start();
+      expect(engine.getTimeFunctionCount()).toBe(1);
+
+      engine.clearTimeFunctions();
+      expect(engine.getTimeFunctionCount()).toBe(0);
+
+      // Should add update method again on next start
+      engine.start();
+      expect(engine.getTimeFunctionCount()).toBe(1);
+    });
+  });
+
   describe("engine lifecycle", () => {
-    it("should start and stop engine", () => {
+    it("should start and stop engine and time engine", () => {
       expect(engine["isRunning"]).toBe(false);
+      expect(engine.getTimeEngineRunning()).toBe(false);
 
       engine.start();
       expect(engine["isRunning"]).toBe(true);
+      expect(engine.getTimeEngineRunning()).toBe(true);
 
       engine.stop();
       expect(engine["isRunning"]).toBe(false);
+      expect(engine.getTimeEngineRunning()).toBe(false);
     });
 
     it("should update enabled systems when running", () => {

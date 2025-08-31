@@ -1,4 +1,4 @@
-import type { EntityEngine, EventEngine, RenderEngine } from "./Engines";
+import type { EntityEngine, EventEngine, RenderEngine, TimeEngine } from "./Engines";
 import type { Scene } from "./Engines/Scene/Scene";
 import type { SceneEngine } from "./Engines/Scene/SceneEngine";
 import type { SceneName } from "./Engines/Scene/SceneManageSerialized";
@@ -9,6 +9,7 @@ export interface TypeEngineOptions {
   entityEngine: EntityEngine;
   eventEngine: EventEngine;
   sceneEngine: SceneEngine;
+  timeEngine: TimeEngine;
   systemsList: System<TypeEngine>[];
 }
 
@@ -23,12 +24,15 @@ export class TypeEngine {
   private eventEngine: EventEngine;
   private Entity: EntityEngine;
   private sceneEngine: SceneEngine;
+  private timeEngine: TimeEngine;
   private isRunning = false;
+  private updateAddedToTimeEngine = false;
 
   constructor(options: TypeEngineOptions) {
     this.Entity = options.entityEngine;
     this.eventEngine = options.eventEngine;
     this.sceneEngine = options.sceneEngine;
+    this.timeEngine = options.timeEngine;
     this.systems = options.systemsList;
   }
 
@@ -42,6 +46,87 @@ export class TypeEngine {
    */
   getEventEngine(): EventEngine {
     return this.eventEngine;
+  }
+
+  // ========================================
+  // TIME MANAGEMENT (DELEGATED)
+  // ========================================
+
+  /**
+   * Adds a function to be called on each update with deltaTime
+   * @param func - Function that receives deltaTime as parameter
+   */
+  addTimeFunction(func: (deltaTime: number) => void): void {
+    this.timeEngine.add(func);
+  }
+
+  /**
+   * Removes a function from the update loop
+   * @param func - Function to remove
+   */
+  removeTimeFunction(func: (deltaTime: number) => void): void {
+    this.timeEngine.remove(func);
+
+    // Reset flag if the removed function is our update method
+    if (func === this.update.bind(this)) {
+      this.updateAddedToTimeEngine = false;
+    }
+  }
+
+  /**
+   * Adds a function to be called at fixed intervals
+   * @param func - Function that receives fixed deltaTime as parameter
+   */
+  addFixedTimeFunction(func: (fixedDeltaTime: number) => void): void {
+    this.timeEngine.addFixed(func);
+  }
+
+  /**
+   * Removes a function from the fixed timestep update loop
+   * @param func - Function to remove
+   */
+  removeFixedTimeFunction(func: (fixedDeltaTime: number) => void): void {
+    this.timeEngine.removeFixed(func);
+  }
+
+  /**
+   * Gets the current running state of the time engine
+   * @returns True if the time engine is currently running
+   */
+  getTimeEngineRunning(): boolean {
+    return this.timeEngine.getIsRunning();
+  }
+
+  /**
+   * Gets the number of registered time functions
+   * @returns Number of functions in the update loop
+   */
+  getTimeFunctionCount(): number {
+    return this.timeEngine.getFunctionCount();
+  }
+
+  /**
+   * Gets the number of registered fixed timestep functions
+   * @returns Number of fixed functions in the update loop
+   */
+  getFixedTimeFunctionCount(): number {
+    return this.timeEngine.getFixedFunctionCount();
+  }
+
+  /**
+   * Gets the current fixed timestep in milliseconds
+   * @returns Fixed timestep duration in milliseconds
+   */
+  getFixedTimeStep(): number {
+    return this.timeEngine.getFixedTimeStep();
+  }
+
+  /**
+   * Clears all registered time functions (both variable and fixed timestep)
+   */
+  clearTimeFunctions(): void {
+    this.timeEngine.clear();
+    this.updateAddedToTimeEngine = false;
   }
 
   // ========================================
@@ -227,17 +312,26 @@ export class TypeEngine {
   // ========================================
 
   /**
-   * Starts the engine, enabling system updates
+   * Starts the engine and time engine, enabling system updates
+   * Automatically adds the update method to TimeEngine if not already added
    */
   start(): void {
     this.isRunning = true;
+
+    if (!this.updateAddedToTimeEngine) {
+      this.timeEngine.add(this.update.bind(this));
+      this.updateAddedToTimeEngine = true;
+    }
+
+    this.timeEngine.start();
   }
 
   /**
-   * Stops the engine, disabling system updates
+   * Stops the engine and time engine, disabling system updates
    */
   stop(): void {
     this.isRunning = false;
+    this.timeEngine.stop();
   }
 
   /**
