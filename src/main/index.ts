@@ -1,3 +1,4 @@
+import { promises as fs } from "node:fs";
 import path from "node:path";
 import { app, BrowserWindow } from "electron";
 import { ipcMain } from "electron/main";
@@ -68,6 +69,15 @@ ipcMain.handle("path-parse", (_, filePath: string) => {
 
 ipcMain.handle("path-join", (_, ...paths: string[]) => {
   return path.join(...paths);
+});
+
+ipcMain.handle("read-json-file", async (_, filePath: string) => {
+  try {
+    const fileContent = await fs.readFile(filePath, "utf-8");
+    return JSON.parse(fileContent);
+  } catch (error) {
+    throw new Error(`Failed to read JSON file: ${(error as Error).message}`);
+  }
 });
 
 app.on("window-all-closed", () => {

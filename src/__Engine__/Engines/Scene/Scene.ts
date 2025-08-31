@@ -1,3 +1,11 @@
+import type { System } from "../../Systems/System";
+import type { TypeEngine } from "../../TypeEngine";
+import type {
+  GameObjectSerialized,
+  GroupGameObjectSerialized,
+} from "../Entity/GameObjectSerialized";
+import type { SceneSerialized } from "./SceneSerialized";
+
 /**
  * Scene - Represents a game scene with a name and file path
  *
@@ -45,5 +53,57 @@ export class Scene {
    */
   get filePath(): string {
     return this._filePath;
+  }
+
+  /**
+   * Loads scene data and initializes systems and entities in the engine
+   * @param engine - The TypeEngine instance to load scene data into
+   */
+  async load(engine: TypeEngine): Promise<void> {
+    const sceneData: SceneSerialized = await window.electronAPI.readJsonFile(this._filePath);
+
+    await this.loadSystems(engine, sceneData.systems);
+
+    await this.loadGameObjects(engine, sceneData.gameObjects);
+  }
+
+  private async loadSystems(engine: TypeEngine, systems: Record<string, string>): Promise<void> {
+    for (const [systemName, systemPath] of Object.entries(systems)) {
+      try {
+        const systemModule = await import(systemPath);
+        const SystemClass = systemModule.default || systemModule[systemName];
+
+        if (SystemClass) {
+          const systemInstance: System<TypeEngine> = new SystemClass();
+          engine.addSystem(systemInstance);
+        }
+      } catch (error) {
+        console.warn(`Failed to load system ${systemName} from ${systemPath}:`, error);
+      }
+    }
+  }
+
+  private async loadGameObjects(
+    engine: TypeEngine,
+    gameObjects: (GameObjectSerialized | GroupGameObjectSerialized)[],
+  ): Promise<void> {
+    for (const gameObjectData of gameObjects) {
+      if ("list" in gameObjectData) {
+        await this.loadGameObjects(engine, gameObjectData.list);
+      } else {
+        await this.loadGameObject(engine, gameObjectData);
+      }
+    }
+  }
+
+  private async loadGameObject(
+    engine: TypeEngine,
+    gameObjectData: GameObjectSerialized,
+  ): Promise<void> {
+    const entityId = engine.createEntity();
+
+    for (const componentData of gameObjectData.components) {
+      engine.addComponent(entityId, componentData.name, componentData.data);
+    }
   }
 }

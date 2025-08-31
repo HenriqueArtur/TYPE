@@ -35,3 +35,5 @@ export interface System<TEngine = unknown> {
    */
   destroy?(engine: TEngine): void;
 }
+
+export type SystemName = string;
