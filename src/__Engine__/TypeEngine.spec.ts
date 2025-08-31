@@ -1,8 +1,24 @@
 /** biome-ignore-all lint/complexity/useLiteralKeys: false positive */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EntityEngine, EventEngine, RenderEngine } from "./Engines";
+import type { Scene } from "./Engines/Scene/Scene";
+import { SceneEngine } from "./Engines/Scene/SceneEngine";
 import type { System } from "./Systems/System";
 import { TypeEngine } from "./TypeEngine";
+
+// Mock electronAPI for SceneEngine
+const mockElectronAPI = {
+  openGameWindow: vi.fn(),
+  pathParse: vi.fn().mockResolvedValue({
+    name: "test.scene",
+    dir: "/scenes",
+    ext: ".json",
+    base: "test.scene.json",
+    root: "/",
+  }),
+  pathJoin: vi.fn().mockResolvedValue("/scenes/test.scene.json"),
+  readJsonFile: vi.fn(),
+};
 
 // Mock document and DOM elements for RenderEngine
 const mockCanvas = { tagName: "CANVAS" };
@@ -18,6 +34,14 @@ global.document = {
     return null;
   }),
 } as unknown as Document;
+
+// Mock window.electronAPI for SceneEngine
+Object.defineProperty(global, "window", {
+  value: {
+    electronAPI: mockElectronAPI,
+  },
+  writable: true,
+});
 
 // Mock PIXI Application
 vi.mock("pixi.js", () => ({
@@ -48,17 +72,25 @@ describe("TypeEngine", () => {
   let mockRenderEngine: RenderEngine;
   let mockEntityEngine: EntityEngine;
   let mockEventEngine: EventEngine;
+  let mockSceneEngine: SceneEngine;
 
   beforeEach(() => {
     // Create fresh instances for each test
     mockEventEngine = new EventEngine();
     mockRenderEngine = new RenderEngine({ width: 800, height: 600, eventEngine: mockEventEngine });
     mockEntityEngine = new EntityEngine(mockEventEngine);
+    mockSceneEngine = new SceneEngine({
+      initialScene: "test",
+      scenes: {
+        test: "/scenes/test.scene.json",
+      },
+    });
 
     engine = new TypeEngine({
       renderEngine: mockRenderEngine,
       entityEngine: mockEntityEngine,
       eventEngine: mockEventEngine,
+      sceneEngine: mockSceneEngine,
       systemsList: [],
     });
   });
@@ -68,6 +100,7 @@ describe("TypeEngine", () => {
       expect(engine).toBeInstanceOf(TypeEngine);
       expect(engine["Entity"]).toBe(mockEntityEngine);
       expect(engine["eventEngine"]).toBe(mockEventEngine);
+      expect(engine["sceneEngine"]).toBe(mockSceneEngine);
     });
 
     it("should create different instances with different dependencies", () => {
@@ -78,16 +111,24 @@ describe("TypeEngine", () => {
         eventEngine: anotherEventEngine,
       });
       const anotherEntityEngine = new EntityEngine(anotherEventEngine);
+      const anotherSceneEngine = new SceneEngine({
+        initialScene: "another",
+        scenes: {
+          another: "/scenes/another.scene.json",
+        },
+      });
 
       const engine2 = new TypeEngine({
         renderEngine: anotherRenderEngine,
         entityEngine: anotherEntityEngine,
         eventEngine: anotherEventEngine,
+        sceneEngine: anotherSceneEngine,
         systemsList: [],
       });
 
       expect(engine).not.toBe(engine2);
       expect(engine2["Entity"]).toBe(anotherEntityEngine);
+      expect(engine2["sceneEngine"]).toBe(anotherSceneEngine);
     });
   });
 
@@ -114,6 +155,7 @@ describe("TypeEngine", () => {
         renderEngine: mockRenderEngine,
         entityEngine: mockEntityEngine,
         eventEngine: mockEventEngine,
+        sceneEngine: mockSceneEngine,
         systemsList: [mockSystem],
       });
 
@@ -128,6 +170,36 @@ describe("TypeEngine", () => {
 
     it("should initialize with empty registered components", () => {
       expect(engine.getRegisteredComponents()).toEqual([]);
+    });
+  });
+
+  describe("engine access methods", () => {
+    it("should provide access to EventEngine via getEventEngine()", () => {
+      const eventEngine = engine.getEventEngine();
+      expect(eventEngine).toBe(mockEventEngine);
+    });
+
+    it("should provide scene management via getCurrentScene()", () => {
+      const mockScene = {
+        name: "test-scene",
+        path: "/scenes",
+        filePath: "/scenes/test.scene.json",
+        load: vi.fn(),
+      } as unknown as Scene;
+
+      vi.spyOn(mockSceneEngine, "getCurrentScene").mockReturnValue(mockScene);
+
+      const currentScene = engine.getCurrentScene();
+      expect(currentScene).toBe(mockScene);
+      expect(mockSceneEngine.getCurrentScene).toHaveBeenCalled();
+    });
+
+    it("should provide scene transition via transition()", async () => {
+      const transitionSpy = vi.spyOn(mockSceneEngine, "transition").mockResolvedValue();
+
+      await engine.transition("testScene");
+
+      expect(transitionSpy).toHaveBeenCalledWith("testScene", engine);
     });
   });
 

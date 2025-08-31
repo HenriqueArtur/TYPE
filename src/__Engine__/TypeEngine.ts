@@ -1,10 +1,14 @@
 import type { EntityEngine, EventEngine, RenderEngine } from "./Engines";
+import type { Scene } from "./Engines/Scene/Scene";
+import type { SceneEngine } from "./Engines/Scene/SceneEngine";
+import type { SceneName } from "./Engines/Scene/SceneManageSerialized";
 import type { System } from "./Systems/System";
 
 export interface TypeEngineOptions {
   renderEngine: RenderEngine;
   entityEngine: EntityEngine;
   eventEngine: EventEngine;
+  sceneEngine: SceneEngine;
   systemsList: System<TypeEngine>[];
 }
 
@@ -18,11 +22,13 @@ export class TypeEngine {
   private systems: System<TypeEngine>[];
   private eventEngine: EventEngine;
   private Entity: EntityEngine;
+  private sceneEngine: SceneEngine;
   private isRunning = false;
 
   constructor(options: TypeEngineOptions) {
     this.Entity = options.entityEngine;
     this.eventEngine = options.eventEngine;
+    this.sceneEngine = options.sceneEngine;
     this.systems = options.systemsList;
   }
 
@@ -36,6 +42,27 @@ export class TypeEngine {
    */
   getEventEngine(): EventEngine {
     return this.eventEngine;
+  }
+
+  // ========================================
+  // SCENE MANAGEMENT (DELEGATED)
+  // ========================================
+
+  /**
+   * Gets the current active scene
+   * @returns The current Scene instance or null if no scene is active
+   */
+  getCurrentScene(): Scene | null {
+    return this.sceneEngine.getCurrentScene();
+  }
+
+  /**
+   * Transitions to a new scene
+   * @param sceneName - The name of the scene to transition to
+   * @throws Error if the scene doesn't exist
+   */
+  async transition(sceneName: SceneName): Promise<void> {
+    await this.sceneEngine.transition(sceneName, this);
   }
 
   // ========================================
