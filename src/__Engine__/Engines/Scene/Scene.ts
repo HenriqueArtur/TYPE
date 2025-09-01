@@ -100,7 +100,6 @@ export class Scene {
   ): Promise<void> {
     const entityId = engine.createEntity();
     for (const componentData of gameObjectData.components) {
-      console.log({ componentData });
       engine.addComponent(entityId, componentData.name, componentData.data);
     }
   }

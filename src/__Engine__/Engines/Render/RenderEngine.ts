@@ -38,7 +38,6 @@ export class RenderEngine {
     await this._instance.init({ ...this.render_window, backgroundColor: 0x1099bb });
     document.getElementById(this.tag)?.appendChild(this._instance.canvas as unknown as Node);
     this.setupEventListeners();
-    console.log("aqui");
   }
 
   /**

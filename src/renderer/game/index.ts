@@ -26,22 +26,12 @@ export async function Game() {
     timeEngine,
     systemsList: [],
   });
-
   engine.registerComponent(
     "SpriteComponent",
     <T = SpriteComponentData>(data: T) => new SpriteComponent(data as SpriteComponentData),
   );
   engine.addSystem(new RenderPixiSystem());
-
-  console.log("beforeSetup");
   await engine.setup();
-  console.log("afterSetup");
-
-  const sprite_entities = engine.queryEntities<{ SpriteComponent: SpriteComponent }>([
-    "SpriteComponent",
-  ]);
-  console.log({ sprite_entities });
-  // Start the TypeEngine
   engine.start();
 }
 
