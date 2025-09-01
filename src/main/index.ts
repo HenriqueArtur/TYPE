@@ -73,7 +73,7 @@ ipcMain.handle("path-join", (_, ...paths: string[]) => {
 
 ipcMain.handle("read-json-file", async (_, filePath: string) => {
   try {
-    const fileContent = await fs.readFile(filePath, "utf-8");
+    const fileContent = await fs.readFile(path.join(__dirname, filePath), "utf-8");
     return JSON.parse(fileContent);
   } catch (error) {
     throw new Error(`Failed to read JSON file: ${(error as Error).message}`);

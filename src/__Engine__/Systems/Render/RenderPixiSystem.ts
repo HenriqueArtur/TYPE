@@ -1,5 +1,4 @@
 import type { SpriteComponent } from "../../Component/Drawable/SpriteComponent";
-import type { RenderEngine } from "../../Engines";
 import type { TypeEngine } from "../../TypeEngine";
 import type { System } from "../System";
 
@@ -7,9 +6,7 @@ export class RenderPixiSystem implements System<TypeEngine> {
   priority = 2;
   enabled = true;
 
-  async init(engine: TypeEngine, render_engine: RenderEngine) {
-    await render_engine.loadAllSprites(engine);
-  }
+  async init(_engine: TypeEngine) {}
 
   update(engine: TypeEngine, _deltaTime: number): void {
     const sprite_entities = engine.queryEntities<{ SpriteComponent: SpriteComponent }>([

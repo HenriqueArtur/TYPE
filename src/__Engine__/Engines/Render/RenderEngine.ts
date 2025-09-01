@@ -1,4 +1,4 @@
-import { Application, Assets, type Container, type Renderer, type Texture } from "pixi.js";
+import { Application, Assets, type Renderer, type Texture } from "pixi.js";
 import type { SpriteComponent } from "../../Component/Drawable/SpriteComponent";
 import type { TypeEngine } from "../../TypeEngine";
 import type { EventEngine } from "../Event/EventEngine";
@@ -12,7 +12,6 @@ export interface RenderEngineOptions {
 
 export class RenderEngine {
   private static app: Application | null = null;
-  private static container: Container | null = null;
   _instance: Application<Renderer>;
   private eventEngine: EventEngine;
   private spriteMap: Map<string, SpriteComponent> = new Map();
@@ -21,21 +20,25 @@ export class RenderEngine {
     componentName: string;
     componentData: unknown;
   }) => void;
+  private tag: string;
+  private render_window: { width: number; height: number };
 
   constructor(data: RenderEngineOptions) {
     this.eventEngine = data.eventEngine;
     this.boundHandleRemoveDrawable = this.handleRemoveDrawable.bind(this);
     this._instance = new Application();
-    const render_window = {
+    this.render_window = {
       width: data?.width ?? 800,
       height: data?.height ?? 600,
     };
-    this._instance.init({ ...render_window, backgroundColor: 0x1099bb });
-    document
-      .getElementById(data?.html_tag_id ?? "game")
-      ?.appendChild(this._instance.canvas as unknown as Node);
+    this.tag = data?.html_tag_id ?? "game";
+  }
 
+  async start() {
+    await this._instance.init({ ...this.render_window, backgroundColor: 0x1099bb });
+    document.getElementById(this.tag)?.appendChild(this._instance.canvas as unknown as Node);
     this.setupEventListeners();
+    console.log("aqui");
   }
 
   /**
@@ -56,9 +59,9 @@ export class RenderEngine {
   }): void {
     const spriteComponent = this.spriteMap.get(data.entityId);
     if (spriteComponent) {
-      // Remove sprite from the PIXI container if container exists
-      if (RenderEngine.container) {
-        RenderEngine.container.removeChild(spriteComponent._sprite);
+      // Remove from stage if it exists
+      if (this._instance.stage) {
+        this._instance.stage.removeChild(spriteComponent._sprite);
       }
       // Always remove from our tracking map
       this.spriteMap.delete(data.entityId);
@@ -73,12 +76,10 @@ export class RenderEngine {
       RenderEngine.app.destroy();
       RenderEngine.app = null;
     }
-    RenderEngine.container = null;
     this.spriteMap.clear();
   }
 
   async loadAllSprites(engine: TypeEngine): Promise<void> {
-    if (!RenderEngine.container) return;
     const sprite_entities = engine.queryEntities<{ SpriteComponent: SpriteComponent }>([
       "SpriteComponent",
     ]);
@@ -86,7 +87,7 @@ export class RenderEngine {
       const sprite_component = components.SpriteComponent;
       const texture = await Assets.load<Texture>(sprite_component.texture_path);
       sprite_component._sprite.texture = texture;
-      RenderEngine.container.addChild(sprite_component._sprite);
+      this._instance.stage.addChild(sprite_component._sprite);
 
       // Track sprite for later removal
       this.spriteMap.set(entityId, sprite_component);

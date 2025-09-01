@@ -121,7 +121,8 @@ export class EntityEngine {
     const entityComponents = this.entities.get(entityId);
 
     if (componentMap && entityComponents) {
-      componentMap.set(entityId, componentData);
+      const factory = this.componentFactories.get(componentName) || (() => {});
+      componentMap.set(entityId, factory(componentData));
       entityComponents.add(componentName);
 
       // Emit component added event

@@ -201,6 +201,11 @@ describe("TypeEngine", () => {
       expect(eventEngine).toBe(mockEventEngine);
     });
 
+    it("should provide access to RenderEngine via getRenderEngine()", () => {
+      const renderEngine = engine.getRenderEngine();
+      expect(renderEngine).toBe(mockRenderEngine);
+    });
+
     it("should provide scene management via getCurrentScene()", () => {
       const mockScene = {
         name: "test-scene",
@@ -262,7 +267,7 @@ describe("TypeEngine", () => {
     });
 
     it("should remove entity and all its components", () => {
-      const mockComponent = vi.fn();
+      const mockComponent = vi.fn((data) => data);
 
       engine.registerComponent("Position", mockComponent);
       const entityId = engine.createEntity();
@@ -340,7 +345,7 @@ describe("TypeEngine", () => {
 
   describe("component management", () => {
     beforeEach(() => {
-      const mockComponent = vi.fn();
+      const mockComponent = vi.fn((data) => data);
       engine.registerComponent("Position", mockComponent);
       engine.registerComponent("Velocity", mockComponent);
     });
@@ -388,7 +393,7 @@ describe("TypeEngine", () => {
   });
 
   describe("system management", () => {
-    it("should add system and sort by priority", () => {
+    it("should add system and sort by priority", async () => {
       const system1: System<TypeEngine> = {
         priority: 10,
         enabled: true,
@@ -406,6 +411,9 @@ describe("TypeEngine", () => {
       engine.addSystem(system2);
 
       expect(engine["systems"]).toEqual([system2, system1]);
+
+      // Systems are initialized during setupSystems()
+      await engine.setupSystems();
       expect(system1.init).toHaveBeenCalledWith(engine);
       expect(system2.init).toHaveBeenCalledWith(engine);
     });
@@ -662,7 +670,7 @@ describe("TypeEngine", () => {
       const eventEngine = engine.getEventEngine();
       const addedListener = vi.fn();
       const removedListener = vi.fn();
-      const mockComponent = vi.fn();
+      const mockComponent = vi.fn((data) => data);
 
       engine.registerComponent("Position", mockComponent);
       eventEngine.on("component:added", addedListener);

@@ -1,0 +1,25 @@
+{
+  "name": "Bunny",
+  "path": "../renderer/Bunny.blueprint.json",
+  "components": [
+{
+          "name": "SpriteComponent",
+          "data": {
+            "texture_path": "../renderer/bunny.png",
+            "position": {
+              "x": 400,
+              "y": 300
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "rotation": 0,
+            "alpha": 1,
+            "visible": true,
+            "anchor": 0.5
+          }
+        }
+
+]
+}

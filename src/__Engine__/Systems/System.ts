@@ -18,7 +18,7 @@ export interface System<TEngine = unknown> {
    * Use this for system initialization, resource allocation, etc.
    * @param engine - The engine instance
    */
-  init(engine: TEngine, ...args: unknown[]): void;
+  init(engine: TEngine): void | Promise<void>;
 
   /**
    * Called every frame to update the system's logic

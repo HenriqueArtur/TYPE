@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SpriteComponent } from "../../Component/Drawable/SpriteComponent";
-import type { RenderEngine } from "../../Engines/Render/RenderEngine";
 import type { TypeEngine } from "../../TypeEngine";
 import { RenderPixiSystem } from "./RenderPixiSystem";
 
@@ -52,7 +51,6 @@ vi.mock("pixi.js", () => ({
 describe("RenderPixiSystem", () => {
   let system: RenderPixiSystem;
   let mockEngine: TypeEngine;
-  let mockRenderEngine: RenderEngine;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -61,10 +59,6 @@ describe("RenderPixiSystem", () => {
     mockEngine = {
       queryEntities: vi.fn().mockReturnValue([]),
     } as unknown as TypeEngine;
-
-    mockRenderEngine = {
-      loadAllSprites: vi.fn().mockResolvedValue(undefined),
-    } as unknown as RenderEngine;
   });
 
   describe("System interface implementation", () => {
@@ -78,15 +72,13 @@ describe("RenderPixiSystem", () => {
   });
 
   describe("init method", () => {
-    it("should call loadAllSprites on render engine", async () => {
-      await system.init(mockEngine, mockRenderEngine);
-
-      expect(mockRenderEngine.loadAllSprites).toHaveBeenCalledWith(mockEngine);
+    it("should initialize without errors", async () => {
+      await expect(system.init(mockEngine)).resolves.not.toThrow();
     });
 
-    it("should handle init with missing render engine gracefully", async () => {
-      // This test verifies that if render_engine is undefined, it should throw
-      await expect(system.init(mockEngine, undefined as unknown as RenderEngine)).rejects.toThrow();
+    it("should handle init gracefully", async () => {
+      // The init method is now empty and should not throw
+      await expect(system.init(mockEngine)).resolves.toBeUndefined();
     });
   });
 

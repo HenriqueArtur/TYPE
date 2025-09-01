@@ -25,6 +25,7 @@ export class TypeEngine {
   private Entity: EntityEngine;
   private sceneEngine: SceneEngine;
   private timeEngine: TimeEngine;
+  private renderEngine: RenderEngine;
   private isRunning = false;
   private updateAddedToTimeEngine = false;
 
@@ -33,7 +34,14 @@ export class TypeEngine {
     this.eventEngine = options.eventEngine;
     this.sceneEngine = options.sceneEngine;
     this.timeEngine = options.timeEngine;
+    this.renderEngine = options.renderEngine;
     this.systems = options.systemsList;
+  }
+
+  async setup() {
+    await this.renderEngine.start();
+    await this.transition("Initial");
+    await this.setupSystems();
   }
 
   // ========================================
@@ -46,6 +54,14 @@ export class TypeEngine {
    */
   getEventEngine(): EventEngine {
     return this.eventEngine;
+  }
+
+  /**
+   * Gets the RenderEngine instance for rendering operations
+   * @returns The RenderEngine instance
+   */
+  getRenderEngine(): RenderEngine {
+    return this.renderEngine;
   }
 
   // ========================================
@@ -148,6 +164,7 @@ export class TypeEngine {
    */
   async transition(sceneName: SceneName): Promise<void> {
     await this.sceneEngine.transition(sceneName, this);
+    await this.renderEngine.loadAllSprites(this);
   }
 
   // ========================================
@@ -181,7 +198,7 @@ export class TypeEngine {
    * @param func - The factory function for creating component instances
    * @returns This TypeEngine instance for method chaining
    */
-  registerComponent(name: string, func: (...args: unknown[]) => unknown): this {
+  registerComponent(name: string, func: <T = unknown>(args: T) => unknown): this {
     this.Entity.registerComponent(name, func);
     return this;
   }
@@ -248,10 +265,15 @@ export class TypeEngine {
    * Adds a system to the engine and sorts systems by priority
    * @param system - The system to add
    */
-  addSystem(system: System<TypeEngine>, ...opt: unknown[]): void {
+  addSystem(system: System<TypeEngine>): void {
     this.systems.push(system);
     this.systems.sort((a, b) => a.priority - b.priority);
-    system.init(this, ...opt);
+  }
+
+  async setupSystems() {
+    for (const system of this.systems) {
+      await system.init(this);
+    }
   }
 
   /**

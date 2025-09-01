@@ -1,42 +1,48 @@
-import * as PIXI from "pixi.js";
-import { Mouse } from "../../__Engine__/InputEngine/Mouse";
+import { SpriteComponent, type SpriteComponentData } from "../../__Engine__/Component/Drawable";
+import { EntityEngine, EventEngine, RenderEngine, TimeEngine } from "../../__Engine__/Engines";
+import { SceneEngine } from "../../__Engine__/Engines/Scene/SceneEngine";
+import type { SceneManageSerialized } from "../../__Engine__/Engines/Scene/SceneManageSerialized";
+import { RenderPixiSystem } from "../../__Engine__/Systems";
 import { TypeEngine } from "../../__Engine__/TypeEngine";
-import INITIAL_SCENE from "../../__Project__";
+import { SCENE_MANAGE } from "../../__Project__";
 
 export async function Game() {
-  const app = new PIXI.Application();
-  await app.init({ width: 800, height: 600, backgroundColor: 0x1099bb });
-  document.getElementById("game")?.appendChild(app.canvas as unknown as Node);
+  // Initialize all engine components with dependency injection
+  const eventEngine = new EventEngine();
+  const renderEngine = new RenderEngine({ width: 800, height: 600, eventEngine });
+  const entityEngine = new EntityEngine(eventEngine);
 
-  // Initialize TypeEngine and load the scene
-  const engine = TypeEngine.getInstance();
-  engine.loadScene(INITIAL_SCENE);
+  // Configure scene management - for now use a simple initial scene setup
+  const sceneManageData: SceneManageSerialized = SCENE_MANAGE;
+  const sceneEngine = new SceneEngine(sceneManageData);
+  const timeEngine = new TimeEngine({ fixedFps: 60 });
 
-  const currentScene = engine.getCurrentScene();
-  if (!currentScene) {
-    throw new Error("Failed to load initial scene");
-  }
+  // Create TypeEngine with dependency injection
+  const engine = new TypeEngine({
+    renderEngine,
+    entityEngine,
+    eventEngine,
+    sceneEngine,
+    timeEngine,
+    systemsList: [],
+  });
 
-  // Load and add sprites from RenderEngine
-  const renderEngine = engine.getRenderEngine();
-  await renderEngine.loadAllSprites();
+  engine.registerComponent(
+    "SpriteComponent",
+    <T = SpriteComponentData>(data: T) => new SpriteComponent(data as SpriteComponentData),
+  );
+  engine.addSystem(new RenderPixiSystem());
 
-  for (const drawable of renderEngine.getDrawables()) {
-    const instance = drawable.getDrawable();
-    if (instance) {
-      app.stage.addChild(instance as unknown as PIXI.ContainerChild);
-    }
-  }
+  console.log("beforeSetup");
+  await engine.setup();
+  console.log("afterSetup");
 
-  const MOUSE = new Mouse();
-  function onMouseMove(event: MouseEvent) {
-    MOUSE.position.x = event.x;
-    MOUSE.position.y = event.y;
-  }
-  app.canvas.addEventListener("mousemove", onMouseMove);
-
-  // Start the game loop using TypeEngine
-  engine.startGameLoop(undefined, MOUSE);
+  const sprite_entities = engine.queryEntities<{ SpriteComponent: SpriteComponent }>([
+    "SpriteComponent",
+  ]);
+  console.log({ sprite_entities });
+  // Start the TypeEngine
+  engine.start();
 }
 
 Game();

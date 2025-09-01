@@ -61,9 +61,7 @@ export class Scene {
    */
   async load(engine: TypeEngine): Promise<void> {
     const sceneData: SceneSerialized = await window.electronAPI.readJsonFile(this._filePath);
-
     await this.loadSystems(engine, sceneData.systems);
-
     await this.loadGameObjects(engine, sceneData.gameObjects);
   }
 
@@ -101,8 +99,8 @@ export class Scene {
     gameObjectData: GameObjectSerialized,
   ): Promise<void> {
     const entityId = engine.createEntity();
-
     for (const componentData of gameObjectData.components) {
+      console.log({ componentData });
       engine.addComponent(entityId, componentData.name, componentData.data);
     }
   }

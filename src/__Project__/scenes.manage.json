@@ -1,0 +1,7 @@
+{
+    "initialScene": "Initial",
+    "scenes": {
+      "Initial": "../renderer/Initial.scene.json"
+    }
+  }
+

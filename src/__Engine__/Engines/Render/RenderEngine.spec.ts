@@ -37,6 +37,10 @@ vi.mock("pixi.js", () => ({
   Application: vi.fn().mockImplementation(() => ({
     init: vi.fn().mockResolvedValue(undefined),
     canvas: { tagName: "CANVAS" },
+    stage: {
+      addChild: vi.fn(),
+      removeChild: vi.fn(),
+    },
     destroy: vi.fn(),
   })),
   Assets: {
@@ -94,9 +98,16 @@ describe("RenderEngine", () => {
       expect(engine._instance).toBeDefined();
     });
 
-    it("should set up event listeners for remove:drawable", () => {
+    it("should set up event listeners for remove:drawable", async () => {
       const testEventEngine = new EventEngine();
-      new RenderEngine({ width: 800, height: 600, eventEngine: testEventEngine });
+      const testRenderEngine = new RenderEngine({
+        width: 800,
+        height: 600,
+        eventEngine: testEventEngine,
+      });
+
+      // Event listeners are set up during start()
+      await testRenderEngine.start();
 
       expect(testEventEngine.hasListeners("remove:drawable")).toBe(true);
       expect(testEventEngine.getListenerCount("remove:drawable")).toBe(1);
@@ -130,20 +141,25 @@ describe("RenderEngine", () => {
         },
       ]);
 
-      // Mock static container
-      const mockContainer = {
-        addChild: vi.fn(),
-      };
-      getRenderEngineStatic().container = mockContainer;
+      // Initialize renderEngine to set up stage
+      await renderEngine.start();
 
       await renderEngine.loadAllSprites(mockEngine);
 
       expect(mockEngine.queryEntities).toHaveBeenCalledWith(["SpriteComponent"]);
-      expect(mockContainer.addChild).toHaveBeenCalledWith(mockSpriteComponent._sprite);
+      expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(
+        mockSpriteComponent._sprite,
+      );
     });
 
-    it("should not load sprites when container is null", async () => {
-      getRenderEngineStatic().container = null;
+    it("should handle sprites when stage is initialized", async () => {
+      const testRenderEngine = new RenderEngine({
+        width: 800,
+        height: 600,
+        eventEngine: eventEngine,
+      });
+      await testRenderEngine.start();
+
       mockEngine.queryEntities = vi.fn().mockReturnValue([
         {
           entityId: "entity-1",
@@ -153,9 +169,8 @@ describe("RenderEngine", () => {
         },
       ]);
 
-      await expect(renderEngine.loadAllSprites(mockEngine)).resolves.not.toThrow();
-      // queryEntities should not be called when container is null (early return)
-      expect(mockEngine.queryEntities).not.toHaveBeenCalled();
+      await expect(testRenderEngine.loadAllSprites(mockEngine)).resolves.not.toThrow();
+      expect(mockEngine.queryEntities).toHaveBeenCalled();
     });
 
     it("should load multiple sprite entities", async () => {
@@ -167,16 +182,14 @@ describe("RenderEngine", () => {
         { entityId: "entity-2", components: { SpriteComponent: sprite2 } },
       ]);
 
-      const mockContainer = {
-        addChild: vi.fn(),
-      };
-      getRenderEngineStatic().container = mockContainer;
+      // Initialize renderEngine to set up stage
+      await renderEngine.start();
 
       await renderEngine.loadAllSprites(mockEngine);
 
-      expect(mockContainer.addChild).toHaveBeenCalledTimes(2);
-      expect(mockContainer.addChild).toHaveBeenCalledWith(sprite1._sprite);
-      expect(mockContainer.addChild).toHaveBeenCalledWith(sprite2._sprite);
+      expect(renderEngine._instance.stage.addChild).toHaveBeenCalledTimes(2);
+      expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(sprite1._sprite);
+      expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(sprite2._sprite);
     });
   });
 
@@ -191,13 +204,14 @@ describe("RenderEngine", () => {
 
       expect(mockApp.destroy).toHaveBeenCalled();
       expect(getRenderEngineStatic().app).toBeNull();
-      expect(getRenderEngineStatic().container).toBeNull();
     });
 
-    it("should clean up event listeners on destroy", () => {
+    it("should clean up event listeners on destroy", async () => {
       const testEventEngine = new EventEngine();
       const engine = new RenderEngine({ width: 800, height: 600, eventEngine: testEventEngine });
 
+      // Event listeners are set up during start()
+      await engine.start();
       expect(testEventEngine.hasListeners("remove:drawable")).toBe(true);
 
       engine.destroy(mockEngine);
@@ -218,22 +232,18 @@ describe("RenderEngine", () => {
 
     it("should handle destroy when app is null", () => {
       getRenderEngineStatic().app = null;
-      getRenderEngineStatic().container = {};
 
       expect(() => renderEngine.destroy(mockEngine)).not.toThrow();
-      expect(getRenderEngineStatic().container).toBeNull();
     });
 
     it("should reset static properties", () => {
       getRenderEngineStatic().app = {
         destroy: vi.fn(),
       };
-      getRenderEngineStatic().container = {};
 
       renderEngine.destroy(mockEngine);
 
       expect(getRenderEngineStatic().app).toBeNull();
-      expect(getRenderEngineStatic().container).toBeNull();
     });
   });
 
@@ -241,24 +251,17 @@ describe("RenderEngine", () => {
     it("should have static app property", () => {
       expect(RenderEngine).toHaveProperty("app");
     });
-
-    it("should have static container property", () => {
-      expect(RenderEngine).toHaveProperty("container");
-    });
   });
 
   describe("remove:drawable event handling", () => {
-    it("should remove sprite from container when remove:drawable event is received", () => {
-      const mockContainer = {
-        addChild: vi.fn(),
-        removeChild: vi.fn(),
-      };
-      getRenderEngineStatic().container = mockContainer;
-
+    it("should remove sprite from container when remove:drawable event is received", async () => {
       const spriteComponent = new SpriteComponent({
         texture_path: "test.png",
         position: { x: 10, y: 20 },
       });
+
+      // Initialize renderEngine to set up stage and event listeners
+      await renderEngine.start();
 
       // Add sprite to the spriteMap (simulate loadAllSprites)
       const entityId = "test-entity";
@@ -272,15 +275,15 @@ describe("RenderEngine", () => {
       });
       eventEngine.processEvents();
 
-      expect(mockContainer.removeChild).toHaveBeenCalledWith(spriteComponent._sprite);
+      expect(renderEngine._instance.stage.removeChild).toHaveBeenCalledWith(
+        spriteComponent._sprite,
+      );
       expect(getRenderEnginePrivate(renderEngine).spriteMap.has(entityId)).toBe(false);
     });
 
-    it("should handle remove:drawable event when sprite not found", () => {
-      const mockContainer = {
-        removeChild: vi.fn(),
-      };
-      getRenderEngineStatic().container = mockContainer;
+    it("should handle remove:drawable event when sprite not found", async () => {
+      // Initialize renderEngine to set up stage and event listeners
+      await renderEngine.start();
 
       eventEngine.emit("remove:drawable", {
         entityId: "non-existent-entity",
@@ -289,17 +292,24 @@ describe("RenderEngine", () => {
       });
       eventEngine.processEvents();
 
-      expect(mockContainer.removeChild).not.toHaveBeenCalled();
+      // Should not try to remove from stage when sprite not found
+      expect(renderEngine._instance.stage.removeChild).not.toHaveBeenCalled();
     });
 
-    it("should handle remove:drawable event when container is null", () => {
-      getRenderEngineStatic().container = null;
-
+    it("should handle remove:drawable event when stage is null", async () => {
       const spriteComponent = new SpriteComponent({
         texture_path: "test.png",
       });
 
       const entityId = "test-entity";
+
+      // Initialize renderEngine to set up event listeners
+      await renderEngine.start();
+
+      // Simulate null stage
+      // biome-ignore lint/suspicious/noExplicitAny: Testing null stage behavior
+      renderEngine._instance.stage = null as any;
+
       getRenderEnginePrivate(renderEngine).spriteMap.set(entityId, spriteComponent);
 
       expect(() => {
@@ -311,7 +321,7 @@ describe("RenderEngine", () => {
         eventEngine.processEvents();
       }).not.toThrow();
 
-      // Sprite should be removed from map even if container is null
+      // Sprite should be removed from map even if stage is null
       expect(getRenderEnginePrivate(renderEngine).spriteMap.has(entityId)).toBe(false);
     });
 
@@ -357,15 +367,13 @@ describe("RenderEngine", () => {
         },
       ]);
 
-      const mockContainer = {
-        addChild: vi.fn(),
-      };
-      getRenderEngineStatic().container = mockContainer;
+      // Initialize renderEngine to set up stage
+      await renderEngine.start();
 
       await renderEngine.loadAllSprites(mockEngine);
 
       expect(mockEngine.queryEntities).toHaveBeenCalledWith(["SpriteComponent"]);
-      expect(mockContainer.addChild).toHaveBeenCalledWith(spriteComponent._sprite);
+      expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(spriteComponent._sprite);
     });
   });
 });
