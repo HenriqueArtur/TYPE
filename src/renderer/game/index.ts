@@ -34,7 +34,7 @@ export async function Game() {
     timeEngine,
     systemsList: [],
   });
-  engine.registerComponent(
+  engine.EntityEngine.registerComponent(
     "SpriteComponent",
     <T = SpriteComponentData>(data: T) => new SpriteComponent(data as SpriteComponentData),
   );

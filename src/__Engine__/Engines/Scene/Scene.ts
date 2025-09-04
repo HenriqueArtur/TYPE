@@ -98,9 +98,9 @@ export class Scene {
     engine: TypeEngine,
     gameObjectData: GameObjectSerialized,
   ): Promise<void> {
-    const entityId = engine.createEntity();
+    const entityId = engine.EntityEngine.createEntity();
     for (const componentData of gameObjectData.components) {
-      engine.addComponent(entityId, componentData.name, componentData.data);
+      engine.EntityEngine.addComponent(entityId, componentData.name, componentData.data);
     }
   }
 }

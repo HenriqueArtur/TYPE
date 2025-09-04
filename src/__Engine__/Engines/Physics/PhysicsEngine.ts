@@ -45,8 +45,8 @@ export class PhysicsEngine {
         const entity_A_id = this._findEntityByBody(pair.bodyA);
         const entity_B_id = this._findEntityByBody(pair.bodyB);
 
-        const entity_A = entity_A_id ? engine.Entity.getEntity(entity_A_id) : undefined;
-        const entity_B = entity_B_id ? engine.Entity.getEntity(entity_B_id) : undefined;
+        const entity_A = entity_A_id ? engine.EntityEngine.getEntity(entity_A_id) : undefined;
+        const entity_B = entity_B_id ? engine.EntityEngine.getEntity(entity_B_id) : undefined;
 
         if (entity_A && entity_B) {
           this.eventEngine.emit(`physics:collision:enter:${entity_A_id}`, entity_B);
@@ -60,8 +60,8 @@ export class PhysicsEngine {
         const entity_A_id = this._findEntityByBody(pair.bodyA);
         const entity_B_id = this._findEntityByBody(pair.bodyB);
 
-        const entity_A = entity_A_id ? engine.Entity.getEntity(entity_A_id) : undefined;
-        const entity_B = entity_B_id ? engine.Entity.getEntity(entity_B_id) : undefined;
+        const entity_A = entity_A_id ? engine.EntityEngine.getEntity(entity_A_id) : undefined;
+        const entity_B = entity_B_id ? engine.EntityEngine.getEntity(entity_B_id) : undefined;
 
         if (entity_A && entity_B) {
           this.eventEngine.emit(`physics:collision:exit:${entity_A_id}`, entity_B);
@@ -85,7 +85,8 @@ export class PhysicsEngine {
   }
 
   setupScene(engine: TypeEngine) {
-    const body_entities = engine.queryEntities<Record<string, { _body: Body }>>(PHYSICS_COMPONENTS);
+    const body_entities =
+      engine.EntityEngine.queryEntities<Record<string, { _body: Body }>>(PHYSICS_COMPONENTS);
     for (const { entityId, components } of body_entities) {
       let components_ref = this.bodyMap.get(entityId);
       if (!components_ref) {

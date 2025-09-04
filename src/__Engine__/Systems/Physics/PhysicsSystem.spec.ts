@@ -14,7 +14,7 @@ describe("PhysicsSystem", () => {
     } as unknown as PhysicsEngine;
 
     mock_engine = {
-      getPhysicsEngine: vi.fn().mockReturnValue(mock_physics_engine),
+      PhysicsEngine: mock_physics_engine,
     } as unknown as TypeEngine;
 
     physics_system = new PhysicsSystem();

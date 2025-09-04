@@ -19,8 +19,9 @@ describe("PhysicsEngine", () => {
 
     mock_type_engine = {
       queryEntities: vi.fn().mockReturnValue([]),
-      Entity: {
+      EntityEngine: {
         getEntity: vi.fn() as Mock,
+        queryEntities: vi.fn().mockReturnValue([]),
       },
     } as unknown as TypeEngine;
 
@@ -89,7 +90,7 @@ describe("PhysicsEngine", () => {
 
     it("should emit collision enter events with entities", async () => {
       // Mock entity resolution
-      (mock_type_engine.Entity.getEntity as Mock).mockImplementation((id: string) => ({
+      (mock_type_engine.EntityEngine.getEntity as Mock).mockImplementation((id: string) => ({
         entityId: id,
         components: {},
       }));
@@ -125,7 +126,7 @@ describe("PhysicsEngine", () => {
 
     it("should emit collision exit events with entities", async () => {
       // Mock entity resolution
-      (mock_type_engine.Entity.getEntity as Mock).mockImplementation((id: string) => ({
+      (mock_type_engine.EntityEngine.getEntity as Mock).mockImplementation((id: string) => ({
         entityId: id,
         components: {},
       }));
@@ -161,7 +162,7 @@ describe("PhysicsEngine", () => {
 
     it("should handle collision with unknown bodies", async () => {
       // Mock entity resolution - unknown body returns undefined
-      (mock_type_engine.Entity.getEntity as Mock).mockImplementation((id: string) =>
+      (mock_type_engine.EntityEngine.getEntity as Mock).mockImplementation((id: string) =>
         id === "entity2" ? { entityId: id, components: {} } : undefined,
       );
 
@@ -264,7 +265,7 @@ describe("PhysicsEngine", () => {
         },
       ];
 
-      mock_type_engine.queryEntities = vi.fn().mockReturnValue(mockEntities);
+      mock_type_engine.EntityEngine.queryEntities = vi.fn().mockReturnValue(mockEntities);
 
       physics_engine.setupScene(mock_type_engine);
 

@@ -8,7 +8,7 @@ export class PhysicsSystem implements System<TypeEngine> {
   async init(_engine: TypeEngine) {}
 
   update(engine: TypeEngine, deltaTime: number): void {
-    engine.getPhysicsEngine().update(deltaTime);
+    engine.PhysicsEngine.update(deltaTime);
   }
 
   destroy(_engine: TypeEngine): void {}

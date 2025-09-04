@@ -79,9 +79,9 @@ export class RenderEngine {
   }
 
   async loadAllSprites(engine: TypeEngine): Promise<void> {
-    const sprite_entities = engine.queryEntities<{ SpriteComponent: SpriteComponent }>([
-      "SpriteComponent",
-    ]);
+    const sprite_entities = engine.EntityEngine.queryEntities<{ SpriteComponent: SpriteComponent }>(
+      ["SpriteComponent"],
+    );
     for (const { entityId, components } of sprite_entities) {
       const sprite_component = components.SpriteComponent;
       const texture = await Assets.load<Texture>(sprite_component.texture_path);

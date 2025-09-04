@@ -22,8 +22,10 @@ Object.defineProperty(global, "window", {
 const createEntityMock = vi.fn();
 const mockEngine = {
   addSystem: vi.fn(),
-  createEntity: createEntityMock,
-  addComponent: vi.fn(),
+  EntityEngine: {
+    createEntity: createEntityMock,
+    addComponent: vi.fn(),
+  },
 } as unknown as TypeEngine;
 
 describe("Scene", () => {
@@ -156,7 +158,10 @@ describe("Scene", () => {
       );
       expect(mockEngine.addSystem).not.toHaveBeenCalled(); // System import failed
       expect(createEntityMock).toHaveBeenCalled(); // But game objects still loaded
-      expect(mockEngine.addComponent).toHaveBeenCalledWith("entity_1", "Transform", { x: 0, y: 0 });
+      expect(mockEngine.EntityEngine.addComponent).toHaveBeenCalledWith("entity_1", "Transform", {
+        x: 0,
+        y: 0,
+      });
 
       consoleWarnSpy.mockRestore();
     });
@@ -190,10 +195,14 @@ describe("Scene", () => {
 
       expect(mockEngine.addSystem).not.toHaveBeenCalled();
       expect(createEntityMock).toHaveBeenCalledTimes(1);
-      expect(mockEngine.addComponent).toHaveBeenCalledWith("simple_entity", "Position", {
-        x: 5,
-        y: 10,
-      });
+      expect(mockEngine.EntityEngine.addComponent).toHaveBeenCalledWith(
+        "simple_entity",
+        "Position",
+        {
+          x: 5,
+          y: 10,
+        },
+      );
     });
 
     it("should handle nested GroupGameObjectSerialized structures", async () => {
@@ -231,8 +240,12 @@ describe("Scene", () => {
       await scene.load(mockEngine);
 
       expect(createEntityMock).toHaveBeenCalledTimes(2);
-      expect(mockEngine.addComponent).toHaveBeenCalledWith("entity_1", "Health", { hp: 100 });
-      expect(mockEngine.addComponent).toHaveBeenCalledWith("entity_2", "Health", { hp: 50 });
+      expect(mockEngine.EntityEngine.addComponent).toHaveBeenCalledWith("entity_1", "Health", {
+        hp: 100,
+      });
+      expect(mockEngine.EntityEngine.addComponent).toHaveBeenCalledWith("entity_2", "Health", {
+        hp: 50,
+      });
     });
 
     it("should handle empty systems and gameObjects", async () => {
@@ -249,7 +262,7 @@ describe("Scene", () => {
 
       expect(mockEngine.addSystem).not.toHaveBeenCalled();
       expect(createEntityMock).not.toHaveBeenCalled();
-      expect(mockEngine.addComponent).not.toHaveBeenCalled();
+      expect(mockEngine.EntityEngine.addComponent).not.toHaveBeenCalled();
     });
 
     it("should handle systems that fail to import", async () => {
@@ -300,18 +313,30 @@ describe("Scene", () => {
       await scene.load(mockEngine);
 
       expect(createEntityMock).toHaveBeenCalledTimes(1);
-      expect(mockEngine.addComponent).toHaveBeenCalledTimes(3);
-      expect(mockEngine.addComponent).toHaveBeenCalledWith("entity_complex", "Transform", {
-        x: 10,
-        y: 20,
-      });
-      expect(mockEngine.addComponent).toHaveBeenCalledWith("entity_complex", "Velocity", {
-        dx: 1,
-        dy: 0,
-      });
-      expect(mockEngine.addComponent).toHaveBeenCalledWith("entity_complex", "Sprite", {
-        texture: "player.png",
-      });
+      expect(mockEngine.EntityEngine.addComponent).toHaveBeenCalledTimes(3);
+      expect(mockEngine.EntityEngine.addComponent).toHaveBeenCalledWith(
+        "entity_complex",
+        "Transform",
+        {
+          x: 10,
+          y: 20,
+        },
+      );
+      expect(mockEngine.EntityEngine.addComponent).toHaveBeenCalledWith(
+        "entity_complex",
+        "Velocity",
+        {
+          dx: 1,
+          dy: 0,
+        },
+      );
+      expect(mockEngine.EntityEngine.addComponent).toHaveBeenCalledWith(
+        "entity_complex",
+        "Sprite",
+        {
+          texture: "player.png",
+        },
+      );
     });
 
     it("should handle multiple systems that fail to import", async () => {

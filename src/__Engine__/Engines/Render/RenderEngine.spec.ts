@@ -77,7 +77,9 @@ describe("RenderEngine", () => {
     };
     renderEngine = new RenderEngine(renderData);
     mockEngine = {
-      queryEntities: vi.fn().mockReturnValue([]),
+      EntityEngine: {
+        queryEntities: vi.fn().mockReturnValue([]),
+      },
     } as unknown as TypeEngine;
   });
 
@@ -121,7 +123,7 @@ describe("RenderEngine", () => {
 
   describe("loadAllSprites", () => {
     it("should handle empty sprite entities", async () => {
-      mockEngine.queryEntities = vi.fn().mockReturnValue([]);
+      mockEngine.EntityEngine.queryEntities = vi.fn().mockReturnValue([]);
 
       await expect(renderEngine.loadAllSprites(mockEngine)).resolves.not.toThrow();
     });
@@ -132,7 +134,7 @@ describe("RenderEngine", () => {
         position: { x: 10, y: 20 },
       });
 
-      mockEngine.queryEntities = vi.fn().mockReturnValue([
+      mockEngine.EntityEngine.queryEntities = vi.fn().mockReturnValue([
         {
           entityId: "entity-1",
           components: {
@@ -146,7 +148,7 @@ describe("RenderEngine", () => {
 
       await renderEngine.loadAllSprites(mockEngine);
 
-      expect(mockEngine.queryEntities).toHaveBeenCalledWith(["SpriteComponent"]);
+      expect(mockEngine.EntityEngine.queryEntities).toHaveBeenCalledWith(["SpriteComponent"]);
       expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(
         mockSpriteComponent._sprite,
       );
@@ -160,7 +162,7 @@ describe("RenderEngine", () => {
       });
       await testRenderEngine.start();
 
-      mockEngine.queryEntities = vi.fn().mockReturnValue([
+      mockEngine.EntityEngine.queryEntities = vi.fn().mockReturnValue([
         {
           entityId: "entity-1",
           components: {
@@ -170,14 +172,14 @@ describe("RenderEngine", () => {
       ]);
 
       await expect(testRenderEngine.loadAllSprites(mockEngine)).resolves.not.toThrow();
-      expect(mockEngine.queryEntities).toHaveBeenCalled();
+      expect(mockEngine.EntityEngine.queryEntities).toHaveBeenCalled();
     });
 
     it("should load multiple sprite entities", async () => {
       const sprite1 = new SpriteComponent({ texture_path: "sprite1.png" });
       const sprite2 = new SpriteComponent({ texture_path: "sprite2.png" });
 
-      mockEngine.queryEntities = vi.fn().mockReturnValue([
+      mockEngine.EntityEngine.queryEntities = vi.fn().mockReturnValue([
         { entityId: "entity-1", components: { SpriteComponent: sprite1 } },
         { entityId: "entity-2", components: { SpriteComponent: sprite2 } },
       ]);
@@ -329,7 +331,7 @@ describe("RenderEngine", () => {
       const sprite1 = new SpriteComponent({ texture_path: "sprite1.png" });
       const sprite2 = new SpriteComponent({ texture_path: "sprite2.png" });
 
-      mockEngine.queryEntities = vi.fn().mockReturnValue([
+      mockEngine.EntityEngine.queryEntities = vi.fn().mockReturnValue([
         { entityId: "entity-1", components: { SpriteComponent: sprite1 } },
         { entityId: "entity-2", components: { SpriteComponent: sprite2 } },
       ]);
@@ -358,7 +360,7 @@ describe("RenderEngine", () => {
         visible: true,
       });
 
-      mockEngine.queryEntities = vi.fn().mockReturnValue([
+      mockEngine.EntityEngine.queryEntities = vi.fn().mockReturnValue([
         {
           entityId: "integration-entity",
           components: {
@@ -372,7 +374,7 @@ describe("RenderEngine", () => {
 
       await renderEngine.loadAllSprites(mockEngine);
 
-      expect(mockEngine.queryEntities).toHaveBeenCalledWith(["SpriteComponent"]);
+      expect(mockEngine.EntityEngine.queryEntities).toHaveBeenCalledWith(["SpriteComponent"]);
       expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(spriteComponent._sprite);
     });
   });
