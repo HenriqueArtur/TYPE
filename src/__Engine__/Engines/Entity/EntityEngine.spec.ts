@@ -53,6 +53,32 @@ describe("EntityEngine", () => {
         entityEngine.removeEntity("NON_EXISTENT");
       }).not.toThrow();
     });
+
+    it("should get entity by ID with all its components", () => {
+      const entityId = entityEngine.createEntity();
+
+      // Register and add multiple components
+      entityEngine.registerComponent("TestComponent1", (data) => data);
+      entityEngine.registerComponent("TestComponent2", (data) => data);
+
+      entityEngine.addComponent(entityId, "TestComponent1", { value: 42 });
+      entityEngine.addComponent(entityId, "TestComponent2", { name: "test" });
+
+      const entity = entityEngine.getEntity(entityId);
+
+      expect(entity).toBeDefined();
+      expect(entity?.entityId).toBe(entityId);
+      expect(entity?.components).toEqual({
+        TestComponent1: { value: 42 },
+        TestComponent2: { name: "test" },
+      });
+    });
+
+    it("should return undefined for non-existent entity", () => {
+      const entity = entityEngine.getEntity("NON_EXISTENT");
+
+      expect(entity).toBeUndefined();
+    });
   });
 
   describe("Component Registration", () => {

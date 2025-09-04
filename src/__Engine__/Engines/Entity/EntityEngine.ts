@@ -1,5 +1,6 @@
 import { generateId } from "../../Utils/id";
 import type { EventEngine } from "../Event";
+import type { EntityFetchResult } from "./EntityFetchResult";
 
 /**
  * EntityEngine - Entity and Component Management
@@ -38,6 +39,30 @@ export class EntityEngine {
     this.eventEngine.emit("entity:created", entity_id);
 
     return entity_id;
+  }
+
+  /**
+   * Gets an entity by its ID with all its components
+   * @template T - The expected shape of the component data
+   * @param entityId - The ID of the entity to retrieve
+   * @returns The entity with its components, or undefined if entity doesn't exist
+   */
+  getEntity<T extends Record<string, unknown>>(entityId: string): EntityFetchResult<T> {
+    if (!this.entities.has(entityId)) {
+      return undefined;
+    }
+
+    const entityComponents = this.entities.get(entityId);
+    if (!entityComponents) {
+      return undefined;
+    }
+
+    const components: Record<string, unknown> = {};
+    for (const componentName of entityComponents) {
+      components[componentName] = this.getComponent(entityId, componentName);
+    }
+
+    return { entityId, components: components as T };
   }
 
   /**

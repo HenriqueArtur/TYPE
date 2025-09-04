@@ -1,5 +1,11 @@
 import { SpriteComponent, type SpriteComponentData } from "../../__Engine__/Component/Drawable";
-import { EntityEngine, EventEngine, RenderEngine, TimeEngine } from "../../__Engine__/Engines";
+import {
+  EntityEngine,
+  EventEngine,
+  PhysicsEngine,
+  RenderEngine,
+  TimeEngine,
+} from "../../__Engine__/Engines";
 import { SceneEngine } from "../../__Engine__/Engines/Scene/SceneEngine";
 import type { SceneManageSerialized } from "../../__Engine__/Engines/Scene/SceneManageSerialized";
 import { RenderPixiSystem } from "../../__Engine__/Systems";
@@ -11,6 +17,7 @@ export async function Game() {
   const eventEngine = new EventEngine();
   const renderEngine = new RenderEngine({ width: 800, height: 600, eventEngine });
   const entityEngine = new EntityEngine(eventEngine);
+  const physicsEngine = new PhysicsEngine({ eventEngine });
 
   // Configure scene management - for now use a simple initial scene setup
   const sceneManageData: SceneManageSerialized = SCENE_MANAGE;
@@ -22,6 +29,7 @@ export async function Game() {
     renderEngine,
     entityEngine,
     eventEngine,
+    physicsEngine,
     sceneEngine,
     timeEngine,
     systemsList: [],

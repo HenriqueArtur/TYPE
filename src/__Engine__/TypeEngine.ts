@@ -1,4 +1,4 @@
-import type { EntityEngine, EventEngine, RenderEngine, TimeEngine } from "./Engines";
+import type { EntityEngine, EventEngine, PhysicsEngine, RenderEngine, TimeEngine } from "./Engines";
 import type { Scene } from "./Engines/Scene/Scene";
 import type { SceneEngine } from "./Engines/Scene/SceneEngine";
 import type { SceneName } from "./Engines/Scene/SceneManageSerialized";
@@ -8,6 +8,7 @@ export interface TypeEngineOptions {
   renderEngine: RenderEngine;
   entityEngine: EntityEngine;
   eventEngine: EventEngine;
+  physicsEngine: PhysicsEngine;
   sceneEngine: SceneEngine;
   timeEngine: TimeEngine;
   systemsList: System<TypeEngine>[];
@@ -22,7 +23,8 @@ export interface TypeEngineOptions {
 export class TypeEngine {
   private systems: System<TypeEngine>[];
   private eventEngine: EventEngine;
-  private Entity: EntityEngine;
+  readonly Entity: EntityEngine;
+  private physicsEngine: PhysicsEngine;
   private sceneEngine: SceneEngine;
   private timeEngine: TimeEngine;
   private renderEngine: RenderEngine;
@@ -32,6 +34,7 @@ export class TypeEngine {
   constructor(options: TypeEngineOptions) {
     this.Entity = options.entityEngine;
     this.eventEngine = options.eventEngine;
+    this.physicsEngine = options.physicsEngine;
     this.sceneEngine = options.sceneEngine;
     this.timeEngine = options.timeEngine;
     this.renderEngine = options.renderEngine;
@@ -40,6 +43,7 @@ export class TypeEngine {
 
   async setup() {
     await this.renderEngine.start();
+    await this.physicsEngine.setup(this);
     await this.transition("Initial");
     await this.setupSystems();
   }
@@ -62,6 +66,14 @@ export class TypeEngine {
    */
   getRenderEngine(): RenderEngine {
     return this.renderEngine;
+  }
+
+  /**
+   * Gets the PhysicsEngine instance for physics operations
+   * @returns The PhysicsEngine instance
+   */
+  getPhysicsEngine(): PhysicsEngine {
+    return this.physicsEngine;
   }
 
   // ========================================

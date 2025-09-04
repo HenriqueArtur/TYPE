@@ -1,6 +1,6 @@
 /** biome-ignore-all lint/complexity/useLiteralKeys: false positive */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { EntityEngine, EventEngine, RenderEngine, TimeEngine } from "./Engines";
+import { EntityEngine, EventEngine, PhysicsEngine, RenderEngine, TimeEngine } from "./Engines";
 import type { Scene } from "./Engines/Scene/Scene";
 import { SceneEngine } from "./Engines/Scene/SceneEngine";
 import type { System } from "./Systems/System";
@@ -86,6 +86,7 @@ describe("TypeEngine", () => {
   let mockRenderEngine: RenderEngine;
   let mockEntityEngine: EntityEngine;
   let mockEventEngine: EventEngine;
+  let mockPhysicsEngine: PhysicsEngine;
   let mockSceneEngine: SceneEngine;
   let mockTimeEngine: TimeEngine;
 
@@ -94,6 +95,7 @@ describe("TypeEngine", () => {
     mockEventEngine = new EventEngine();
     mockRenderEngine = new RenderEngine({ width: 800, height: 600, eventEngine: mockEventEngine });
     mockEntityEngine = new EntityEngine(mockEventEngine);
+    mockPhysicsEngine = new PhysicsEngine({ eventEngine: mockEventEngine });
     mockSceneEngine = new SceneEngine({
       initialScene: "test",
       scenes: {
@@ -106,6 +108,7 @@ describe("TypeEngine", () => {
       renderEngine: mockRenderEngine,
       entityEngine: mockEntityEngine,
       eventEngine: mockEventEngine,
+      physicsEngine: mockPhysicsEngine,
       sceneEngine: mockSceneEngine,
       timeEngine: mockTimeEngine,
       systemsList: [],
@@ -141,6 +144,7 @@ describe("TypeEngine", () => {
         renderEngine: anotherRenderEngine,
         entityEngine: anotherEntityEngine,
         eventEngine: anotherEventEngine,
+        physicsEngine: new PhysicsEngine({ eventEngine: anotherEventEngine }),
         sceneEngine: anotherSceneEngine,
         timeEngine: anotherTimeEngine,
         systemsList: [],
@@ -176,6 +180,7 @@ describe("TypeEngine", () => {
         renderEngine: mockRenderEngine,
         entityEngine: mockEntityEngine,
         eventEngine: mockEventEngine,
+        physicsEngine: mockPhysicsEngine,
         sceneEngine: mockSceneEngine,
         timeEngine: mockTimeEngine,
         systemsList: [mockSystem],
