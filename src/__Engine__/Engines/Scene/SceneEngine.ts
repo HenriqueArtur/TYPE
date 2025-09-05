@@ -2,19 +2,29 @@ import type { TypeEngine } from "../../TypeEngine";
 import { Scene } from "./Scene";
 import type { SceneManageSerialized, SceneName } from "./SceneManageSerialized";
 
+export interface SceneEngineOptions {
+  engine: TypeEngine;
+}
+
 /**
  * SceneEngine - Manages scene transitions and scene state
  *
  * Handles loading and switching between different game scenes.
  */
 export class SceneEngine {
-  private scenes: Map<SceneName, string>;
+  private engine: TypeEngine;
+  private scenes: Map<SceneName, string> = new Map();
   private currentScene: Scene | null = null;
 
-  constructor(sceneManageData: SceneManageSerialized) {
+  constructor({ engine }: SceneEngineOptions) {
+    this.engine = engine;
+  }
+
+  async setup() {
+    const path = `${this.engine.projectPath}/scenes.manage.json`;
+    const sceneManageData: SceneManageSerialized = await window.electronAPI.readJsonFile(path);
     this.scenes = new Map(Object.entries(sceneManageData.scenes));
 
-    // Set initial scene as current scene
     const initialScenePath = sceneManageData.scenes[sceneManageData.initialScene];
     if (initialScenePath) {
       Scene.fromPath(initialScenePath).then((scene) => {
@@ -38,7 +48,7 @@ export class SceneEngine {
    * @param engine - The TypeEngine instance to load the scene into
    * @throws Error if the scene doesn't exist
    */
-  async transition(sceneName: SceneName, engine: TypeEngine): Promise<void> {
+  async transition(sceneName: SceneName): Promise<void> {
     if (!this.has(sceneName)) {
       throw new Error(`Scene "${sceneName}" does not exist`);
     }
@@ -47,10 +57,12 @@ export class SceneEngine {
     if (!scenePath) {
       throw new Error(`Scene path not found for "${sceneName}"`);
     }
-    const scene = await Scene.fromPath(scenePath);
+    this.engine.PhysicsEngine.clear();
+    this.engine.RenderEngine.clear();
 
+    const scene = await Scene.fromPath(scenePath);
     this.currentScene = scene;
-    await scene.load(engine);
+    await scene.load(this.engine);
   }
 
   /**

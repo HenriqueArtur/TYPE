@@ -7,10 +7,12 @@ export interface RenderEngineOptions {
   html_tag_id?: string;
   width: number;
   height: number;
-  eventEngine: EventEngine;
+  EventEngine: EventEngine;
+  engine: TypeEngine;
 }
 
 export class RenderEngine {
+  private engine: TypeEngine;
   private static app: Application | null = null;
   _instance: Application<Renderer>;
   private eventEngine: EventEngine;
@@ -24,7 +26,8 @@ export class RenderEngine {
   private render_window: { width: number; height: number };
 
   constructor(data: RenderEngineOptions) {
-    this.eventEngine = data.eventEngine;
+    this.engine = data.engine;
+    this.eventEngine = data.EventEngine;
     this.boundHandleRemoveDrawable = this.handleRemoveDrawable.bind(this);
     this._instance = new Application();
     this.render_window = {
@@ -34,17 +37,25 @@ export class RenderEngine {
     this.tag = data?.html_tag_id ?? "game";
   }
 
-  async start() {
+  async setup() {
     await this._instance.init({ ...this.render_window, backgroundColor: 0x1099bb });
     document.getElementById(this.tag)?.appendChild(this._instance.canvas as unknown as Node);
-    this.setupEventListeners();
+    this.eventEngine.on("remove:drawable", this.boundHandleRemoveDrawable);
   }
 
-  /**
-   * Set up event listeners for render-related events
-   */
-  private setupEventListeners(): void {
-    this.eventEngine.on("remove:drawable", this.boundHandleRemoveDrawable);
+  async setupScene(): Promise<void> {
+    const sprite_entities = this.engine.EntityEngine.queryEntities<{
+      SpriteComponent: SpriteComponent;
+    }>(["SpriteComponent"]);
+    for (const { entityId, components } of sprite_entities) {
+      const sprite_component = components.SpriteComponent;
+      const texture = await Assets.load<Texture>(sprite_component.texture_path);
+      sprite_component._sprite.texture = texture;
+      this._instance.stage.addChild(sprite_component._sprite);
+
+      // Track sprite for later removal
+      this.spriteMap.set(entityId, sprite_component);
+    }
   }
 
   /**
@@ -78,18 +89,7 @@ export class RenderEngine {
     this.spriteMap.clear();
   }
 
-  async loadAllSprites(engine: TypeEngine): Promise<void> {
-    const sprite_entities = engine.EntityEngine.queryEntities<{ SpriteComponent: SpriteComponent }>(
-      ["SpriteComponent"],
-    );
-    for (const { entityId, components } of sprite_entities) {
-      const sprite_component = components.SpriteComponent;
-      const texture = await Assets.load<Texture>(sprite_component.texture_path);
-      sprite_component._sprite.texture = texture;
-      this._instance.stage.addChild(sprite_component._sprite);
-
-      // Track sprite for later removal
-      this.spriteMap.set(entityId, sprite_component);
-    }
+  clear() {
+    this._instance.stage.removeChildren();
   }
 }

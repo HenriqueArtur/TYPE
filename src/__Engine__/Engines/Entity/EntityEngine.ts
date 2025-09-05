@@ -2,6 +2,10 @@ import { generateId } from "../../Utils/id";
 import type { EventEngine } from "../Event";
 import type { EntityFetchResult } from "./EntityFetchResult";
 
+export interface EntityEngineOptions {
+  EventEngine: EventEngine;
+}
+
 /**
  * EntityEngine - Entity and Component Management
  *
@@ -12,14 +16,14 @@ import type { EntityFetchResult } from "./EntityFetchResult";
 export class EntityEngine {
   private entities: Map<string, Set<string>>;
   private components: Map<string, Map<string, unknown>>;
-  private componentFactories: Map<string, (...args: unknown[]) => unknown>;
+  private componentFactories: Map<string, (args: object) => unknown>;
   private eventEngine: EventEngine;
 
-  constructor(eventEngine: EventEngine) {
+  constructor({ EventEngine }: EntityEngineOptions) {
     this.entities = new Map();
     this.components = new Map();
     this.componentFactories = new Map();
-    this.eventEngine = eventEngine;
+    this.eventEngine = EventEngine;
   }
 
   // ========================================
@@ -107,7 +111,7 @@ export class EntityEngine {
    * @param func - The factory function for creating component instances
    * @returns This EntityEngine instance for method chaining
    */
-  registerComponent(name: string, func: (...args: unknown[]) => unknown): this {
+  registerComponent(name: string, func: (args: object) => unknown): this {
     this.componentFactories.set(name, func);
     this.components.set(name, new Map());
     return this;
@@ -147,7 +151,7 @@ export class EntityEngine {
 
     if (componentMap && entityComponents) {
       const factory = this.componentFactories.get(componentName) || (() => {});
-      componentMap.set(entityId, factory(componentData));
+      componentMap.set(entityId, factory(componentData as object));
       entityComponents.add(componentName);
 
       // Emit component added event

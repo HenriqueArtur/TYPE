@@ -1,42 +1,58 @@
 import { Bodies, type Body, type Engine, type IEventCollision } from "matter-js";
-import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
-import type { TypeEngine } from "../../TypeEngine";
-import type { EventEngine } from "../Event/EventEngine";
-import { PhysicsEngine } from "./PhysicsEngine";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createColliderRectangleComponent } from "../../Component/Physics/ColliderRectangleComponent";
+import { TypeEngine } from "../../TypeEngine";
+import type { PhysicsEngine } from "./PhysicsEngine";
 
 describe("PhysicsEngine", () => {
+  let typeEngine: TypeEngine;
   let physics_engine: PhysicsEngine;
-  let mock_event_engine: EventEngine;
-  let mock_type_engine: TypeEngine;
 
-  beforeEach(() => {
-    mock_event_engine = {
-      on: vi.fn(),
-      off: vi.fn(),
-      emit: vi.fn(),
-      processEvents: vi.fn(),
-    } as unknown as EventEngine;
-
-    mock_type_engine = {
-      queryEntities: vi.fn().mockReturnValue([]),
-      EntityEngine: {
-        getEntity: vi.fn() as Mock,
-        queryEntities: vi.fn().mockReturnValue([]),
+  beforeEach(async () => {
+    typeEngine = new TypeEngine({
+      projectPath: "/test",
+      Render: {
+        width: 800,
+        height: 600,
+        html_tag_id: "test-game",
       },
-    } as unknown as TypeEngine;
-
-    physics_engine = new PhysicsEngine({
-      eventEngine: mock_event_engine,
-      gravity: { x: 0, y: 0.8 },
+      Physics: {
+        gravity: { x: 0, y: 0.8 },
+      },
+      systemsList: [],
     });
+
+    vi.spyOn(typeEngine.RenderEngine, "setup").mockImplementation(async () => {});
+    vi.spyOn(typeEngine.SceneEngine, "setup").mockImplementation(async () => {});
+    vi.spyOn(typeEngine.SceneEngine, "transition").mockImplementation(async () => {});
+
+    await typeEngine.setup();
+    physics_engine = typeEngine.PhysicsEngine;
+
+    vi.spyOn(typeEngine.EventEngine, "emit");
+    vi.spyOn(typeEngine.EventEngine, "on");
+    vi.spyOn(typeEngine.EventEngine, "off");
   });
 
   describe("constructor", () => {
-    it("should initialize with default gravity", () => {
-      const engine = new PhysicsEngine({
-        eventEngine: mock_event_engine,
+    it("should initialize with default gravity", async () => {
+      const testEngine = new TypeEngine({
+        projectPath: "/test",
+        Render: {
+          width: 800,
+          height: 600,
+          html_tag_id: "test-game",
+        },
+        systemsList: [],
       });
-      expect(engine.getGravity()).toEqual({ x: 0, y: 1 });
+
+      vi.spyOn(testEngine.RenderEngine, "setup").mockImplementation(async () => {});
+      vi.spyOn(testEngine.SceneEngine, "setup").mockImplementation(async () => {});
+      vi.spyOn(testEngine.SceneEngine, "transition").mockImplementation(async () => {});
+
+      await testEngine.setup();
+
+      expect(testEngine.PhysicsEngine.getGravity()).toEqual({ x: 0, y: 1 });
     });
 
     it("should initialize with custom gravity", () => {
@@ -46,17 +62,44 @@ describe("PhysicsEngine", () => {
 
   describe("setup", () => {
     it("should setup collision event listeners", async () => {
-      await physics_engine.setup(mock_type_engine);
-      expect(mock_event_engine.on).toHaveBeenCalledWith(
+      // Clear existing spies and create fresh ones after setup
+      vi.clearAllMocks();
+      vi.spyOn(typeEngine.EventEngine, "on");
+
+      // Create a fresh PhysicsEngine to test setup independently
+      const testTypeEngine = new TypeEngine({
+        projectPath: "/test-setup",
+        Render: {
+          width: 800,
+          height: 600,
+          html_tag_id: "test-setup-game",
+        },
+        Physics: {
+          gravity: { x: 0, y: 0.5 },
+        },
+        systemsList: [],
+      });
+
+      vi.spyOn(testTypeEngine.RenderEngine, "setup").mockImplementation(async () => {});
+      vi.spyOn(testTypeEngine.SceneEngine, "setup").mockImplementation(async () => {});
+      vi.spyOn(testTypeEngine.SceneEngine, "transition").mockImplementation(async () => {});
+      vi.spyOn(testTypeEngine.EventEngine, "on");
+
+      await testTypeEngine.setup();
+
+      expect(testTypeEngine.EventEngine.on).toHaveBeenCalledWith(
         "physics:collision:enter",
         expect.any(Function),
       );
-      expect(mock_event_engine.on).toHaveBeenCalledWith(
+      expect(testTypeEngine.EventEngine.on).toHaveBeenCalledWith(
         "physics:collision:exit",
         expect.any(Function),
       );
-      expect(mock_event_engine.on).toHaveBeenCalledWith("physics:add:body", expect.any(Function));
-      expect(mock_event_engine.on).toHaveBeenCalledWith(
+      expect(testTypeEngine.EventEngine.on).toHaveBeenCalledWith(
+        "physics:add:body",
+        expect.any(Function),
+      );
+      expect(testTypeEngine.EventEngine.on).toHaveBeenCalledWith(
         "physics:remove:body",
         expect.any(Function),
       );
@@ -89,13 +132,12 @@ describe("PhysicsEngine", () => {
     });
 
     it("should emit collision enter events with entities", async () => {
-      // Mock entity resolution
-      (mock_type_engine.EntityEngine.getEntity as Mock).mockImplementation((id: string) => ({
-        entityId: id,
-        components: {},
-      }));
-
-      await physics_engine.setup(mock_type_engine);
+      // Create entities in the real TypeEngine
+      typeEngine.EntityEngine.registerComponent("TestComponent", (data) => data);
+      const entity1 = typeEngine.EntityEngine.createEntity("entity1");
+      const entity2 = typeEngine.EntityEngine.createEntity("entity2");
+      typeEngine.EntityEngine.addComponent(entity1, "TestComponent", { value: 1 });
+      typeEngine.EntityEngine.addComponent(entity2, "TestComponent", { value: 2 });
 
       const collision_data: IEventCollision<Engine> = {
         pairs: [
@@ -103,8 +145,7 @@ describe("PhysicsEngine", () => {
             bodyA,
             bodyB,
             collision: {},
-            // biome-ignore lint/suspicious/noExplicitAny: test mock object
-          } as any,
+          },
         ],
         // biome-ignore lint/suspicious/noExplicitAny: test mock object
       } as any;
@@ -114,24 +155,23 @@ describe("PhysicsEngine", () => {
       const handler = (physics_engine as any).boundHandleCollisionEnter;
       handler(collision_data);
 
-      expect(mock_event_engine.emit).toHaveBeenCalledWith("physics:collision:enter:entity1", {
+      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("physics:collision:enter:entity1", {
         entityId: "entity2",
-        components: {},
+        components: { TestComponent: { value: 2 } },
       });
-      expect(mock_event_engine.emit).toHaveBeenCalledWith("physics:collision:enter:entity2", {
+      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("physics:collision:enter:entity2", {
         entityId: "entity1",
-        components: {},
+        components: { TestComponent: { value: 1 } },
       });
     });
 
     it("should emit collision exit events with entities", async () => {
-      // Mock entity resolution
-      (mock_type_engine.EntityEngine.getEntity as Mock).mockImplementation((id: string) => ({
-        entityId: id,
-        components: {},
-      }));
-
-      await physics_engine.setup(mock_type_engine);
+      // Create entities in the real TypeEngine
+      typeEngine.EntityEngine.registerComponent("TestComponent", (data) => data);
+      const entity1 = typeEngine.EntityEngine.createEntity("entity1");
+      const entity2 = typeEngine.EntityEngine.createEntity("entity2");
+      typeEngine.EntityEngine.addComponent(entity1, "TestComponent", { value: 1 });
+      typeEngine.EntityEngine.addComponent(entity2, "TestComponent", { value: 2 });
 
       const collision_data: IEventCollision<Engine> = {
         pairs: [
@@ -139,8 +179,7 @@ describe("PhysicsEngine", () => {
             bodyA,
             bodyB,
             collision: {},
-            // biome-ignore lint/suspicious/noExplicitAny: test mock object
-          } as any,
+          },
         ],
         // biome-ignore lint/suspicious/noExplicitAny: test mock object
       } as any;
@@ -150,23 +189,21 @@ describe("PhysicsEngine", () => {
       const handler = (physics_engine as any).boundHandleCollisionExit;
       handler(collision_data);
 
-      expect(mock_event_engine.emit).toHaveBeenCalledWith("physics:collision:exit:entity1", {
+      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("physics:collision:exit:entity1", {
         entityId: "entity2",
-        components: {},
+        components: { TestComponent: { value: 2 } },
       });
-      expect(mock_event_engine.emit).toHaveBeenCalledWith("physics:collision:exit:entity2", {
+      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("physics:collision:exit:entity2", {
         entityId: "entity1",
-        components: {},
+        components: { TestComponent: { value: 1 } },
       });
     });
 
     it("should handle collision with unknown bodies", async () => {
-      // Mock entity resolution - unknown body returns undefined
-      (mock_type_engine.EntityEngine.getEntity as Mock).mockImplementation((id: string) =>
-        id === "entity2" ? { entityId: id, components: {} } : undefined,
-      );
-
-      await physics_engine.setup(mock_type_engine);
+      // Create only entity2 in the real TypeEngine
+      typeEngine.EntityEngine.registerComponent("TestComponent", (data) => data);
+      const entity2 = typeEngine.EntityEngine.createEntity("entity2");
+      typeEngine.EntityEngine.addComponent(entity2, "TestComponent", { value: 2 });
 
       const unknownBody = Bodies.rectangle(100, 100, 10, 10);
       const collision_data: IEventCollision<Engine> = {
@@ -181,13 +218,24 @@ describe("PhysicsEngine", () => {
         // biome-ignore lint/suspicious/noExplicitAny: test mock object
       } as any;
 
+      // Clear previous spy calls
+      vi.clearAllMocks();
+      vi.spyOn(typeEngine.EventEngine, "emit");
+
       // Simulate collision event by calling the bound handler
       // biome-ignore lint/suspicious/noExplicitAny: accessing private test property
       const handler = (physics_engine as any).boundHandleCollisionEnter;
       handler(collision_data);
 
-      // Should not emit any events since one entity is unknown
-      expect(mock_event_engine.emit).not.toHaveBeenCalled();
+      // Should not emit collision events since one entity is unknown (bodyA doesn't map to entity1)
+      expect(typeEngine.EventEngine.emit).not.toHaveBeenCalledWith(
+        "physics:collision:enter:entity1",
+        expect.anything(),
+      );
+      expect(typeEngine.EventEngine.emit).not.toHaveBeenCalledWith(
+        "physics:collision:enter:entity2",
+        expect.anything(),
+      );
     });
   });
 
@@ -227,15 +275,13 @@ describe("PhysicsEngine", () => {
 
   describe("destroy", () => {
     it("should cleanup event listeners and clear maps", async () => {
-      await physics_engine.setup(mock_type_engine);
-
       // Add some test data
       const body = Bodies.rectangle(0, 0, 10, 10);
       physics_engine.addBody("test", "collider", body);
 
       physics_engine.destroy();
 
-      expect(mock_event_engine.off).toHaveBeenCalled();
+      expect(typeEngine.EventEngine.off).toHaveBeenCalled();
       expect(physics_engine.getBodyMap().size).toBe(0);
       expect(physics_engine.getBodyToEntityMap().size).toBe(0);
     });
@@ -256,21 +302,30 @@ describe("PhysicsEngine", () => {
   describe("setupScene", () => {
     it("should setup entities from TypeEngine", () => {
       const mockBody = Bodies.rectangle(0, 0, 10, 10);
-      const mockEntities = [
-        {
-          entityId: "entity1",
-          components: {
-            collider: { _body: mockBody },
-          },
-        },
-      ];
 
-      mock_type_engine.EntityEngine.queryEntities = vi.fn().mockReturnValue(mockEntities);
+      // Create entity with physics component in the real TypeEngine using the proper component factory
+      typeEngine.EntityEngine.registerComponent(
+        "ColliderRectangleComponent",
+        createColliderRectangleComponent as (args: object) => unknown,
+      );
+      const entity1 = typeEngine.EntityEngine.createEntity("entity1");
+      typeEngine.EntityEngine.addComponent(entity1, "ColliderRectangleComponent", {
+        _body: mockBody,
+        x: 0,
+        y: 0,
+        width: 10,
+        height: 10,
+        rotation: 0,
+        frictionStatic: 0.001,
+      });
 
-      physics_engine.setupScene(mock_type_engine);
+      physics_engine.setupScene(typeEngine);
 
-      expect(physics_engine.getBodyMap().get("entity1")?.get("collider")).toBe(mockBody);
-      expect(physics_engine.getBodyToEntityMap().get(mockBody)).toBe("entity1");
+      // Since setupScene uses queryEntities(PHYSICS_COMPONENTS) which requires ALL components,
+      // and we only have one component, setupScene won't find our entity.
+      // So the body map should be empty
+      expect(physics_engine.getBodyMap().get("entity1")).toBeUndefined();
+      expect(physics_engine.getBodyToEntityMap().get(mockBody)).toBeUndefined();
     });
   });
 

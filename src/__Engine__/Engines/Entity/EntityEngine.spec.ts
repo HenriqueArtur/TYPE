@@ -1,16 +1,33 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { EventEngine } from "../Event";
-import { EntityEngine } from "./EntityEngine";
+import { TypeEngine } from "../../TypeEngine";
+import type { EntityEngine } from "./EntityEngine";
 
 describe("EntityEngine", () => {
+  let typeEngine: TypeEngine;
   let entityEngine: EntityEngine;
-  let mockEventEngine: EventEngine;
 
-  beforeEach(() => {
-    mockEventEngine = new EventEngine();
-    vi.spyOn(mockEventEngine, "emit");
+  beforeEach(async () => {
+    typeEngine = new TypeEngine({
+      projectPath: "/test",
+      Render: {
+        width: 800,
+        height: 600,
+        html_tag_id: "test-game",
+      },
+      Physics: {
+        gravity: { x: 0, y: 980 },
+      },
+      systemsList: [],
+    });
 
-    entityEngine = new EntityEngine(mockEventEngine);
+    vi.spyOn(typeEngine.RenderEngine, "setup").mockImplementation(async () => {});
+    vi.spyOn(typeEngine.SceneEngine, "setup").mockImplementation(async () => {});
+    vi.spyOn(typeEngine.SceneEngine, "transition").mockImplementation(async () => {});
+
+    await typeEngine.setup();
+    entityEngine = typeEngine.EntityEngine;
+
+    vi.spyOn(typeEngine.EventEngine, "emit");
   });
 
   describe("Entity Management", () => {
@@ -18,7 +35,7 @@ describe("EntityEngine", () => {
       const entityId = entityEngine.createEntity();
 
       expect(entityId).toMatch(/^ENT_/);
-      expect(mockEventEngine.emit).toHaveBeenCalledWith("entity:created", entityId);
+      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("entity:created", entityId);
     });
 
     it("should create entity with provided ID", () => {
@@ -26,7 +43,7 @@ describe("EntityEngine", () => {
       const entityId = entityEngine.createEntity(customId);
 
       expect(entityId).toBe(customId);
-      expect(mockEventEngine.emit).toHaveBeenCalledWith("entity:created", customId);
+      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("entity:created", customId);
     });
 
     it("should remove entity and all its components", () => {
@@ -42,10 +59,10 @@ describe("EntityEngine", () => {
       entityEngine.removeEntity(entityId);
 
       expect(entityEngine.hasComponent(entityId, "TestComponent")).toBe(false);
-      expect(mockEventEngine.emit).toHaveBeenCalledWith("entity:removing", entityId, [
+      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("entity:removing", entityId, [
         "TestComponent",
       ]);
-      expect(mockEventEngine.emit).toHaveBeenCalledWith("entity:removed", entityId);
+      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("entity:removed", entityId);
     });
 
     it("should not crash when removing non-existent entity", () => {
@@ -123,7 +140,7 @@ describe("EntityEngine", () => {
 
       expect(entityEngine.hasComponent(entityId, "TestComponent")).toBe(true);
       expect(entityEngine.getComponent(entityId, "TestComponent")).toEqual(componentData);
-      expect(mockEventEngine.emit).toHaveBeenCalledWith(
+      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
         "component:added",
         entityId,
         "TestComponent",
@@ -151,7 +168,7 @@ describe("EntityEngine", () => {
 
       expect(entityEngine.hasComponent(entityId, "TestComponent")).toBe(false);
       expect(entityEngine.getComponent(entityId, "TestComponent")).toBeUndefined();
-      expect(mockEventEngine.emit).toHaveBeenCalledWith(
+      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
         "component:removed",
         entityId,
         "TestComponent",

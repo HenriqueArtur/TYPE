@@ -1,32 +1,35 @@
-import { type Body, Engine, Events, type IEventCollision, World } from "matter-js";
+import { type Body, Events, type IEventCollision, Engine as MatterEngine, World } from "matter-js";
 import { PHYSICS_COMPONENTS } from "../../Component/Physics";
 import type { TypeEngine } from "../../TypeEngine";
 import type { EventEngine } from "../Event/EventEngine";
 
 export interface PhysicsEngineOptions {
-  eventEngine: EventEngine;
+  engine: TypeEngine;
+  EventEngine: EventEngine;
   gravity?: { x: number; y: number };
 }
 
 export class PhysicsEngine {
-  private matterEngine: Engine;
+  private engine: TypeEngine;
+  private matterEngine: MatterEngine;
   private world: World;
   private eventEngine: EventEngine;
   private gravity: { x: number; y: number };
   private bodyMap = new Map<string, Map<string, Body>>();
   private bodyToEntityMap = new Map<Body, string>();
 
-  private boundHandleCollisionEnter?: (event: IEventCollision<Engine>) => void;
-  private boundHandleCollisionExit?: (event: IEventCollision<Engine>) => void;
+  private boundHandleCollisionEnter?: (event: IEventCollision<MatterEngine>) => void;
+  private boundHandleCollisionExit?: (event: IEventCollision<MatterEngine>) => void;
 
   private bindedAddBody: (entityId: string, component_name: string, body: Body) => void;
   private bindedRemoveBody: (entityId: string, component_name: string) => void;
 
   constructor(options: PhysicsEngineOptions) {
-    this.eventEngine = options.eventEngine;
+    this.engine = options.engine;
+    this.eventEngine = options.EventEngine;
     this.gravity = options.gravity ?? { x: 0, y: 1 };
 
-    this.matterEngine = Engine.create();
+    this.matterEngine = MatterEngine.create();
     this.world = this.matterEngine.world;
 
     // Set initial gravity
@@ -38,15 +41,15 @@ export class PhysicsEngine {
     this.bindedRemoveBody = this.removeBody.bind(this);
   }
 
-  async setup(engine: TypeEngine): Promise<void> {
+  async setup(): Promise<void> {
     // Create closures that capture the engine reference
-    this.boundHandleCollisionEnter = (event: IEventCollision<Engine>) => {
+    this.boundHandleCollisionEnter = (event: IEventCollision<MatterEngine>) => {
       for (const pair of event.pairs) {
         const entity_A_id = this._findEntityByBody(pair.bodyA);
         const entity_B_id = this._findEntityByBody(pair.bodyB);
 
-        const entity_A = entity_A_id ? engine.EntityEngine.getEntity(entity_A_id) : undefined;
-        const entity_B = entity_B_id ? engine.EntityEngine.getEntity(entity_B_id) : undefined;
+        const entity_A = entity_A_id ? this.engine.EntityEngine.getEntity(entity_A_id) : undefined;
+        const entity_B = entity_B_id ? this.engine.EntityEngine.getEntity(entity_B_id) : undefined;
 
         if (entity_A && entity_B) {
           this.eventEngine.emit(`physics:collision:enter:${entity_A_id}`, entity_B);
@@ -55,13 +58,13 @@ export class PhysicsEngine {
       }
     };
 
-    this.boundHandleCollisionExit = (event: IEventCollision<Engine>) => {
+    this.boundHandleCollisionExit = (event: IEventCollision<MatterEngine>) => {
       for (const pair of event.pairs) {
         const entity_A_id = this._findEntityByBody(pair.bodyA);
         const entity_B_id = this._findEntityByBody(pair.bodyB);
 
-        const entity_A = entity_A_id ? engine.EntityEngine.getEntity(entity_A_id) : undefined;
-        const entity_B = entity_B_id ? engine.EntityEngine.getEntity(entity_B_id) : undefined;
+        const entity_A = entity_A_id ? this.engine.EntityEngine.getEntity(entity_A_id) : undefined;
+        const entity_B = entity_B_id ? this.engine.EntityEngine.getEntity(entity_B_id) : undefined;
 
         if (entity_A && entity_B) {
           this.eventEngine.emit(`physics:collision:exit:${entity_A_id}`, entity_B);
@@ -102,7 +105,7 @@ export class PhysicsEngine {
   }
 
   update(deltaTime: number): void {
-    Engine.update(this.matterEngine, deltaTime);
+    MatterEngine.update(this.matterEngine, deltaTime);
   }
 
   addBody(entityId: string, component_name: string, body: Body): void {
@@ -140,7 +143,7 @@ export class PhysicsEngine {
     return { ...this.gravity };
   }
 
-  getMatterEngine(): Engine {
+  getMatterEngine(): MatterEngine {
     return this.matterEngine;
   }
 
@@ -176,6 +179,10 @@ export class PhysicsEngine {
     this.eventEngine.off("physics:remove:body", this.bindedRemoveBody);
 
     // Clear all bodies
+    this.clear();
+  }
+
+  clear() {
     World.clear(this.world, false);
     this.bodyMap.clear();
     this.bodyToEntityMap.clear();

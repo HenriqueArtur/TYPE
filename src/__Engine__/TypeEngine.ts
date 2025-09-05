@@ -1,15 +1,13 @@
-import type { EntityEngine, EventEngine, PhysicsEngine, RenderEngine, TimeEngine } from "./Engines";
-import type { SceneEngine } from "./Engines/Scene/SceneEngine";
-import type { SceneName } from "./Engines/Scene/SceneManageSerialized";
+import { EntityEngine, EventEngine, PhysicsEngine, RenderEngine, TimeEngine } from "./Engines";
+import type { PhysicsEngineOptions } from "./Engines/Physics/PhysicsEngine";
+import type { RenderEngineOptions } from "./Engines/Render/RenderEngine";
+import { SceneEngine } from "./Engines/Scene/SceneEngine";
 import type { System } from "./Systems/System";
 
 export interface TypeEngineOptions {
-  renderEngine: RenderEngine;
-  entityEngine: EntityEngine;
-  eventEngine: EventEngine;
-  physicsEngine: PhysicsEngine;
-  sceneEngine: SceneEngine;
-  timeEngine: TimeEngine;
+  projectPath: string;
+  Render: Omit<RenderEngineOptions, "engine" | "EventEngine">;
+  Physics?: Omit<PhysicsEngineOptions, "engine" | "EventEngine">;
   systemsList: System<TypeEngine>[];
 }
 
@@ -20,6 +18,7 @@ export interface TypeEngineOptions {
  * Uses dependency injection for better testability and modularity.
  */
 export class TypeEngine {
+  readonly projectPath: string;
   readonly EventEngine: EventEngine;
   readonly EntityEngine: EntityEngine;
   readonly PhysicsEngine: PhysicsEngine;
@@ -30,35 +29,31 @@ export class TypeEngine {
   private isRunning = false;
   private updateAddedToTimeEngine = false;
 
-  constructor(options: TypeEngineOptions) {
-    this.EntityEngine = options.entityEngine;
-    this.EventEngine = options.eventEngine;
-    this.PhysicsEngine = options.physicsEngine;
-    this.SceneEngine = options.sceneEngine;
-    this.TimeEngine = options.timeEngine;
-    this.RenderEngine = options.renderEngine;
-    this.systems = options.systemsList;
+  constructor({ Render, Physics, systemsList, projectPath }: TypeEngineOptions) {
+    this.projectPath = projectPath;
+    this.EventEngine = new EventEngine();
+    this.EntityEngine = new EntityEngine({ EventEngine: this.EventEngine });
+    this.PhysicsEngine = new PhysicsEngine({
+      engine: this,
+      EventEngine: this.EventEngine,
+      ...Physics,
+    });
+    this.SceneEngine = new SceneEngine({ engine: this });
+    this.RenderEngine = new RenderEngine({
+      engine: this,
+      EventEngine: this.EventEngine,
+      ...Render,
+    });
+    this.TimeEngine = new TimeEngine();
+    this.systems = systemsList;
   }
 
   async setup() {
-    await this.RenderEngine.start();
-    await this.PhysicsEngine.setup(this);
-    await this.transition("Initial");
+    await this.PhysicsEngine.setup();
+    await this.RenderEngine.setup();
+    await this.SceneEngine.setup();
+    await this.SceneEngine.transition("Initial");
     await this.setupSystems();
-  }
-
-  // ========================================
-  // SCENE MANAGEMENT (DELEGATED)
-  // ========================================
-
-  /**
-   * Transitions to a new scene
-   * @param sceneName - The name of the scene to transition to
-   * @throws Error if the scene doesn't exist
-   */
-  async transition(sceneName: SceneName): Promise<void> {
-    await this.SceneEngine.transition(sceneName, this);
-    await this.RenderEngine.loadAllSprites(this);
   }
 
   // ========================================
