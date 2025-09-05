@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { TypeEngine } from "../../TypeEngine";
+import { TypeEngine } from "../../TypeEngine";
 import { Scene } from "./Scene";
-import { SceneEngine } from "./SceneEngine";
+import type { SceneEngine } from "./SceneEngine";
 import type { SceneManageSerialized } from "./SceneManageSerialized";
 
 // Mock Scene class
@@ -22,13 +22,6 @@ Object.defineProperty(global, "window", {
   writable: true,
 });
 
-// Mock TypeEngine
-const mockEngine = {
-  addSystem: vi.fn(),
-  createEntity: vi.fn(),
-  addComponent: vi.fn(),
-} as unknown as TypeEngine;
-
 // Mock Scene instance
 const mockScene = {
   name: "test-scene",
@@ -38,12 +31,31 @@ const mockScene = {
 };
 
 describe("SceneEngine", () => {
+  let typeEngine: TypeEngine;
   let sceneEngine: SceneEngine;
   let sceneManageData: SceneManageSerialized;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.resetAllMocks();
     vi.clearAllMocks();
+
+    // Create a real TypeEngine instance
+    typeEngine = new TypeEngine({
+      projectPath: "/test",
+      Render: {
+        width: 800,
+        height: 600,
+        html_tag_id: "test-game",
+      },
+      Physics: {
+        gravity: { x: 0, y: 980 },
+      },
+      systemsList: [],
+    });
+
+    // Mock the async setup methods to avoid real initialization
+    vi.spyOn(typeEngine.RenderEngine, "setup").mockImplementation(async () => {});
+    vi.spyOn(typeEngine.PhysicsEngine, "setup").mockImplementation(async () => {});
 
     sceneManageData = {
       initialScene: "menu",
@@ -54,38 +66,44 @@ describe("SceneEngine", () => {
       },
     };
 
+    // Mock electronAPI.readJsonFile to return our test data
+    mockElectronAPI.readJsonFile.mockResolvedValue(sceneManageData);
+
     // Mock Scene.fromPath to return a mock scene
     vi.mocked(Scene.fromPath).mockResolvedValue(mockScene as unknown as Scene);
+
+    // Get the SceneEngine instance from TypeEngine
+    sceneEngine = typeEngine.SceneEngine;
   });
 
-  describe("constructor", () => {
+  describe("setup", () => {
     it("should initialize with scene data and set initial scene", async () => {
-      sceneEngine = new SceneEngine(sceneManageData);
+      await sceneEngine.setup();
 
       expect(sceneEngine.has("menu")).toBe(true);
       expect(sceneEngine.has("game")).toBe(true);
       expect(sceneEngine.has("settings")).toBe(true);
       expect(sceneEngine.has("nonexistent")).toBe(false);
 
-      // Wait for async initialization
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
+      expect(mockElectronAPI.readJsonFile).toHaveBeenCalledWith("/test/scenes.manage.json");
       expect(Scene.fromPath).toHaveBeenCalledWith("/scenes/menu.scene.json");
     });
 
-    it("should handle empty scenes object", () => {
+    it("should handle empty scenes object", async () => {
       const emptySceneData: SceneManageSerialized = {
         initialScene: "menu",
         scenes: {},
       };
 
-      sceneEngine = new SceneEngine(emptySceneData);
+      mockElectronAPI.readJsonFile.mockResolvedValueOnce(emptySceneData);
+
+      await sceneEngine.setup();
 
       expect(sceneEngine.has("menu")).toBe(false);
       expect(sceneEngine.getCurrentScene()).toBeNull();
     });
 
-    it("should handle missing initial scene", () => {
+    it("should handle missing initial scene", async () => {
       const invalidSceneData: SceneManageSerialized = {
         initialScene: "nonexistent",
         scenes: {
@@ -93,7 +111,10 @@ describe("SceneEngine", () => {
         },
       };
 
-      sceneEngine = new SceneEngine(invalidSceneData);
+      mockElectronAPI.readJsonFile.mockResolvedValueOnce(invalidSceneData);
+      vi.mocked(Scene.fromPath).mockClear();
+
+      await sceneEngine.setup();
 
       expect(sceneEngine.has("nonexistent")).toBe(false);
       expect(sceneEngine.has("menu")).toBe(true);
@@ -102,8 +123,8 @@ describe("SceneEngine", () => {
   });
 
   describe("has", () => {
-    beforeEach(() => {
-      sceneEngine = new SceneEngine(sceneManageData);
+    beforeEach(async () => {
+      await sceneEngine.setup();
     });
 
     it("should return true for existing scenes", () => {
@@ -118,7 +139,7 @@ describe("SceneEngine", () => {
       expect(sceneEngine.has("MENU")).toBe(false); // Case sensitive
     });
 
-    it("should handle special character scene names", () => {
+    it("should handle special character scene names", async () => {
       const specialSceneData: SceneManageSerialized = {
         initialScene: "scene-with_special.chars",
         scenes: {
@@ -127,7 +148,9 @@ describe("SceneEngine", () => {
         },
       };
 
-      sceneEngine = new SceneEngine(specialSceneData);
+      mockElectronAPI.readJsonFile.mockResolvedValueOnce(specialSceneData);
+
+      await sceneEngine.setup();
 
       expect(sceneEngine.has("scene-with_special.chars")).toBe(true);
       expect(sceneEngine.has("scene with spaces")).toBe(true);
@@ -135,23 +158,23 @@ describe("SceneEngine", () => {
   });
 
   describe("transition", () => {
-    beforeEach(() => {
-      sceneEngine = new SceneEngine(sceneManageData);
+    beforeEach(async () => {
+      await sceneEngine.setup();
     });
 
     it("should successfully transition to an existing scene", async () => {
-      await sceneEngine.transition("game", mockEngine);
+      await sceneEngine.transition("game");
 
       expect(Scene.fromPath).toHaveBeenCalledWith("/scenes/game.scene.json");
-      expect(mockScene.load).toHaveBeenCalledWith(mockEngine);
+      expect(mockScene.load).toHaveBeenCalledWith(typeEngine);
       expect(sceneEngine.getCurrentScene()).toBe(mockScene);
     });
 
     it("should throw error when transitioning to non-existing scene", async () => {
-      // Clear any calls from constructor initialization
+      // Clear any calls from setup initialization
       vi.clearAllMocks();
 
-      await expect(sceneEngine.transition("nonexistent", mockEngine)).rejects.toThrow(
+      await expect(sceneEngine.transition("nonexistent")).rejects.toThrow(
         'Scene "nonexistent" does not exist',
       );
 
@@ -168,9 +191,10 @@ describe("SceneEngine", () => {
         },
       };
 
-      sceneEngine = new SceneEngine(sceneDataWithEmptyPath);
+      mockElectronAPI.readJsonFile.mockResolvedValueOnce(sceneDataWithEmptyPath);
+      await sceneEngine.setup();
 
-      await expect(sceneEngine.transition("emptyPath", mockEngine)).rejects.toThrow(
+      await expect(sceneEngine.transition("emptyPath")).rejects.toThrow(
         'Scene path not found for "emptyPath"',
       );
     });
@@ -189,7 +213,7 @@ describe("SceneEngine", () => {
 
       vi.mocked(Scene.fromPath).mockResolvedValueOnce(newMockScene as unknown as Scene);
 
-      await sceneEngine.transition("game", mockEngine);
+      await sceneEngine.transition("game");
 
       expect(sceneEngine.getCurrentScene()).toBe(newMockScene);
     });
@@ -208,20 +232,20 @@ describe("SceneEngine", () => {
         .mockResolvedValueOnce(gameScene as unknown as Scene)
         .mockResolvedValueOnce(settingsScene as unknown as Scene);
 
-      await sceneEngine.transition("game", mockEngine);
+      await sceneEngine.transition("game");
       expect(sceneEngine.getCurrentScene()).toBe(gameScene);
-      expect(gameScene.load).toHaveBeenCalledWith(mockEngine);
+      expect(gameScene.load).toHaveBeenCalledWith(typeEngine);
 
-      await sceneEngine.transition("settings", mockEngine);
+      await sceneEngine.transition("settings");
       expect(sceneEngine.getCurrentScene()).toBe(settingsScene);
-      expect(settingsScene.load).toHaveBeenCalledWith(mockEngine);
+      expect(settingsScene.load).toHaveBeenCalledWith(typeEngine);
     });
 
     it("should handle Scene.fromPath errors", async () => {
       const error = new Error("Failed to create scene from path");
       vi.mocked(Scene.fromPath).mockRejectedValueOnce(error);
 
-      await expect(sceneEngine.transition("game", mockEngine)).rejects.toThrow(
+      await expect(sceneEngine.transition("game")).rejects.toThrow(
         "Failed to create scene from path",
       );
 
@@ -237,30 +261,31 @@ describe("SceneEngine", () => {
 
       vi.mocked(Scene.fromPath).mockResolvedValueOnce(failingScene as unknown as Scene);
 
-      await expect(sceneEngine.transition("game", mockEngine)).rejects.toThrow(
-        "Scene failed to load",
-      );
+      await expect(sceneEngine.transition("game")).rejects.toThrow("Scene failed to load");
 
-      expect(failingScene.load).toHaveBeenCalledWith(mockEngine);
+      expect(failingScene.load).toHaveBeenCalledWith(typeEngine);
       // Current scene should still be updated even if load fails
       expect(sceneEngine.getCurrentScene()).toBe(failingScene);
     });
   });
 
   describe("getCurrentScene", () => {
-    it("should return null initially before any scene is set", () => {
-      sceneEngine = new SceneEngine({
+    it("should return null initially before any scene is set", async () => {
+      const invalidSceneData: SceneManageSerialized = {
         initialScene: "nonexistent",
         scenes: {
           menu: "/scenes/menu.scene.json",
         },
-      });
+      };
+
+      mockElectronAPI.readJsonFile.mockResolvedValueOnce(invalidSceneData);
+      await sceneEngine.setup();
 
       expect(sceneEngine.getCurrentScene()).toBeNull();
     });
 
     it("should return current scene after initialization", async () => {
-      sceneEngine = new SceneEngine(sceneManageData);
+      await sceneEngine.setup();
 
       // Wait for async initialization
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -269,7 +294,7 @@ describe("SceneEngine", () => {
     });
 
     it("should return updated scene after transition", async () => {
-      sceneEngine = new SceneEngine(sceneManageData);
+      await sceneEngine.setup();
 
       const newScene = {
         name: "new-scene",
@@ -278,27 +303,27 @@ describe("SceneEngine", () => {
 
       vi.mocked(Scene.fromPath).mockResolvedValueOnce(newScene as unknown as Scene);
 
-      await sceneEngine.transition("game", mockEngine);
+      await sceneEngine.transition("game");
 
       expect(sceneEngine.getCurrentScene()).toBe(newScene);
     });
   });
 
   describe("edge cases and error handling", () => {
-    it("should handle empty scene name", () => {
-      sceneEngine = new SceneEngine(sceneManageData);
+    it("should handle empty scene name", async () => {
+      await sceneEngine.setup();
 
       expect(sceneEngine.has("")).toBe(false);
     });
 
-    it("should handle null/undefined scene names gracefully", () => {
-      sceneEngine = new SceneEngine(sceneManageData);
+    it("should handle null/undefined scene names gracefully", async () => {
+      await sceneEngine.setup();
 
       expect(sceneEngine.has(null as unknown as string)).toBe(false);
       expect(sceneEngine.has(undefined as unknown as string)).toBe(false);
     });
 
-    it("should handle scenes with same name but different cases", () => {
+    it("should handle scenes with same name but different cases", async () => {
       const caseSceneData: SceneManageSerialized = {
         initialScene: "Menu",
         scenes: {
@@ -308,7 +333,8 @@ describe("SceneEngine", () => {
         },
       };
 
-      sceneEngine = new SceneEngine(caseSceneData);
+      mockElectronAPI.readJsonFile.mockResolvedValueOnce(caseSceneData);
+      await sceneEngine.setup();
 
       expect(sceneEngine.has("Menu")).toBe(true);
       expect(sceneEngine.has("menu")).toBe(true);
@@ -316,7 +342,7 @@ describe("SceneEngine", () => {
       expect(sceneEngine.has("mEnU")).toBe(false);
     });
 
-    it("should handle large number of scenes efficiently", () => {
+    it("should handle large number of scenes efficiently", async () => {
       const largeSceneData: SceneManageSerialized = {
         initialScene: "scene0",
         scenes: {},
@@ -327,7 +353,8 @@ describe("SceneEngine", () => {
         largeSceneData.scenes[`scene${i}`] = `/scenes/scene${i}.scene.json`;
       }
 
-      sceneEngine = new SceneEngine(largeSceneData);
+      mockElectronAPI.readJsonFile.mockResolvedValueOnce(largeSceneData);
+      await sceneEngine.setup();
 
       expect(sceneEngine.has("scene0")).toBe(true);
       expect(sceneEngine.has("scene500")).toBe(true);
