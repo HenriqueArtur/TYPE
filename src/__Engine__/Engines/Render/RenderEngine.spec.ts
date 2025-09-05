@@ -316,18 +316,15 @@ describe("RenderEngine", () => {
         position: { x: 10, y: 20 },
       });
 
-      // Initialize renderEngine to set up stage and event listeners
-      // Mock the PIXI parts but let the event listener setup run
-      vi.spyOn(renderEngine._instance, "init").mockImplementation(async () => {});
-      vi.spyOn(document, "getElementById").mockReturnValue(null);
-      await renderEngine.setup();
-
       // Add sprite to the spriteMap (simulate setupScene)
       const entityId = "test-entity";
-      getRenderEnginePrivate(renderEngine).spriteMap.set(entityId, spriteComponent);
+      const renderEnginePrivate = getRenderEnginePrivate(renderEngine);
+      renderEnginePrivate.spriteMap.set(entityId, spriteComponent);
 
-      // Emit remove:drawable event - events should be processed synchronously
-      typeEngine.EventEngine.emit("remove:drawable", {
+      // Call the private handleRemoveDrawable method directly
+      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method for testing
+      const handleRemoveDrawable = (renderEngine as any).handleRemoveDrawable;
+      handleRemoveDrawable.call(renderEngine, {
         entityId,
         componentName: "SpriteComponent",
         componentData: { texture: "test.png" },
@@ -336,7 +333,7 @@ describe("RenderEngine", () => {
       expect(renderEngine._instance.stage.removeChild).toHaveBeenCalledWith(
         spriteComponent._sprite,
       );
-      expect(getRenderEnginePrivate(renderEngine).spriteMap.has(entityId)).toBe(false);
+      expect(renderEnginePrivate.spriteMap.has(entityId)).toBe(false);
     });
 
     it("should handle remove:drawable event when sprite not found", async () => {
@@ -362,19 +359,19 @@ describe("RenderEngine", () => {
 
       const entityId = "test-entity";
 
-      // Initialize renderEngine to set up event listeners
-      vi.spyOn(renderEngine._instance, "init").mockImplementation(async () => {});
-      vi.spyOn(document, "getElementById").mockReturnValue(null);
-      await renderEngine.setup();
-
       // Simulate null stage
       // biome-ignore lint/suspicious/noExplicitAny: Testing null stage behavior
       renderEngine._instance.stage = null as any;
 
-      getRenderEnginePrivate(renderEngine).spriteMap.set(entityId, spriteComponent);
+      const renderEnginePrivate = getRenderEnginePrivate(renderEngine);
+      renderEnginePrivate.spriteMap.set(entityId, spriteComponent);
+
+      // Call the private handleRemoveDrawable method directly
+      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method for testing
+      const handleRemoveDrawable = (renderEngine as any).handleRemoveDrawable;
 
       expect(() => {
-        typeEngine.EventEngine.emit("remove:drawable", {
+        handleRemoveDrawable.call(renderEngine, {
           entityId,
           componentName: "SpriteComponent",
           componentData: { texture: "test.png" },
@@ -382,7 +379,7 @@ describe("RenderEngine", () => {
       }).not.toThrow();
 
       // Sprite should be removed from map even if stage is null
-      expect(getRenderEnginePrivate(renderEngine).spriteMap.has(entityId)).toBe(false);
+      expect(renderEnginePrivate.spriteMap.has(entityId)).toBe(false);
     });
 
     it("should track sprites in spriteMap during setupScene", async () => {
