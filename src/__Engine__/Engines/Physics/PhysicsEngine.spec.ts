@@ -149,11 +149,11 @@ describe("PhysicsEngine", () => {
 
       expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("physics:collision:enter:entity1", {
         entityId: "entity2",
-        components: { TestComponent: { value: 2 } },
+        components: { TestComponent: [{ value: 2 }] },
       });
       expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("physics:collision:enter:entity2", {
         entityId: "entity1",
-        components: { TestComponent: { value: 1 } },
+        components: { TestComponent: [{ value: 1 }] },
       });
     });
 
@@ -183,11 +183,11 @@ describe("PhysicsEngine", () => {
 
       expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("physics:collision:exit:entity1", {
         entityId: "entity2",
-        components: { TestComponent: { value: 2 } },
+        components: { TestComponent: [{ value: 2 }] },
       });
       expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("physics:collision:exit:entity2", {
         entityId: "entity1",
-        components: { TestComponent: { value: 1 } },
+        components: { TestComponent: [{ value: 1 }] },
       });
     });
 

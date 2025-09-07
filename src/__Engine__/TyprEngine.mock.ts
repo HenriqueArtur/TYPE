@@ -36,6 +36,7 @@ export async function TypeEngineMock() {
   );
   vi.spyOn(typeEngine.SystemEngine, "setup").mockImplementation(async () => {});
   vi.spyOn(typeEngine.PhysicsEngine, "setupScene").mockImplementation(() => {});
+  vi.spyOn(typeEngine.EntityEngine, "setup").mockImplementation(async () => {});
 
   await typeEngine.setup();
 
@@ -56,4 +57,5 @@ export function setupBasicTypeEngineMocks(typeEngine: TypeEngine) {
   );
   vi.spyOn(typeEngine.SystemEngine, "setup").mockImplementation(async () => {});
   vi.spyOn(typeEngine.PhysicsEngine, "setupScene").mockImplementation(() => {});
+  vi.spyOn(typeEngine.EntityEngine, "setup").mockImplementation(async () => {});
 }

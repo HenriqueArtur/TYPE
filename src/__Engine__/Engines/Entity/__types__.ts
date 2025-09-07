@@ -24,3 +24,8 @@ export interface GroupGameObjectSerialized {
   name: string;
   list: (GameObjectSerialized | GroupGameObjectSerialized)[];
 }
+
+export type ComponentsManageSerialized = Record<ComponentName, ComponentPath>;
+
+type ComponentName = string;
+type ComponentPath = string;

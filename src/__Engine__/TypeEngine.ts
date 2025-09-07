@@ -40,7 +40,7 @@ export class TypeEngine {
   constructor({ Render, Physics, projectPath }: TypeEngineOptions) {
     this.projectPath = projectPath;
     this.EventEngine = new EventEngine();
-    this.EntityEngine = new EntityEngine({ EventEngine: this.EventEngine });
+    this.EntityEngine = new EntityEngine({ engine: this, EventEngine: this.EventEngine });
     this.PhysicsEngine = new PhysicsEngine({
       engine: this,
       EventEngine: this.EventEngine,
@@ -61,14 +61,15 @@ export class TypeEngine {
   }
 
   async setup() {
+    await this.EntityEngine.setup();
     await this.PhysicsEngine.setup();
     await this.RenderEngine.setup();
     await this.SystemEngine.setup();
     const { systemsEnabled, entities } = await this.SceneEngine.setup();
-    this.SystemEngine.setupScene(systemsEnabled);
     this.EntityEngine.setupScene(entities);
-    this.RenderEngine.setupScene();
     this.PhysicsEngine.setupScene();
+    this.RenderEngine.setupScene();
+    this.SystemEngine.setupScene(systemsEnabled);
   }
 
   async transitionScene(sceneName: string) {

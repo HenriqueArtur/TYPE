@@ -110,7 +110,7 @@ describe("RenderPixiSystem", () => {
       mockEngine.EntityEngine.query = vi.fn().mockReturnValue([
         {
           components: {
-            SpriteComponent: mockSpriteComponent,
+            SpriteComponent: [mockSpriteComponent],
           },
         },
       ]);
@@ -152,7 +152,7 @@ describe("RenderPixiSystem", () => {
       mockEngine.EntityEngine.query = vi.fn().mockReturnValue([
         {
           components: {
-            SpriteComponent: mockSpriteComponent,
+            SpriteComponent: [mockSpriteComponent],
           },
         },
       ]);
@@ -222,8 +222,8 @@ describe("RenderPixiSystem", () => {
       mockEngine.EntityEngine.query = vi
         .fn()
         .mockReturnValue([
-          { components: { SpriteComponent: mockSpriteComponent1 } },
-          { components: { SpriteComponent: mockSpriteComponent2 } },
+          { components: { SpriteComponent: [mockSpriteComponent1] } },
+          { components: { SpriteComponent: [mockSpriteComponent2] } },
         ]);
 
       system.update(mockEngine, 16.67);
@@ -279,7 +279,7 @@ describe("RenderPixiSystem", () => {
       mockEngine.EntityEngine.query = vi.fn().mockReturnValue([
         {
           components: {
-            SpriteComponent: spriteComponent,
+            SpriteComponent: [spriteComponent],
           },
         },
       ]);

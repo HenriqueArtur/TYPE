@@ -1,9 +1,27 @@
+import { DEFAULT_COMPONENTS } from "../../Component/__const__";
+import type { ComponentInstanceManage } from "../../Component/ComponentInstanceManage";
+import type { TypeEngine } from "../../TypeEngine";
 import { generateId } from "../../Utils/id";
 import type { EventEngine } from "../Event";
-import type { EntityFetchResult, GameObjectSerialized } from "./__types__";
+import type {
+  ComponentsManageSerialized,
+  EntityFetchResult,
+  GameObjectSerialized,
+} from "./__types__";
 
 export interface EntityEngineOptions {
+  engine: TypeEngine;
   EventEngine: EventEngine;
+}
+
+export interface ComponentInstance {
+  id: string;
+  name: string;
+  data: unknown;
+}
+
+export interface ComponentAddResult {
+  componentId: string;
 }
 
 /**
@@ -14,12 +32,14 @@ export interface EntityEngineOptions {
  * Uses dependency injection for EventEngine instead of singleton pattern.
  */
 export class EntityEngine {
-  private entities: Map<string, Set<string>>;
-  private components: Map<string, Map<string, unknown>>;
-  private componentFactories: Map<string, (args: object) => unknown>;
+  private engine: TypeEngine;
+  private entities: Map<string, Set<string>>; // entityId -> Set<componentId>
+  private components: Map<string, ComponentInstance>; // componentId -> ComponentInstance
+  private componentFactories: Map<string, (args: object) => unknown>; // componentName -> factory
   private eventEngine: EventEngine;
 
-  constructor({ EventEngine }: EntityEngineOptions) {
+  constructor({ engine, EventEngine }: EntityEngineOptions) {
+    this.engine = engine;
     this.entities = new Map();
     this.components = new Map();
     this.componentFactories = new Map();
@@ -29,6 +49,38 @@ export class EntityEngine {
   // ========================================
   // ENTITY MANAGEMENT
   // ========================================
+
+  async setup() {
+    this.setupDefaultComponents();
+    await this.setupCustomComponens();
+  }
+
+  private setupDefaultComponents() {
+    for (const { name, create } of DEFAULT_COMPONENTS) {
+      this.registerComponent(name, create as (...args: unknown[]) => unknown);
+    }
+  }
+
+  private async setupCustomComponens() {
+    const managePath = `${this.engine.projectPath}/component.manage.json`;
+    const customComponentsMap: ComponentsManageSerialized =
+      await window.electronAPI.readJsonFile(managePath);
+    for (const [name, componentPath] of Object.entries(customComponentsMap)) {
+      const absolute = await window.electronAPI.absolutePath(
+        `${this.engine.projectPath}/${componentPath}`,
+      );
+      try {
+        const componentModule = await import(absolute);
+        const ComponentModule: ComponentInstanceManage<string, unknown, unknown> | undefined =
+          componentModule.default || componentModule[name];
+        if (ComponentModule) {
+          this.registerComponent(name, ComponentModule.create);
+        }
+      } catch (error) {
+        console.warn(`Failed to load Custom Component ${name} from ${absolute}:`, error);
+      }
+    }
+  }
 
   setupScene(entities: GameObjectSerialized[]) {
     for (const { components } of entities) {
@@ -47,10 +99,7 @@ export class EntityEngine {
   create(id?: string): string {
     const entity_id = id || generateId("ENT");
     this.entities.set(entity_id, new Set());
-
-    // Emit entity created event
     this.eventEngine.emit("entity:created", entity_id);
-
     return entity_id;
   }
 
@@ -61,20 +110,20 @@ export class EntityEngine {
    * @returns The entity with its components, or undefined if entity doesn't exist
    */
   get<T extends Record<string, unknown>>(entityId: string): EntityFetchResult<T> {
-    if (!this.entities.has(entityId)) {
-      return undefined;
+    const entityComponentIds = this.entities.get(entityId);
+    if (!entityComponentIds) {
+      return;
     }
-
-    const entityComponents = this.entities.get(entityId);
-    if (!entityComponents) {
-      return undefined;
+    const components: Record<string, unknown[]> = {};
+    for (const componentId of entityComponentIds) {
+      const component = this.components.get(componentId);
+      if (component) {
+        if (!components[component.name]) {
+          components[component.name] = [];
+        }
+        (components[component.name] as unknown[]).push(component.data);
+      }
     }
-
-    const components: Record<string, unknown> = {};
-    for (const componentName of entityComponents) {
-      components[componentName] = this.getComponent(entityId, componentName);
-    }
-
     return { entityId, components: components as T };
   }
 
@@ -83,24 +132,32 @@ export class EntityEngine {
    * @param entityId - The ID of the entity to remove
    */
   remove(entityId: string): void {
+    const entityComponentIds = this.entities.get(entityId);
+    if (!entityComponentIds) {
+      return;
+    }
+    const componentNames: string[] = [];
+    if (entityComponentIds) {
+      for (const componentId of entityComponentIds) {
+        const component = this.components.get(componentId);
+        if (component && !componentNames.includes(component.name)) {
+          componentNames.push(component.name);
+        }
+      }
+    }
+
+    this.eventEngine.emit("entity:removing", entityId, componentNames);
     this.removeOnClear(entityId);
     this.eventEngine.emit("entity:removed", entityId);
   }
 
   removeOnClear(entityId: string): void {
-    if (!this.entities.has(entityId)) {
+    const entityComponentIds = this.entities.get(entityId);
+    if (!entityComponentIds) {
       return;
     }
-    const entityComponents = this.entities.get(entityId);
-    if (!entityComponents) {
-      return;
-    }
-    this.eventEngine.emit("entity:removing", entityId, Array.from(entityComponents));
-    for (const componentName of entityComponents) {
-      const componentMap = this.components.get(componentName);
-      if (componentMap) {
-        componentMap.delete(entityId);
-      }
+    for (const componentId of entityComponentIds) {
+      this.components.delete(componentId);
     }
     this.entities.delete(entityId);
   }
@@ -123,7 +180,6 @@ export class EntityEngine {
    */
   registerComponent(name: string, func: (args: object) => unknown): this {
     this.componentFactories.set(name, func);
-    this.components.set(name, new Map());
     return this;
   }
 
@@ -147,23 +203,32 @@ export class EntityEngine {
    * @param componentData - The component data
    * @throws Error if entity doesn't exist or component type isn't registered
    */
-  addComponentSetup<T>(entityId: string, componentName: string, componentData: T): void {
+  addComponentSetup<T>(entityId: string, componentName: string, componentData: T): string {
     if (!this.entities.has(entityId)) {
       throw new Error(`Entity with ID ${entityId} does not exist`);
     }
 
-    if (!this.components.has(componentName)) {
+    if (!this.componentFactories.has(componentName)) {
       throw new Error(`Component ${componentName} is not registered`);
     }
 
-    const componentMap = this.components.get(componentName);
-    const entityComponents = this.entities.get(entityId);
+    const entityComponentIds = this.entities.get(entityId);
 
-    if (componentMap && entityComponents) {
+    if (entityComponentIds) {
       const factory = this.componentFactories.get(componentName) || (() => {});
-      componentMap.set(entityId, factory(componentData as object));
-      entityComponents.add(componentName);
+      const componentId = generateId("COMP");
+      const componentInstance: ComponentInstance = {
+        id: componentId,
+        name: componentName,
+        data: factory(componentData as object),
+      };
+
+      this.components.set(componentId, componentInstance);
+      entityComponentIds.add(componentId);
+      return componentId;
     }
+
+    throw new Error(`Failed to add component ${componentName} to entity ${entityId}`);
   }
 
   /**
@@ -174,63 +239,191 @@ export class EntityEngine {
    * @param componentData - The component data
    * @throws Error if entity doesn't exist or component type isn't registered
    */
-  addComponent<T>(entityId: string, componentName: string, componentData: T): void {
-    this.addComponentSetup(entityId, componentName, componentData);
+  addComponent<T>(
+    entityId: string,
+    componentName: string,
+    componentData: NonNullable<T>,
+  ): ComponentAddResult {
+    const componentId = this.addComponentSetup(entityId, componentName, componentData);
+    const component = this.components.get(componentId);
+
+    // Emit component added event for backward compatibility
     this.eventEngine.emit("component:added", entityId, componentName, componentData);
+
+    if (component && typeof component.data === "object" && component.data) {
+      if ("_drawable" in component.data) {
+        this.eventEngine.emit("add:drawable", entityId, componentId, component.data);
+      }
+      if ("_body" in component.data) {
+        this.eventEngine.emit("physics:add:body", entityId, componentId, component.data);
+      }
+    }
+
+    return { componentId };
   }
 
   /**
-   * Gets a component from an entity
+   * Gets all components of a specific type from an entity
    * @template T - The expected type of the component data
    * @param entityId - The ID of the entity
    * @param componentName - The name of the component type
+   * @returns Array of component data for the specified type
+   */
+  getComponents<T>(entityId: string, componentName: string): T[] {
+    const entityComponentIds = this.entities.get(entityId);
+    if (!entityComponentIds) {
+      return [];
+    }
+
+    const components: T[] = [];
+    for (const componentId of entityComponentIds) {
+      const component = this.components.get(componentId);
+      if (component && component.name === componentName) {
+        components.push(component.data as T);
+      }
+    }
+    return components;
+  }
+
+  /**
+   * Gets a specific component by its ID
+   * @template T - The expected type of the component data
+   * @param componentId - The ID of the component
    * @returns The component data or undefined if not found
    */
-  getComponent<T>(entityId: string, componentName: string): T | undefined {
-    const componentMap = this.components.get(componentName);
-    if (!componentMap) {
-      return undefined;
-    }
-    return componentMap.get(entityId) as T;
+  getComponentById<T>(componentId: string): T | undefined {
+    const component = this.components.get(componentId);
+    return component ? (component.data as T) : undefined;
   }
 
   /**
-   * Checks if an entity has a specific component
+   * Gets all components of a specific type from an entity
+   * @template T - The expected type of the component data
    * @param entityId - The ID of the entity
    * @param componentName - The name of the component type
-   * @returns True if the entity has the component, false otherwise
+   * @returns Array of component data for the specified type
+   */
+  getComponent<T>(entityId: string, componentName: string): T[] {
+    return this.getComponents<T>(entityId, componentName);
+  }
+
+  /**
+   * Checks if an entity has a specific component type
+   * @param entityId - The ID of the entity
+   * @param componentName - The name of the component type
+   * @returns True if the entity has at least one component of the specified type
    */
   hasComponent(entityId: string, componentName: string): boolean {
-    const componentMap = this.components.get(componentName);
-    if (!componentMap) {
-      return false;
-    }
-    return componentMap.has(entityId);
+    return this.getComponents(entityId, componentName).length > 0;
   }
 
   /**
-   * Removes a component from an entity
+   * Gets all component IDs of a specific type for an entity
    * @param entityId - The ID of the entity
    * @param componentName - The name of the component type
+   * @returns Array of component IDs for the specified type
    */
-  removeComponent(entityId: string, componentName: string): void {
-    const componentMap = this.components.get(componentName);
-    let componentData: unknown;
-
-    if (componentMap) {
-      componentData = componentMap.get(entityId);
-      componentMap.delete(entityId);
+  getComponentIds(entityId: string, componentName: string): string[] {
+    const entityComponentIds = this.entities.get(entityId);
+    if (!entityComponentIds) {
+      return [];
     }
 
-    const entityComponents = this.entities.get(entityId);
-    if (entityComponents) {
-      entityComponents.delete(componentName);
+    const componentIds: string[] = [];
+    for (const componentId of entityComponentIds) {
+      const component = this.components.get(componentId);
+      if (component && component.name === componentName) {
+        componentIds.push(componentId);
+      }
+    }
+    return componentIds;
+  }
+
+  /**
+   * Removes a specific component by its ID
+   * @param componentId - The ID of the component to remove
+   * @returns True if the component was removed, false if not found
+   */
+  removeComponentById(componentId: string): boolean {
+    const component = this.components.get(componentId);
+    if (!component) {
+      return false;
     }
 
-    // Emit component removed event
-    if (componentData !== undefined) {
-      this.eventEngine.emit("component:removed", entityId, componentName, componentData);
+    // Find the entity that owns this component
+    let ownerEntityId: string | undefined;
+    for (const [entityId, componentIds] of this.entities.entries()) {
+      if (componentIds.has(componentId)) {
+        ownerEntityId = entityId;
+        break;
+      }
     }
+
+    if (!ownerEntityId) {
+      return false;
+    }
+
+    // Remove component from entity's component set
+    const entityComponentIds = this.entities.get(ownerEntityId);
+    if (entityComponentIds) {
+      entityComponentIds.delete(componentId);
+    }
+
+    // Remove component from components map
+    this.components.delete(componentId);
+
+    // Emit events for drawable and physics components
+    if (typeof component.data === "object" && component.data) {
+      if ("_drawable" in component.data) {
+        this.eventEngine.emit("remove:drawable", ownerEntityId, componentId, component.data);
+      }
+      if ("_body" in component.data) {
+        this.eventEngine.emit("physics:remove:body", ownerEntityId, componentId, component.data);
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Removes the first component of a specific type from an entity
+   * @param entityId - The ID of the entity
+   * @param componentName - The name of the component type
+   * @returns True if a component was removed, false if not found
+   */
+  removeComponent(entityId: string, componentName: string): boolean {
+    const componentIds = this.getComponentIds(entityId, componentName);
+    if (componentIds.length > 0) {
+      const component = this.components.get(componentIds[0]);
+      const removed = this.removeComponentById(componentIds[0]);
+
+      if (removed && component) {
+        // Emit component removed event
+        this.eventEngine.emit("component:removed", entityId, componentName, component.data);
+      }
+
+      return removed;
+    }
+    return false;
+  }
+
+  /**
+   * Removes all components of a specific type from an entity
+   * @param entityId - The ID of the entity
+   * @param componentName - The name of the component type
+   * @returns Number of components removed
+   */
+  removeAllComponents(entityId: string, componentName: string): number {
+    const componentIds = this.getComponentIds(entityId, componentName);
+    let removedCount = 0;
+
+    for (const componentId of componentIds) {
+      if (this.removeComponentById(componentId)) {
+        removedCount++;
+      }
+    }
+
+    return removedCount;
   }
 
   // ========================================
@@ -248,15 +441,15 @@ export class EntityEngine {
   ): Array<{ entityId: string; components: T }> {
     const result: Array<{ entityId: string; components: T }> = [];
 
-    for (const [entityId, entityComponents] of this.entities) {
+    for (const [entityId] of this.entities) {
       const hasAllComponents = componentNames.every((componentName) =>
-        entityComponents.has(componentName),
+        this.hasComponent(entityId, componentName),
       );
 
       if (hasAllComponents) {
-        const components: Record<string, unknown> = {};
+        const components: Record<string, unknown[]> = {};
         for (const componentName of componentNames) {
-          components[componentName] = this.getComponent(entityId, componentName);
+          components[componentName] = this.getComponents(entityId, componentName);
         }
         result.push({ entityId, components: components as T });
       }
@@ -276,16 +469,16 @@ export class EntityEngine {
   ): Array<{ entityId: string; components: T }> {
     const result: Array<{ entityId: string; components: T }> = [];
 
-    for (const [entityId, entityComponents] of this.entities) {
+    for (const [entityId] of this.entities) {
       const hasAnyComponent = componentNames.some((componentName) =>
-        entityComponents.has(componentName),
+        this.hasComponent(entityId, componentName),
       );
 
       if (hasAnyComponent) {
-        const components: Record<string, unknown> = {};
+        const components: Record<string, unknown[]> = {};
         for (const componentName of componentNames) {
-          if (entityComponents.has(componentName)) {
-            components[componentName] = this.getComponent(entityId, componentName);
+          if (this.hasComponent(entityId, componentName)) {
+            components[componentName] = this.getComponents(entityId, componentName);
           }
         }
         result.push({ entityId, components: components as T });

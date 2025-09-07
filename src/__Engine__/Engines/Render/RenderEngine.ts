@@ -60,26 +60,28 @@ export class RenderEngine {
 
   async setupScene(): Promise<void> {
     const drawable_entities =
-      this.engine.EntityEngine.query<Record<string, Drawable<Container, unknown>>>(
+      this.engine.EntityEngine.query<Record<string, Drawable<Container, unknown>[]>>(
         DRAWABLE_COMPONENTS,
       );
     for (const { entityId, components } of drawable_entities) {
-      for (const [name, currentComponent] of Object.entries(components)) {
-        await this.setupByResouce(name, currentComponent);
-        this._instance.stage.addChild(currentComponent._drawable);
-        const entityRef = this.drawablesMap.get(entityId);
-        if (!entityRef) {
-          const componentsMap = new Map();
-          componentsMap.set(name, [currentComponent]);
-          this.drawablesMap.set(entityId, componentsMap);
-          continue;
+      for (const [name, entityComponentList] of Object.entries(components)) {
+        for (const currentDrawable of entityComponentList) {
+          await this.setupByResouce(name, currentDrawable);
+          this._instance.stage.addChild(currentDrawable._drawable);
+          const entityRef = this.drawablesMap.get(entityId);
+          if (!entityRef) {
+            const componentsMap = new Map();
+            componentsMap.set(name, [currentDrawable]);
+            this.drawablesMap.set(entityId, componentsMap);
+            continue;
+          }
+          const componentsRef = entityRef.get(name);
+          if (!componentsRef) {
+            entityRef.set(name, [currentDrawable]);
+            continue;
+          }
+          entityRef.set(name, [...componentsRef, currentDrawable]);
         }
-        const componentsRef = entityRef.get(name);
-        if (!componentsRef) {
-          entityRef.set(name, [currentComponent]);
-          continue;
-        }
-        entityRef.set(name, [...componentsRef, currentComponent]);
       }
     }
   }

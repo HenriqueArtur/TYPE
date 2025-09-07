@@ -176,7 +176,7 @@ describe("RenderEngine", () => {
         {
           entityId: "entity-1",
           components: {
-            SpriteComponent: mockSpriteComponent,
+            SpriteComponent: [mockSpriteComponent],
           },
         },
       ]);
@@ -212,7 +212,7 @@ describe("RenderEngine", () => {
         {
           entityId: "entity-1",
           components: {
-            SpriteComponent: SPRITE_COMPONENT.create({ texture_path: "test.png" }),
+            SpriteComponent: [SPRITE_COMPONENT.create({ texture_path: "test.png" })],
           },
         },
       ]);
@@ -226,8 +226,8 @@ describe("RenderEngine", () => {
       const sprite2 = SPRITE_COMPONENT.create({ texture_path: "sprite2.png" });
 
       vi.spyOn(typeEngine.EntityEngine, "query").mockReturnValue([
-        { entityId: "entity-1", components: { SpriteComponent: sprite1 } },
-        { entityId: "entity-2", components: { SpriteComponent: sprite2 } },
+        { entityId: "entity-1", components: { SpriteComponent: [sprite1] } },
+        { entityId: "entity-2", components: { SpriteComponent: [sprite2] } },
       ]);
 
       // Mock setup to avoid actual PIXI initialization
@@ -403,8 +403,8 @@ describe("RenderEngine", () => {
       const sprite2 = SPRITE_COMPONENT.create({ texture_path: "sprite2.png" });
 
       vi.spyOn(typeEngine.EntityEngine, "query").mockReturnValue([
-        { entityId: "entity-1", components: { SpriteComponent: sprite1 } },
-        { entityId: "entity-2", components: { SpriteComponent: sprite2 } },
+        { entityId: "entity-1", components: { SpriteComponent: [sprite1] } },
+        { entityId: "entity-2", components: { SpriteComponent: [sprite2] } },
       ]);
 
       const mockContainer = {
@@ -518,7 +518,7 @@ describe("RenderEngine", () => {
         {
           entityId: "integration-entity",
           components: {
-            SpriteComponent: spriteComponent,
+            SpriteComponent: [spriteComponent],
           },
         },
       ]);

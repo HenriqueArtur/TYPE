@@ -84,8 +84,8 @@ describe("EntityEngine", () => {
       expect(entity).toBeDefined();
       expect(entity?.entityId).toBe(entityId);
       expect(entity?.components).toEqual({
-        TestComponent1: { value: 42 },
-        TestComponent2: { name: "test" },
+        TestComponent1: [{ value: 42 }],
+        TestComponent2: [{ name: "test" }],
       });
     });
 
@@ -137,7 +137,7 @@ describe("EntityEngine", () => {
       entityEngine.addComponent(entityId, "TestComponent", componentData);
 
       expect(entityEngine.hasComponent(entityId, "TestComponent")).toBe(true);
-      expect(entityEngine.getComponent(entityId, "TestComponent")).toEqual(componentData);
+      expect(entityEngine.getComponent(entityId, "TestComponent")).toEqual([componentData]);
       expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
         "component:added",
         entityId,
@@ -165,7 +165,7 @@ describe("EntityEngine", () => {
       entityEngine.removeComponent(entityId, "TestComponent");
 
       expect(entityEngine.hasComponent(entityId, "TestComponent")).toBe(false);
-      expect(entityEngine.getComponent(entityId, "TestComponent")).toBeUndefined();
+      expect(entityEngine.getComponent(entityId, "TestComponent")).toEqual([]);
       expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
         "component:removed",
         entityId,
@@ -174,8 +174,8 @@ describe("EntityEngine", () => {
       );
     });
 
-    it("should return undefined for non-existent component", () => {
-      expect(entityEngine.getComponent(entityId, "NonExistent")).toBeUndefined();
+    it("should return empty array for non-existent component", () => {
+      expect(entityEngine.getComponent(entityId, "NonExistent")).toEqual([]);
       expect(entityEngine.hasComponent(entityId, "NonExistent")).toBe(false);
     });
   });
@@ -218,8 +218,8 @@ describe("EntityEngine", () => {
 
       // Check that components are properly included
       const entity1Result = results.find((r) => r.entityId === entity1);
-      expect(entity1Result?.components.Position).toEqual({ x: 10, y: 20 });
-      expect(entity1Result?.components.Velocity).toEqual({ dx: 1, dy: 2 });
+      expect(entity1Result?.components.Position).toEqual([{ x: 10, y: 20 }]);
+      expect(entity1Result?.components.Velocity).toEqual([{ dx: 1, dy: 2 }]);
     });
 
     it("should query entities with any specified components", () => {
@@ -232,7 +232,7 @@ describe("EntityEngine", () => {
 
       // Check that only matching components are included
       const entity2Result = results.find((r) => r.entityId === entity2);
-      expect(entity2Result?.components.Sprite).toEqual({ texture: "player.png" });
+      expect(entity2Result?.components.Sprite).toEqual([{ texture: "player.png" }]);
       expect(entity2Result?.components.Velocity).toBeUndefined();
     });
 
@@ -241,6 +241,272 @@ describe("EntityEngine", () => {
       const results = entityEngine.query(["NonExistent"]);
 
       expect(results).toHaveLength(0);
+    });
+  });
+
+  describe("Physics and Drawable Event Management", () => {
+    let entityId: string;
+
+    beforeEach(() => {
+      entityId = entityEngine.create();
+
+      // Register components with physics and drawable markers
+      entityEngine.registerComponent("PhysicsBody", (data) => ({ ...data, _body: true }));
+      entityEngine.registerComponent("DrawableSprite", (data) => ({ ...data, _drawable: true }));
+      entityEngine.registerComponent("RegularComponent", (data) => data);
+
+      // Reset event spy to ignore setup events
+      vi.clearAllMocks();
+    });
+
+    describe("addComponent events", () => {
+      it("should emit 'physics:add:body' event when adding physics component", () => {
+        const bodyData = { x: 10, y: 20, mass: 5 };
+
+        const result = entityEngine.addComponent(entityId, "PhysicsBody", bodyData);
+
+        // Should emit component:added event
+        expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
+          "component:added",
+          entityId,
+          "PhysicsBody",
+          bodyData,
+        );
+
+        // Should emit physics:add:body event
+        expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
+          "physics:add:body",
+          entityId,
+          result.componentId,
+          { ...bodyData, _body: true },
+        );
+      });
+
+      it("should emit 'add:drawable' event when adding drawable component", () => {
+        const drawableData = { texture: "sprite.png", width: 32, height: 32 };
+
+        const result = entityEngine.addComponent(entityId, "DrawableSprite", drawableData);
+
+        // Should emit component:added event
+        expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
+          "component:added",
+          entityId,
+          "DrawableSprite",
+          drawableData,
+        );
+
+        // Should emit add:drawable event
+        expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
+          "add:drawable",
+          entityId,
+          result.componentId,
+          { ...drawableData, _drawable: true },
+        );
+      });
+
+      it("should not emit physics/drawable events for regular components", () => {
+        const regularData = { value: 42 };
+
+        entityEngine.addComponent(entityId, "RegularComponent", regularData);
+
+        // Should only emit component:added event
+        expect(typeEngine.EventEngine.emit).toHaveBeenCalledTimes(1);
+        expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
+          "component:added",
+          entityId,
+          "RegularComponent",
+          regularData,
+        );
+      });
+    });
+
+    describe("removeComponent events", () => {
+      it("should emit 'physics:remove:body' event when removing physics component", () => {
+        const bodyData = { x: 10, y: 20, mass: 5 };
+        const result = entityEngine.addComponent(entityId, "PhysicsBody", bodyData);
+
+        // Clear previous events
+        vi.clearAllMocks();
+
+        entityEngine.removeComponent(entityId, "PhysicsBody");
+
+        // Should emit component:removed event
+        expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
+          "component:removed",
+          entityId,
+          "PhysicsBody",
+          { ...bodyData, _body: true },
+        );
+
+        // Should emit physics:remove:body event
+        expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
+          "physics:remove:body",
+          entityId,
+          result.componentId,
+          { ...bodyData, _body: true },
+        );
+      });
+
+      it("should emit 'remove:drawable' event when removing drawable component", () => {
+        const drawableData = { texture: "sprite.png", width: 32, height: 32 };
+        const result = entityEngine.addComponent(entityId, "DrawableSprite", drawableData);
+
+        // Clear previous events
+        vi.clearAllMocks();
+
+        entityEngine.removeComponent(entityId, "DrawableSprite");
+
+        // Should emit component:removed event
+        expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
+          "component:removed",
+          entityId,
+          "DrawableSprite",
+          { ...drawableData, _drawable: true },
+        );
+
+        // Should emit remove:drawable event
+        expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
+          "remove:drawable",
+          entityId,
+          result.componentId,
+          { ...drawableData, _drawable: true },
+        );
+      });
+
+      it("should not emit physics/drawable events for regular components", () => {
+        const regularData = { value: 42 };
+        entityEngine.addComponent(entityId, "RegularComponent", regularData);
+
+        // Clear previous events
+        vi.clearAllMocks();
+
+        entityEngine.removeComponent(entityId, "RegularComponent");
+
+        // Should only emit component:removed event
+        expect(typeEngine.EventEngine.emit).toHaveBeenCalledTimes(1);
+        expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
+          "component:removed",
+          entityId,
+          "RegularComponent",
+          regularData,
+        );
+      });
+    });
+
+    describe("addComponentSetup (setup phase) events", () => {
+      it("should NOT emit physics/drawable events during setup phase", () => {
+        const bodyData = { x: 10, y: 20, mass: 5 };
+        const drawableData = { texture: "sprite.png", width: 32, height: 32 };
+
+        // Use addComponentSetup directly (simulates setup phase)
+        entityEngine.addComponentSetup(entityId, "PhysicsBody", bodyData);
+        entityEngine.addComponentSetup(entityId, "DrawableSprite", drawableData);
+
+        // Should not emit any physics or drawable events during setup
+        expect(typeEngine.EventEngine.emit).not.toHaveBeenCalledWith(
+          expect.stringMatching(/^physics:/),
+          expect.anything(),
+          expect.anything(),
+          expect.anything(),
+        );
+        expect(typeEngine.EventEngine.emit).not.toHaveBeenCalledWith(
+          expect.stringMatching(/^(add|remove):drawable$/),
+          expect.anything(),
+          expect.anything(),
+          expect.anything(),
+        );
+      });
+    });
+
+    describe("clear phase events", () => {
+      it("should NOT emit physics/drawable events during clear phase", () => {
+        const bodyData = { x: 10, y: 20, mass: 5 };
+        const drawableData = { texture: "sprite.png", width: 32, height: 32 };
+
+        // Add components normally (which would emit events)
+        entityEngine.addComponent(entityId, "PhysicsBody", bodyData);
+        entityEngine.addComponent(entityId, "DrawableSprite", drawableData);
+
+        // Clear previous events
+        vi.clearAllMocks();
+
+        // Use removeOnClear directly (simulates clear phase)
+        entityEngine.removeOnClear(entityId);
+
+        // Should not emit any physics or drawable events during clear
+        expect(typeEngine.EventEngine.emit).not.toHaveBeenCalledWith(
+          expect.stringMatching(/^physics:/),
+          expect.anything(),
+          expect.anything(),
+          expect.anything(),
+        );
+        expect(typeEngine.EventEngine.emit).not.toHaveBeenCalledWith(
+          expect.stringMatching(/^(add|remove):drawable$/),
+          expect.anything(),
+          expect.anything(),
+          expect.anything(),
+        );
+      });
+
+      it("should NOT emit physics/drawable events during entity remove", () => {
+        const bodyData = { x: 10, y: 20, mass: 5 };
+        const drawableData = { texture: "sprite.png", width: 32, height: 32 };
+
+        // Add components normally
+        entityEngine.addComponent(entityId, "PhysicsBody", bodyData);
+        entityEngine.addComponent(entityId, "DrawableSprite", drawableData);
+
+        // Clear previous events
+        vi.clearAllMocks();
+
+        // Remove entire entity
+        entityEngine.remove(entityId);
+
+        // Should emit entity events but NOT physics/drawable events
+        expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
+          "entity:removing",
+          entityId,
+          expect.arrayContaining(["PhysicsBody", "DrawableSprite"]),
+        );
+        expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("entity:removed", entityId);
+
+        // Should NOT emit physics or drawable events
+        expect(typeEngine.EventEngine.emit).not.toHaveBeenCalledWith(
+          expect.stringMatching(/^physics:/),
+          expect.anything(),
+          expect.anything(),
+          expect.anything(),
+        );
+        expect(typeEngine.EventEngine.emit).not.toHaveBeenCalledWith(
+          expect.stringMatching(/^(add|remove):drawable$/),
+          expect.anything(),
+          expect.anything(),
+          expect.anything(),
+        );
+      });
+    });
+
+    describe("removeComponentById events", () => {
+      it("should emit physics/drawable events when removing individual components by ID", () => {
+        const bodyData = { x: 10, y: 20, mass: 5 };
+        const result = entityEngine.addComponent(entityId, "PhysicsBody", bodyData);
+
+        // Clear previous events
+        vi.clearAllMocks();
+
+        // Remove component by ID
+        const removed = entityEngine.removeComponentById(result.componentId);
+
+        expect(removed).toBe(true);
+
+        // Should emit physics:remove:body event
+        expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
+          "physics:remove:body",
+          entityId,
+          result.componentId,
+          { ...bodyData, _body: true },
+        );
+      });
     });
   });
 });
