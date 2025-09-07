@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TypeEngine } from "../../TypeEngine";
+import { setupBasicTypeEngineMocks } from "../../TyprEngine.mock";
 import type { EntityEngine } from "./EntityEngine";
 
 describe("EntityEngine", () => {
@@ -17,12 +18,9 @@ describe("EntityEngine", () => {
       Physics: {
         gravity: { x: 0, y: 980 },
       },
-      systemsList: [],
     });
 
-    vi.spyOn(typeEngine.RenderEngine, "setup").mockImplementation(async () => {});
-    vi.spyOn(typeEngine.SceneEngine, "setup").mockImplementation(async () => {});
-    vi.spyOn(typeEngine.SceneEngine, "transition").mockImplementation(async () => {});
+    setupBasicTypeEngineMocks(typeEngine);
 
     await typeEngine.setup();
     entityEngine = typeEngine.EntityEngine;

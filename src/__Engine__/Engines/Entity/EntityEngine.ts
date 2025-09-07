@@ -1,6 +1,7 @@
 import { generateId } from "../../Utils/id";
 import type { EventEngine } from "../Event";
 import type { EntityFetchResult } from "./EntityFetchResult";
+import type { GameObjectSerialized } from "./GameObjectSerialized";
 
 export interface EntityEngineOptions {
   EventEngine: EventEngine;
@@ -29,6 +30,15 @@ export class EntityEngine {
   // ========================================
   // ENTITY MANAGEMENT
   // ========================================
+
+  setupScene(entities: GameObjectSerialized[]) {
+    for (const { components } of entities) {
+      const entity = this.createEntity();
+      for (const currentComponent of components) {
+        this.addComponentSetup(entity, currentComponent.name, currentComponent.data);
+      }
+    }
+  }
 
   /**
    * Creates a new entity with optional custom ID
@@ -74,31 +84,32 @@ export class EntityEngine {
    * @param entityId - The ID of the entity to remove
    */
   removeEntity(entityId: string): void {
+    this.removeEntityOnClear(entityId);
+    this.eventEngine.emit("entity:removed", entityId);
+  }
+
+  removeEntityOnClear(entityId: string): void {
     if (!this.entities.has(entityId)) {
       return;
     }
-
     const entityComponents = this.entities.get(entityId);
     if (!entityComponents) {
       return;
     }
-
-    // Emit entity removing event (before removal)
     this.eventEngine.emit("entity:removing", entityId, Array.from(entityComponents));
-
-    // Remove entity from all component maps
     for (const componentName of entityComponents) {
       const componentMap = this.components.get(componentName);
       if (componentMap) {
         componentMap.delete(entityId);
       }
     }
-
-    // Remove entity from entities map
     this.entities.delete(entityId);
+  }
 
-    // Emit entity removed event (after removal)
-    this.eventEngine.emit("entity:removed", entityId);
+  clear() {
+    for (const entityId of this.entities.keys()) {
+      this.removeEntityOnClear(entityId);
+    }
   }
 
   // ========================================
@@ -137,7 +148,7 @@ export class EntityEngine {
    * @param componentData - The component data
    * @throws Error if entity doesn't exist or component type isn't registered
    */
-  addComponent<T>(entityId: string, componentName: string, componentData: T): void {
+  addComponentSetup<T>(entityId: string, componentName: string, componentData: T): void {
     if (!this.entities.has(entityId)) {
       throw new Error(`Entity with ID ${entityId} does not exist`);
     }
@@ -153,10 +164,20 @@ export class EntityEngine {
       const factory = this.componentFactories.get(componentName) || (() => {});
       componentMap.set(entityId, factory(componentData as object));
       entityComponents.add(componentName);
-
-      // Emit component added event
-      this.eventEngine.emit("component:added", entityId, componentName, componentData);
     }
+  }
+
+  /**
+   * Adds a component to an entity
+   * @template T - The type of the component data
+   * @param entityId - The ID of the entity
+   * @param componentName - The name of the component type
+   * @param componentData - The component data
+   * @throws Error if entity doesn't exist or component type isn't registered
+   */
+  addComponent<T>(entityId: string, componentName: string, componentData: T): void {
+    this.addComponentSetup(entityId, componentName, componentData);
+    this.eventEngine.emit("component:added", entityId, componentName, componentData);
   }
 
   /**

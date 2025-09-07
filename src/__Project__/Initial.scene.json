@@ -1,13 +1,13 @@
 {
   "name": "Initial",
-  "path": "../renderer/Initial.scene.json",
-  "systems": {},
+  "path": "Initial.scene.json",
+  "systems": [],
   "gameObjects": [
     {
       "name": "Bunny",
       "blueprint": {
         "name": "Bunny",
-        "path": "../renderer/Bunny.blueprint.json"
+        "path": "Bunny.blueprint.json"
       },
       "components": [
         {

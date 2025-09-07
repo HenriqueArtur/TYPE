@@ -1,14 +1,19 @@
-import { EntityEngine, EventEngine, PhysicsEngine, RenderEngine, TimeEngine } from "./Engines";
+import {
+  EntityEngine,
+  EventEngine,
+  PhysicsEngine,
+  RenderEngine,
+  SystemEngine,
+  TimeEngine,
+} from "./Engines";
 import type { PhysicsEngineOptions } from "./Engines/Physics/PhysicsEngine";
 import type { RenderEngineOptions } from "./Engines/Render/RenderEngine";
 import { SceneEngine } from "./Engines/Scene/SceneEngine";
-import type { System } from "./Systems/System";
 
 export interface TypeEngineOptions {
   projectPath: string;
   Render: Omit<RenderEngineOptions, "engine" | "EventEngine">;
   Physics?: Omit<PhysicsEngineOptions, "engine" | "EventEngine">;
-  systemsList: System<TypeEngine>[];
 }
 
 /**
@@ -18,18 +23,21 @@ export interface TypeEngineOptions {
  * Uses dependency injection for better testability and modularity.
  */
 export class TypeEngine {
+  // ** DATA ** //
   readonly projectPath: string;
+  private isRunning = false;
+  private updateAddedToTimeEngine = false;
+
+  // ** ENGINES ** //
   readonly EventEngine: EventEngine;
   readonly EntityEngine: EntityEngine;
   readonly PhysicsEngine: PhysicsEngine;
   readonly SceneEngine: SceneEngine;
+  readonly SystemEngine: SystemEngine;
   readonly TimeEngine: TimeEngine;
   readonly RenderEngine: RenderEngine;
-  private systems: System<TypeEngine>[];
-  private isRunning = false;
-  private updateAddedToTimeEngine = false;
 
-  constructor({ Render, Physics, systemsList, projectPath }: TypeEngineOptions) {
+  constructor({ Render, Physics, projectPath }: TypeEngineOptions) {
     this.projectPath = projectPath;
     this.EventEngine = new EventEngine();
     this.EntityEngine = new EntityEngine({ EventEngine: this.EventEngine });
@@ -39,65 +47,40 @@ export class TypeEngine {
       ...Physics,
     });
     this.SceneEngine = new SceneEngine({ engine: this });
+    this.SystemEngine = new SystemEngine({
+      projectPath,
+      EventEngine: this.EventEngine,
+      engine: this,
+    });
     this.RenderEngine = new RenderEngine({
       engine: this,
       EventEngine: this.EventEngine,
       ...Render,
     });
     this.TimeEngine = new TimeEngine();
-    this.systems = systemsList;
   }
 
   async setup() {
     await this.PhysicsEngine.setup();
     await this.RenderEngine.setup();
-    await this.SceneEngine.setup();
-    await this.SceneEngine.transition("Initial");
-    await this.setupSystems();
+    await this.SystemEngine.setup();
+    const { systemsEnabled, entities } = await this.SceneEngine.setup();
+    this.SystemEngine.setupScene(systemsEnabled);
+    this.EntityEngine.setupScene(entities);
+    this.RenderEngine.setupScene();
+    this.PhysicsEngine.setupScene();
   }
 
-  // ========================================
-  // SYSTEM MANAGEMENT
-  // ========================================
-
-  /**
-   * Adds a system to the engine and sorts systems by priority
-   * @param system - The system to add
-   */
-  addSystem(system: System<TypeEngine>): void {
-    this.systems.push(system);
-    this.systems.sort((a, b) => a.priority - b.priority);
-  }
-
-  async setupSystems() {
-    for (const system of this.systems) {
-      await system.init(this);
-    }
-  }
-
-  /**
-   * Removes a system from the engine
-   * @param system - The system to remove
-   */
-  removeSystem(system: System<TypeEngine>): void {
-    const index = this.systems.indexOf(system);
-    if (index > -1) {
-      if (system.destroy) {
-        system.destroy(this);
-      }
-      this.systems.splice(index, 1);
-    }
-  }
-
-  /**
-   * Toggles the enabled state of a system
-   * @param system - The system to toggle
-   */
-  systemToggle(system: System<TypeEngine>): void {
-    const foundSystem = this.systems.find((s) => s === system);
-    if (foundSystem) {
-      foundSystem.enabled = !foundSystem.enabled;
-    }
+  async transitionScene(sceneName: string) {
+    this.PhysicsEngine.clear();
+    this.RenderEngine.clear();
+    this.EntityEngine.clear();
+    this.SystemEngine.clear();
+    const { systemsEnabled, entities } = await this.SceneEngine.transition(sceneName);
+    this.SystemEngine.setupScene(systemsEnabled);
+    this.EntityEngine.setupScene(entities);
+    this.RenderEngine.setupScene();
+    this.PhysicsEngine.setupScene();
   }
 
   // ========================================
@@ -136,13 +119,7 @@ export class TypeEngine {
     }
     this.EventEngine.emit("engine:update:start", deltaTime);
     this.EventEngine.processEvents();
-    for (const system of this.systems) {
-      if (system.enabled) {
-        this.EventEngine.emit("system:update:start", system, deltaTime);
-        system.update(this, deltaTime);
-        this.EventEngine.emit("system:update:end", system, deltaTime);
-      }
-    }
+    this.SystemEngine.update(deltaTime);
     this.EventEngine.processEvents();
     this.EventEngine.emit("engine:update:end", deltaTime);
     this.EventEngine.processEvents();
