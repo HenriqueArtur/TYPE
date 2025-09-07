@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SpriteComponent } from "../../Component/Drawable/SpriteComponent";
 import { TypeEngine } from "../../TypeEngine";
+import { setupBasicTypeEngineMocks, TypeEngineMock } from "../../TyprEngine.mock";
 import { RenderEngine } from "./RenderEngine";
 
 // Helper for accessing private static properties in tests
@@ -20,8 +21,13 @@ const getRenderEnginePrivate = (engine: RenderEngine) =>
 const mockCanvas = { tagName: "CANVAS" };
 const mockGameDiv = {
   appendChild: vi.fn(),
-  children: [mockCanvas],
-  length: 1,
+  children: {
+    0: mockCanvas,
+    length: 1,
+    [Symbol.iterator]: function* () {
+      yield mockCanvas;
+    },
+  },
 };
 
 global.document = {
@@ -30,6 +36,13 @@ global.document = {
     return null;
   }),
 } as unknown as Document;
+
+// Mock Electron API
+global.window = {
+  electronAPI: {
+    absolutePath: vi.fn().mockImplementation(async (path: string) => `file://${path}`),
+  },
+} as unknown as Window & typeof globalThis;
 
 // Mock PIXI Application
 vi.mock("pixi.js", () => ({
@@ -65,32 +78,8 @@ describe("RenderEngine", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-
-    typeEngine = new TypeEngine({
-      projectPath: "/test",
-      Render: {
-        width: 800,
-        height: 600,
-        html_tag_id: "game",
-      },
-      Physics: {
-        gravity: { x: 0, y: 0.8 },
-      },
-      systemsList: [],
-    });
-
-    // Mock only the problematic methods to avoid PIXI.js initialization issues
-    vi.spyOn(typeEngine.RenderEngine, "setup").mockImplementation(async () => {});
-    vi.spyOn(typeEngine.SceneEngine, "setup").mockImplementation(async () => {});
-    vi.spyOn(typeEngine.SceneEngine, "transition").mockImplementation(async () => {});
-    vi.spyOn(typeEngine.PhysicsEngine, "setupScene").mockImplementation(() => {});
-
-    await typeEngine.setup();
+    typeEngine = await TypeEngineMock();
     renderEngine = typeEngine.RenderEngine;
-
-    vi.spyOn(typeEngine.EventEngine, "emit");
-    vi.spyOn(typeEngine.EventEngine, "on");
-    vi.spyOn(typeEngine.EventEngine, "off");
   });
 
   describe("constructor", () => {
@@ -106,13 +95,9 @@ describe("RenderEngine", () => {
           height: 768,
           html_tag_id: "custom",
         },
-        systemsList: [],
       });
 
-      vi.spyOn(customTypeEngine.RenderEngine, "setup").mockImplementation(async () => {});
-      vi.spyOn(customTypeEngine.SceneEngine, "setup").mockImplementation(async () => {});
-      vi.spyOn(customTypeEngine.SceneEngine, "transition").mockImplementation(async () => {});
-      vi.spyOn(customTypeEngine.PhysicsEngine, "setupScene").mockImplementation(() => {});
+      setupBasicTypeEngineMocks(customTypeEngine);
 
       await customTypeEngine.setup();
       expect(customTypeEngine.RenderEngine._instance).toBeDefined();
@@ -126,15 +111,16 @@ describe("RenderEngine", () => {
           height: 600,
           html_tag_id: "test-listeners-game",
         },
-        systemsList: [],
       });
 
-      vi.spyOn(testTypeEngine.RenderEngine, "setup").mockImplementation(async () => {
-        testTypeEngine.EventEngine.on("remove:drawable", () => {});
-      });
-      vi.spyOn(testTypeEngine.SceneEngine, "setup").mockImplementation(async () => {});
-      vi.spyOn(testTypeEngine.SceneEngine, "transition").mockImplementation(async () => {});
-      vi.spyOn(testTypeEngine.PhysicsEngine, "setupScene").mockImplementation(() => {});
+      setupBasicTypeEngineMocks(testTypeEngine);
+
+      // Mock PIXI initialization but let event listener setup work
+      vi.spyOn(testTypeEngine.RenderEngine._instance, "init").mockImplementation(async () => {});
+      vi.spyOn(document, "getElementById").mockReturnValue(null);
+
+      // Actually call the real setup method for RenderEngine to test event listeners
+      (testTypeEngine.RenderEngine.setup as ReturnType<typeof vi.fn>).mockRestore();
 
       await testTypeEngine.setup();
 
@@ -142,9 +128,30 @@ describe("RenderEngine", () => {
       expect(testTypeEngine.EventEngine.getListenerCount("remove:drawable")).toBe(1);
     });
 
-    it("should append canvas to DOM element", () => {
-      const gameDiv = document.getElementById("game");
-      expect(gameDiv?.children.length).toBeGreaterThan(0);
+    it("should append canvas to DOM element", async () => {
+      // Create a fresh render engine and call setup directly
+      const freshTypeEngine = new TypeEngine({
+        projectPath: "/test-dom",
+        Render: {
+          width: 800,
+          height: 600,
+          html_tag_id: "game",
+        },
+      });
+
+      // Mock PIXI initialization
+      vi.spyOn(freshTypeEngine.RenderEngine._instance, "init").mockImplementation(async () => {});
+
+      // Create a fresh spy after the fresh engine is created
+      const freshMockGameDiv = {
+        appendChild: vi.fn(),
+      } as unknown as HTMLElement;
+
+      vi.spyOn(document, "getElementById").mockReturnValue(freshMockGameDiv);
+
+      await freshTypeEngine.RenderEngine.setup();
+
+      expect(freshMockGameDiv.appendChild).toHaveBeenCalled();
     });
   });
 
@@ -190,13 +197,9 @@ describe("RenderEngine", () => {
           height: 600,
           html_tag_id: "test-stage-game",
         },
-        systemsList: [],
       });
 
-      vi.spyOn(testTypeEngine.RenderEngine, "setup").mockImplementation(async () => {});
-      vi.spyOn(testTypeEngine.SceneEngine, "setup").mockImplementation(async () => {});
-      vi.spyOn(testTypeEngine.SceneEngine, "transition").mockImplementation(async () => {});
-      vi.spyOn(testTypeEngine.PhysicsEngine, "setupScene").mockImplementation(() => {});
+      setupBasicTypeEngineMocks(testTypeEngine);
 
       await testTypeEngine.setup();
       await testTypeEngine.RenderEngine.setup();
@@ -256,16 +259,16 @@ describe("RenderEngine", () => {
           height: 600,
           html_tag_id: "test-cleanup-game",
         },
-        systemsList: [],
       });
 
-      vi.spyOn(testTypeEngine.SceneEngine, "setup").mockImplementation(async () => {});
-      vi.spyOn(testTypeEngine.SceneEngine, "transition").mockImplementation(async () => {});
-      vi.spyOn(testTypeEngine.PhysicsEngine, "setupScene").mockImplementation(() => {});
+      setupBasicTypeEngineMocks(testTypeEngine);
 
       // Mock PIXI parts but let event listener setup work
       vi.spyOn(testTypeEngine.RenderEngine._instance, "init").mockImplementation(async () => {});
       vi.spyOn(document, "getElementById").mockReturnValue(null);
+
+      // Actually call the real setup method for RenderEngine to test event listeners
+      (testTypeEngine.RenderEngine.setup as ReturnType<typeof vi.fn>).mockRestore();
 
       await testTypeEngine.setup();
       expect(testTypeEngine.EventEngine.hasListeners("remove:drawable")).toBe(true);

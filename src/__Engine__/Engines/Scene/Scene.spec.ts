@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { TypeEngine } from "../../TypeEngine";
 import { Scene } from "./Scene";
 import type { SceneSerialized } from "./SceneSerialized";
 
@@ -17,16 +16,6 @@ Object.defineProperty(global, "window", {
   },
   writable: true,
 });
-
-// Mock TypeEngine
-const createEntityMock = vi.fn();
-const mockEngine = {
-  addSystem: vi.fn(),
-  EntityEngine: {
-    createEntity: createEntityMock,
-    addComponent: vi.fn(),
-  },
-} as unknown as TypeEngine;
 
 describe("Scene", () => {
   beforeEach(() => {
@@ -48,9 +37,12 @@ describe("Scene", () => {
       const scene = await Scene.fromPath("/path/to/scenes/test-scene.scene.json");
 
       expect(scene.name).toBe("test-scene");
-      expect(scene.path).toBe("/path/to/scenes");
       expect(mockElectronAPI.pathParse).toHaveBeenCalledWith(
         "/path/to/scenes/test-scene.scene.json",
+      );
+      expect(mockElectronAPI.pathJoin).toHaveBeenCalledWith(
+        "/path/to/scenes",
+        "test-scene.scene.json",
       );
     });
 
@@ -67,39 +59,52 @@ describe("Scene", () => {
       const scene = await Scene.fromPath("/path/to/scenes/my-scene.json");
 
       expect(scene.name).toBe("my-scene");
-      expect(scene.path).toBe("/path/to/scenes");
+      expect(mockElectronAPI.pathJoin).toHaveBeenCalledWith(
+        "/path/to/scenes",
+        "my-scene.scene.json",
+      );
     });
   });
 
-  describe("filePath", () => {
-    it("should generate correct file path with .scene.json extension", async () => {
+  describe("systemsEnabled", () => {
+    it("should return empty array initially", async () => {
       mockElectronAPI.pathParse.mockResolvedValue({
-        name: "my-scene.scene",
-        dir: "/games/scenes",
+        name: "test.scene",
+        dir: "/test",
         ext: ".json",
-        base: "my-scene.scene.json",
+        base: "test.scene.json",
         root: "/",
       });
-      mockElectronAPI.pathJoin.mockResolvedValue("/games/scenes/my-scene.scene.json");
+      mockElectronAPI.pathJoin.mockResolvedValue("/test/test.scene.json");
 
-      const scene = await Scene.fromPath("/games/scenes/my-scene.scene.json");
+      const scene = await Scene.fromPath("/test/test.scene.json");
 
-      expect(scene.filePath).toBe("/games/scenes/my-scene.scene.json");
+      expect(scene.systemsEnabled).toEqual([]);
     });
 
-    it("should handle special characters in scene name", async () => {
+    it("should return systems after loading scene", async () => {
       mockElectronAPI.pathParse.mockResolvedValue({
-        name: "scene-with_special.chars.scene",
-        dir: "/path",
+        name: "test.scene",
+        dir: "/test",
         ext: ".json",
-        base: "scene-with_special.chars.scene.json",
+        base: "test.scene.json",
         root: "/",
       });
-      mockElectronAPI.pathJoin.mockResolvedValue("/path/scene-with_special.chars.scene.json");
+      mockElectronAPI.pathJoin.mockResolvedValue("/test/test.scene.json");
 
-      const scene = await Scene.fromPath("/path/scene-with_special.chars.scene.json");
+      const scene = await Scene.fromPath("/test/test.scene.json");
 
-      expect(scene.filePath).toBe("/path/scene-with_special.chars.scene.json");
+      const sceneData: SceneSerialized = {
+        name: "test",
+        path: "/test",
+        systems: ["PhysicsSystem", "RenderSystem"],
+        gameObjects: [],
+      };
+      mockElectronAPI.readJsonFile.mockResolvedValue(sceneData);
+
+      await scene.load();
+
+      expect(scene.systemsEnabled).toEqual(["PhysicsSystem", "RenderSystem"]);
     });
   });
 
@@ -119,13 +124,11 @@ describe("Scene", () => {
       scene = await Scene.fromPath("/test/path/test.scene.json");
     });
 
-    it("should load scene data and handle system import failures gracefully", async () => {
+    it("should load scene data and return systems and entities", async () => {
       const sceneData: SceneSerialized = {
         name: "test",
         path: "/test/path",
-        systems: {
-          RenderSystem: "/path/to/nonexistent-system",
-        },
+        systems: ["RenderSystem", "PhysicsSystem"],
         gameObjects: [
           {
             name: "Player",
@@ -144,33 +147,33 @@ describe("Scene", () => {
       };
 
       mockElectronAPI.readJsonFile.mockResolvedValue(sceneData);
-      createEntityMock.mockReturnValue("entity_1");
 
-      // Mock console.warn to suppress warnings in tests
-      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
-      await scene.load(mockEngine);
+      const result = await scene.load();
 
       expect(mockElectronAPI.readJsonFile).toHaveBeenCalledWith("/test/path/test.scene.json");
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        "Failed to load system RenderSystem from /path/to/nonexistent-system:",
-        expect.any(Error),
-      );
-      expect(mockEngine.addSystem).not.toHaveBeenCalled(); // System import failed
-      expect(createEntityMock).toHaveBeenCalled(); // But game objects still loaded
-      expect(mockEngine.EntityEngine.addComponent).toHaveBeenCalledWith("entity_1", "Transform", {
-        x: 0,
-        y: 0,
+      expect(result.systemsEnabled).toEqual(["RenderSystem", "PhysicsSystem"]);
+      expect(result.entities).toHaveLength(1);
+      expect(result.entities[0]).toEqual({
+        name: "Player",
+        blueprint: {
+          name: "PlayerBlueprint",
+          path: "/blueprints/player",
+        },
+        components: [
+          {
+            name: "Transform",
+            data: { x: 0, y: 0 },
+          },
+        ],
       });
-
-      consoleWarnSpy.mockRestore();
+      expect(scene.systemsEnabled).toEqual(["RenderSystem", "PhysicsSystem"]);
     });
 
     it("should load scene with no systems and only game objects", async () => {
       const sceneData: SceneSerialized = {
         name: "test",
         path: "/test/path",
-        systems: {},
+        systems: [],
         gameObjects: [
           {
             name: "SimpleEntity",
@@ -189,27 +192,31 @@ describe("Scene", () => {
       };
 
       mockElectronAPI.readJsonFile.mockResolvedValue(sceneData);
-      createEntityMock.mockReturnValue("simple_entity");
 
-      await scene.load(mockEngine);
+      const result = await scene.load();
 
-      expect(mockEngine.addSystem).not.toHaveBeenCalled();
-      expect(createEntityMock).toHaveBeenCalledTimes(1);
-      expect(mockEngine.EntityEngine.addComponent).toHaveBeenCalledWith(
-        "simple_entity",
-        "Position",
-        {
-          x: 5,
-          y: 10,
+      expect(result.systemsEnabled).toEqual([]);
+      expect(result.entities).toHaveLength(1);
+      expect(result.entities[0]).toEqual({
+        name: "SimpleEntity",
+        blueprint: {
+          name: "SimpleBlueprint",
+          path: "/blueprints/simple",
         },
-      );
+        components: [
+          {
+            name: "Position",
+            data: { x: 5, y: 10 },
+          },
+        ],
+      });
     });
 
     it("should handle nested GroupGameObjectSerialized structures", async () => {
       const sceneData: SceneSerialized = {
         name: "test",
         path: "/test/path",
-        systems: {},
+        systems: [],
         gameObjects: [
           {
             name: "EnemyGroup",
@@ -235,16 +242,19 @@ describe("Scene", () => {
       };
 
       mockElectronAPI.readJsonFile.mockResolvedValue(sceneData);
-      createEntityMock.mockReturnValueOnce("entity_1").mockReturnValueOnce("entity_2");
 
-      await scene.load(mockEngine);
+      const result = await scene.load();
 
-      expect(createEntityMock).toHaveBeenCalledTimes(2);
-      expect(mockEngine.EntityEngine.addComponent).toHaveBeenCalledWith("entity_1", "Health", {
-        hp: 100,
+      expect(result.entities).toHaveLength(2);
+      expect(result.entities[0]).toEqual({
+        name: "Enemy1",
+        blueprint: { name: "EnemyBlueprint", path: "/blueprints/enemy" },
+        components: [{ name: "Health", data: { hp: 100 } }],
       });
-      expect(mockEngine.EntityEngine.addComponent).toHaveBeenCalledWith("entity_2", "Health", {
-        hp: 50,
+      expect(result.entities[1]).toEqual({
+        name: "Enemy2",
+        blueprint: { name: "EnemyBlueprint", path: "/blueprints/enemy" },
+        components: [{ name: "Health", data: { hp: 50 } }],
       });
     });
 
@@ -252,48 +262,40 @@ describe("Scene", () => {
       const sceneData: SceneSerialized = {
         name: "test",
         path: "/test/path",
-        systems: {},
+        systems: [],
         gameObjects: [],
       };
 
       mockElectronAPI.readJsonFile.mockResolvedValue(sceneData);
 
-      await scene.load(mockEngine);
+      const result = await scene.load();
 
-      expect(mockEngine.addSystem).not.toHaveBeenCalled();
-      expect(createEntityMock).not.toHaveBeenCalled();
-      expect(mockEngine.EntityEngine.addComponent).not.toHaveBeenCalled();
+      expect(result.systemsEnabled).toEqual([]);
+      expect(result.entities).toEqual([]);
     });
 
-    it("should handle systems that fail to import", async () => {
+    it("should handle multiple systems", async () => {
       const sceneData: SceneSerialized = {
         name: "test",
         path: "/test/path",
-        systems: {
-          MissingSystem: "/path/to/missing-system",
-          AnotherMissingSystem: "/path/to/another-missing-system",
-        },
+        systems: ["SystemA", "SystemB"],
         gameObjects: [],
       };
 
       mockElectronAPI.readJsonFile.mockResolvedValue(sceneData);
 
-      // Mock console.warn to suppress warnings in tests
-      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const result = await scene.load();
 
-      await scene.load(mockEngine);
-
-      expect(mockEngine.addSystem).not.toHaveBeenCalled();
-      expect(consoleWarnSpy).toHaveBeenCalledTimes(2); // Two systems failed to import
-
-      consoleWarnSpy.mockRestore();
+      expect(result.systemsEnabled).toEqual(["SystemA", "SystemB"]);
+      expect(result.entities).toEqual([]);
+      expect(scene.systemsEnabled).toEqual(["SystemA", "SystemB"]);
     });
 
     it("should handle multiple components per game object", async () => {
       const sceneData: SceneSerialized = {
         name: "test",
         path: "/test/path",
-        systems: {},
+        systems: [],
         gameObjects: [
           {
             name: "ComplexEntity",
@@ -308,60 +310,53 @@ describe("Scene", () => {
       };
 
       mockElectronAPI.readJsonFile.mockResolvedValue(sceneData);
-      createEntityMock.mockReturnValue("entity_complex");
 
-      await scene.load(mockEngine);
+      const result = await scene.load();
 
-      expect(createEntityMock).toHaveBeenCalledTimes(1);
-      expect(mockEngine.EntityEngine.addComponent).toHaveBeenCalledTimes(3);
-      expect(mockEngine.EntityEngine.addComponent).toHaveBeenCalledWith(
-        "entity_complex",
-        "Transform",
-        {
-          x: 10,
-          y: 20,
-        },
-      );
-      expect(mockEngine.EntityEngine.addComponent).toHaveBeenCalledWith(
-        "entity_complex",
-        "Velocity",
-        {
-          dx: 1,
-          dy: 0,
-        },
-      );
-      expect(mockEngine.EntityEngine.addComponent).toHaveBeenCalledWith(
-        "entity_complex",
-        "Sprite",
-        {
-          texture: "player.png",
-        },
-      );
+      expect(result.entities).toHaveLength(1);
+      expect(result.entities[0]).toEqual({
+        name: "ComplexEntity",
+        blueprint: { name: "ComplexBlueprint", path: "/blueprints/complex" },
+        components: [
+          { name: "Transform", data: { x: 10, y: 20 } },
+          { name: "Velocity", data: { dx: 1, dy: 0 } },
+          { name: "Sprite", data: { texture: "player.png" } },
+        ],
+      });
     });
 
-    it("should handle multiple systems that fail to import", async () => {
+    it("should handle complex nested structures with systems and entities", async () => {
       const sceneData: SceneSerialized = {
         name: "test",
         path: "/test/path",
-        systems: {
-          RenderSystem: "/systems/render",
-          PhysicsSystem: "/systems/physics",
-          InputSystem: "/systems/input",
-        },
-        gameObjects: [],
+        systems: ["RenderSystem", "PhysicsSystem", "InputSystem"],
+        gameObjects: [
+          {
+            name: "Player",
+            blueprint: { name: "PlayerBlueprint", path: "/blueprints/player" },
+            components: [{ name: "Transform", data: { x: 0, y: 0 } }],
+          },
+          {
+            name: "EnemyGroup",
+            list: [
+              {
+                name: "Enemy1",
+                blueprint: { name: "EnemyBlueprint", path: "/blueprints/enemy" },
+                components: [{ name: "Health", data: { hp: 100 } }],
+              },
+            ],
+          },
+        ],
       };
 
       mockElectronAPI.readJsonFile.mockResolvedValue(sceneData);
 
-      // Mock console.warn to suppress warnings in tests
-      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const result = await scene.load();
 
-      await scene.load(mockEngine);
-
-      expect(consoleWarnSpy).toHaveBeenCalledTimes(3); // Three systems failed to import
-      expect(mockEngine.addSystem).not.toHaveBeenCalled(); // No systems loaded
-
-      consoleWarnSpy.mockRestore();
+      expect(result.systemsEnabled).toEqual(["RenderSystem", "PhysicsSystem", "InputSystem"]);
+      expect(result.entities).toHaveLength(2);
+      expect(result.entities[0].name).toBe("Player");
+      expect(result.entities[1].name).toBe("Enemy1");
     });
   });
 });
