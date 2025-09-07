@@ -126,8 +126,8 @@ describe("PhysicsEngine", () => {
     it("should emit collision enter events with entities", async () => {
       // Create entities in the real TypeEngine
       typeEngine.EntityEngine.registerComponent("TestComponent", (data) => data);
-      const entity1 = typeEngine.EntityEngine.createEntity("entity1");
-      const entity2 = typeEngine.EntityEngine.createEntity("entity2");
+      const entity1 = typeEngine.EntityEngine.create("entity1");
+      const entity2 = typeEngine.EntityEngine.create("entity2");
       typeEngine.EntityEngine.addComponent(entity1, "TestComponent", { value: 1 });
       typeEngine.EntityEngine.addComponent(entity2, "TestComponent", { value: 2 });
 
@@ -160,8 +160,8 @@ describe("PhysicsEngine", () => {
     it("should emit collision exit events with entities", async () => {
       // Create entities in the real TypeEngine
       typeEngine.EntityEngine.registerComponent("TestComponent", (data) => data);
-      const entity1 = typeEngine.EntityEngine.createEntity("entity1");
-      const entity2 = typeEngine.EntityEngine.createEntity("entity2");
+      const entity1 = typeEngine.EntityEngine.create("entity1");
+      const entity2 = typeEngine.EntityEngine.create("entity2");
       typeEngine.EntityEngine.addComponent(entity1, "TestComponent", { value: 1 });
       typeEngine.EntityEngine.addComponent(entity2, "TestComponent", { value: 2 });
 
@@ -194,7 +194,7 @@ describe("PhysicsEngine", () => {
     it("should handle collision with unknown bodies", async () => {
       // Create only entity2 in the real TypeEngine
       typeEngine.EntityEngine.registerComponent("TestComponent", (data) => data);
-      const entity2 = typeEngine.EntityEngine.createEntity("entity2");
+      const entity2 = typeEngine.EntityEngine.create("entity2");
       typeEngine.EntityEngine.addComponent(entity2, "TestComponent", { value: 2 });
 
       const unknownBody = Bodies.rectangle(100, 100, 10, 10);
@@ -300,7 +300,7 @@ describe("PhysicsEngine", () => {
         "ColliderRectangleComponent",
         COLLIDER_RECTANGLE_COMPONENT.create as (args: object) => unknown,
       );
-      const entity1 = typeEngine.EntityEngine.createEntity("entity1");
+      const entity1 = typeEngine.EntityEngine.create("entity1");
       typeEngine.EntityEngine.addComponent(entity1, "ColliderRectangleComponent", {
         _body: mockBody,
         x: 0,

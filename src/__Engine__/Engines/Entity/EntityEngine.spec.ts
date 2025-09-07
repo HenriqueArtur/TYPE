@@ -30,7 +30,7 @@ describe("EntityEngine", () => {
 
   describe("Entity Management", () => {
     it("should create entity with generated ID when no ID provided", () => {
-      const entityId = entityEngine.createEntity();
+      const entityId = entityEngine.create();
 
       expect(entityId).toMatch(/^ENT_/);
       expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("entity:created", entityId);
@@ -38,14 +38,14 @@ describe("EntityEngine", () => {
 
     it("should create entity with provided ID", () => {
       const customId = "CUSTOM_ENTITY_123";
-      const entityId = entityEngine.createEntity(customId);
+      const entityId = entityEngine.create(customId);
 
       expect(entityId).toBe(customId);
       expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("entity:created", customId);
     });
 
     it("should remove entity and all its components", () => {
-      const entityId = entityEngine.createEntity();
+      const entityId = entityEngine.create();
 
       // Register and add a component
       entityEngine.registerComponent("TestComponent", (data) => data);
@@ -54,7 +54,7 @@ describe("EntityEngine", () => {
       // Verify component exists before removal
       expect(entityEngine.hasComponent(entityId, "TestComponent")).toBe(true);
 
-      entityEngine.removeEntity(entityId);
+      entityEngine.remove(entityId);
 
       expect(entityEngine.hasComponent(entityId, "TestComponent")).toBe(false);
       expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("entity:removing", entityId, [
@@ -65,12 +65,12 @@ describe("EntityEngine", () => {
 
     it("should not crash when removing non-existent entity", () => {
       expect(() => {
-        entityEngine.removeEntity("NON_EXISTENT");
+        entityEngine.remove("NON_EXISTENT");
       }).not.toThrow();
     });
 
     it("should get entity by ID with all its components", () => {
-      const entityId = entityEngine.createEntity();
+      const entityId = entityEngine.create();
 
       // Register and add multiple components
       entityEngine.registerComponent("TestComponent1", (data) => data);
@@ -79,7 +79,7 @@ describe("EntityEngine", () => {
       entityEngine.addComponent(entityId, "TestComponent1", { value: 42 });
       entityEngine.addComponent(entityId, "TestComponent2", { name: "test" });
 
-      const entity = entityEngine.getEntity(entityId);
+      const entity = entityEngine.get(entityId);
 
       expect(entity).toBeDefined();
       expect(entity?.entityId).toBe(entityId);
@@ -90,7 +90,7 @@ describe("EntityEngine", () => {
     });
 
     it("should return undefined for non-existent entity", () => {
-      const entity = entityEngine.getEntity("NON_EXISTENT");
+      const entity = entityEngine.get("NON_EXISTENT");
 
       expect(entity).toBeUndefined();
     });
@@ -127,7 +127,7 @@ describe("EntityEngine", () => {
     let entityId: string;
 
     beforeEach(() => {
-      entityId = entityEngine.createEntity();
+      entityId = entityEngine.create();
       entityEngine.registerComponent("TestComponent", (data) => data);
     });
 
@@ -186,9 +186,9 @@ describe("EntityEngine", () => {
     let entity3: string;
 
     beforeEach(() => {
-      entity1 = entityEngine.createEntity();
-      entity2 = entityEngine.createEntity();
-      entity3 = entityEngine.createEntity();
+      entity1 = entityEngine.create();
+      entity2 = entityEngine.create();
+      entity3 = entityEngine.create();
 
       entityEngine.registerComponent("Position", (data) => data);
       entityEngine.registerComponent("Velocity", (data) => data);
@@ -209,7 +209,7 @@ describe("EntityEngine", () => {
     });
 
     it("should query entities with all specified components", () => {
-      const results = entityEngine.queryEntities(["Position", "Velocity"]);
+      const results = entityEngine.query(["Position", "Velocity"]);
 
       expect(results).toHaveLength(2);
       expect(results.map((r) => r.entityId)).toContain(entity1);
@@ -223,7 +223,7 @@ describe("EntityEngine", () => {
     });
 
     it("should query entities with any specified components", () => {
-      const results = entityEngine.queryEntitiesWithAny(["Velocity", "Sprite"]);
+      const results = entityEngine.queryWithAny(["Velocity", "Sprite"]);
 
       expect(results).toHaveLength(3);
       expect(results.map((r) => r.entityId)).toContain(entity1);
@@ -238,7 +238,7 @@ describe("EntityEngine", () => {
 
     it("should return empty array when no entities match query", () => {
       entityEngine.registerComponent("NonExistent", (data) => data);
-      const results = entityEngine.queryEntities(["NonExistent"]);
+      const results = entityEngine.query(["NonExistent"]);
 
       expect(results).toHaveLength(0);
     });

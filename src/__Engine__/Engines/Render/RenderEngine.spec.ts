@@ -161,7 +161,7 @@ describe("RenderEngine", () => {
 
   describe("setupScene", () => {
     it("should handle empty sprite entities", async () => {
-      vi.spyOn(typeEngine.EntityEngine, "queryEntities").mockReturnValue([]);
+      vi.spyOn(typeEngine.EntityEngine, "query").mockReturnValue([]);
 
       await expect(renderEngine.setupScene()).resolves.not.toThrow();
     });
@@ -172,7 +172,7 @@ describe("RenderEngine", () => {
         position: { x: 10, y: 20 },
       });
 
-      vi.spyOn(typeEngine.EntityEngine, "queryEntities").mockReturnValue([
+      vi.spyOn(typeEngine.EntityEngine, "query").mockReturnValue([
         {
           entityId: "entity-1",
           components: {
@@ -187,7 +187,7 @@ describe("RenderEngine", () => {
 
       await renderEngine.setupScene();
 
-      expect(typeEngine.EntityEngine.queryEntities).toHaveBeenCalledWith(["SpriteComponent"]);
+      expect(typeEngine.EntityEngine.query).toHaveBeenCalledWith(["SpriteComponent"]);
       expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(
         mockSpriteComponent._drawable,
       );
@@ -208,7 +208,7 @@ describe("RenderEngine", () => {
       await testTypeEngine.setup();
       await testTypeEngine.RenderEngine.setup();
 
-      vi.spyOn(testTypeEngine.EntityEngine, "queryEntities").mockReturnValue([
+      vi.spyOn(testTypeEngine.EntityEngine, "query").mockReturnValue([
         {
           entityId: "entity-1",
           components: {
@@ -218,14 +218,14 @@ describe("RenderEngine", () => {
       ]);
 
       await expect(testTypeEngine.RenderEngine.setupScene()).resolves.not.toThrow();
-      expect(testTypeEngine.EntityEngine.queryEntities).toHaveBeenCalled();
+      expect(testTypeEngine.EntityEngine.query).toHaveBeenCalled();
     });
 
     it("should load multiple sprite entities", async () => {
       const sprite1 = SPRITE_COMPONENT.create({ texture_path: "sprite1.png" });
       const sprite2 = SPRITE_COMPONENT.create({ texture_path: "sprite2.png" });
 
-      vi.spyOn(typeEngine.EntityEngine, "queryEntities").mockReturnValue([
+      vi.spyOn(typeEngine.EntityEngine, "query").mockReturnValue([
         { entityId: "entity-1", components: { SpriteComponent: sprite1 } },
         { entityId: "entity-2", components: { SpriteComponent: sprite2 } },
       ]);
@@ -402,7 +402,7 @@ describe("RenderEngine", () => {
       const sprite1 = SPRITE_COMPONENT.create({ texture_path: "sprite1.png" });
       const sprite2 = SPRITE_COMPONENT.create({ texture_path: "sprite2.png" });
 
-      vi.spyOn(typeEngine.EntityEngine, "queryEntities").mockReturnValue([
+      vi.spyOn(typeEngine.EntityEngine, "query").mockReturnValue([
         { entityId: "entity-1", components: { SpriteComponent: sprite1 } },
         { entityId: "entity-2", components: { SpriteComponent: sprite2 } },
       ]);
@@ -514,7 +514,7 @@ describe("RenderEngine", () => {
         visible: true,
       });
 
-      vi.spyOn(typeEngine.EntityEngine, "queryEntities").mockReturnValue([
+      vi.spyOn(typeEngine.EntityEngine, "query").mockReturnValue([
         {
           entityId: "integration-entity",
           components: {
@@ -529,7 +529,7 @@ describe("RenderEngine", () => {
 
       await renderEngine.setupScene();
 
-      expect(typeEngine.EntityEngine.queryEntities).toHaveBeenCalledWith(["SpriteComponent"]);
+      expect(typeEngine.EntityEngine.query).toHaveBeenCalledWith(["SpriteComponent"]);
       expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(spriteComponent._drawable);
     });
   });

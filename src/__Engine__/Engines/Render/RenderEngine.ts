@@ -60,7 +60,7 @@ export class RenderEngine {
 
   async setupScene(): Promise<void> {
     const drawable_entities =
-      this.engine.EntityEngine.queryEntities<Record<string, Drawable<Container, unknown>>>(
+      this.engine.EntityEngine.query<Record<string, Drawable<Container, unknown>>>(
         DRAWABLE_COMPONENTS,
       );
     for (const { entityId, components } of drawable_entities) {

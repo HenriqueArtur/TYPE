@@ -32,7 +32,7 @@ export class EntityEngine {
 
   setupScene(entities: GameObjectSerialized[]) {
     for (const { components } of entities) {
-      const entity = this.createEntity();
+      const entity = this.create();
       for (const currentComponent of components) {
         this.addComponentSetup(entity, currentComponent.name, currentComponent.data);
       }
@@ -44,7 +44,7 @@ export class EntityEngine {
    * @param id - Optional custom entity ID, auto-generates with "ENT_" prefix if not provided
    * @returns The entity ID
    */
-  createEntity(id?: string): string {
+  create(id?: string): string {
     const entity_id = id || generateId("ENT");
     this.entities.set(entity_id, new Set());
 
@@ -60,7 +60,7 @@ export class EntityEngine {
    * @param entityId - The ID of the entity to retrieve
    * @returns The entity with its components, or undefined if entity doesn't exist
    */
-  getEntity<T extends Record<string, unknown>>(entityId: string): EntityFetchResult<T> {
+  get<T extends Record<string, unknown>>(entityId: string): EntityFetchResult<T> {
     if (!this.entities.has(entityId)) {
       return undefined;
     }
@@ -82,12 +82,12 @@ export class EntityEngine {
    * Removes an entity and all its associated components
    * @param entityId - The ID of the entity to remove
    */
-  removeEntity(entityId: string): void {
-    this.removeEntityOnClear(entityId);
+  remove(entityId: string): void {
+    this.removeOnClear(entityId);
     this.eventEngine.emit("entity:removed", entityId);
   }
 
-  removeEntityOnClear(entityId: string): void {
+  removeOnClear(entityId: string): void {
     if (!this.entities.has(entityId)) {
       return;
     }
@@ -107,7 +107,7 @@ export class EntityEngine {
 
   clear() {
     for (const entityId of this.entities.keys()) {
-      this.removeEntityOnClear(entityId);
+      this.removeOnClear(entityId);
     }
   }
 
@@ -243,7 +243,7 @@ export class EntityEngine {
    * @param componentNames - Array of component names to match
    * @returns Array of entities with their component data
    */
-  queryEntities<T extends Record<string, unknown>>(
+  query<T extends Record<string, unknown>>(
     componentNames: string[],
   ): Array<{ entityId: string; components: T }> {
     const result: Array<{ entityId: string; components: T }> = [];
@@ -271,7 +271,7 @@ export class EntityEngine {
    * @param componentNames - Array of component names to match
    * @returns Array of entities with their component data
    */
-  queryEntitiesWithAny<T extends Record<string, unknown>>(
+  queryWithAny<T extends Record<string, unknown>>(
     componentNames: string[],
   ): Array<{ entityId: string; components: T }> {
     const result: Array<{ entityId: string; components: T }> = [];

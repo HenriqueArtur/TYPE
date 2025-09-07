@@ -10,9 +10,9 @@ export class RenderPixiSystem implements System<TypeEngine> {
   async init(_engine: TypeEngine) {}
 
   update(engine: TypeEngine, _deltaTime: number): void {
-    const sprite_entities = engine.EntityEngine.queryEntities<{ SpriteComponent: SpriteComponent }>(
-      ["SpriteComponent"],
-    );
+    const sprite_entities = engine.EntityEngine.query<{ SpriteComponent: SpriteComponent }>([
+      "SpriteComponent",
+    ]);
     for (const { components } of sprite_entities) {
       components.SpriteComponent._drawable.position.set(
         components.SpriteComponent.position.x,
