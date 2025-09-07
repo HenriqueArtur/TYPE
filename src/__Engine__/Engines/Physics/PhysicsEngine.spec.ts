@@ -2,6 +2,7 @@ import { Bodies, type Body, type Engine, type IEventCollision } from "matter-js"
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createColliderRectangleComponent } from "../../Component/Physics/ColliderRectangleComponent";
 import { TypeEngine } from "../../TypeEngine";
+import { setupBasicTypeEngineMocks } from "../../TyprEngine.mock";
 import type { PhysicsEngine } from "./PhysicsEngine";
 
 describe("PhysicsEngine", () => {
@@ -19,12 +20,9 @@ describe("PhysicsEngine", () => {
       Physics: {
         gravity: { x: 0, y: 0.8 },
       },
-      systemsList: [],
     });
 
-    vi.spyOn(typeEngine.RenderEngine, "setup").mockImplementation(async () => {});
-    vi.spyOn(typeEngine.SceneEngine, "setup").mockImplementation(async () => {});
-    vi.spyOn(typeEngine.SceneEngine, "transition").mockImplementation(async () => {});
+    setupBasicTypeEngineMocks(typeEngine);
 
     await typeEngine.setup();
     physics_engine = typeEngine.PhysicsEngine;
@@ -43,12 +41,9 @@ describe("PhysicsEngine", () => {
           height: 600,
           html_tag_id: "test-game",
         },
-        systemsList: [],
       });
 
-      vi.spyOn(testEngine.RenderEngine, "setup").mockImplementation(async () => {});
-      vi.spyOn(testEngine.SceneEngine, "setup").mockImplementation(async () => {});
-      vi.spyOn(testEngine.SceneEngine, "transition").mockImplementation(async () => {});
+      setupBasicTypeEngineMocks(testEngine);
 
       await testEngine.setup();
 
@@ -77,12 +72,9 @@ describe("PhysicsEngine", () => {
         Physics: {
           gravity: { x: 0, y: 0.5 },
         },
-        systemsList: [],
       });
 
-      vi.spyOn(testTypeEngine.RenderEngine, "setup").mockImplementation(async () => {});
-      vi.spyOn(testTypeEngine.SceneEngine, "setup").mockImplementation(async () => {});
-      vi.spyOn(testTypeEngine.SceneEngine, "transition").mockImplementation(async () => {});
+      setupBasicTypeEngineMocks(testTypeEngine);
       vi.spyOn(testTypeEngine.EventEngine, "on");
 
       await testTypeEngine.setup();
@@ -319,7 +311,7 @@ describe("PhysicsEngine", () => {
         frictionStatic: 0.001,
       });
 
-      physics_engine.setupScene(typeEngine);
+      physics_engine.setupScene();
 
       // Since setupScene uses queryEntities(PHYSICS_COMPONENTS) which requires ALL components,
       // and we only have one component, setupScene won't find our entity.

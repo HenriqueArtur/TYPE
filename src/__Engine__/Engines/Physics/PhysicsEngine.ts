@@ -87,9 +87,9 @@ export class PhysicsEngine {
     return this.bodyToEntityMap.get(body) ?? null;
   }
 
-  setupScene(engine: TypeEngine) {
+  setupScene() {
     const body_entities =
-      engine.EntityEngine.queryEntities<Record<string, { _body: Body }>>(PHYSICS_COMPONENTS);
+      this.engine.EntityEngine.queryEntities<Record<string, { _body: Body }>>(PHYSICS_COMPONENTS);
     for (const { entityId, components } of body_entities) {
       let components_ref = this.bodyMap.get(entityId);
       if (!components_ref) {
