@@ -1,7 +1,6 @@
 import { generateId } from "../../Utils/id";
 import type { EventEngine } from "../Event";
-import type { EntityFetchResult } from "./EntityFetchResult";
-import type { GameObjectSerialized } from "./GameObjectSerialized";
+import type { EntityFetchResult, GameObjectSerialized } from "./__types__";
 
 export interface EntityEngineOptions {
   EventEngine: EventEngine;

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { SceneSerialized } from "./__types__";
 import { Scene } from "./Scene";
-import type { SceneSerialized } from "./SceneSerialized";
 
 const mockElectronAPI = {
   openGameWindow: vi.fn(),

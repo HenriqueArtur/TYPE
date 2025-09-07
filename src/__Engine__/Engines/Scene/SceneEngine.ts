@@ -1,7 +1,7 @@
 import type { TypeEngine } from "../../TypeEngine";
-import type { GameObjectSerialized } from "../Entity/GameObjectSerialized";
+import type { GameObjectSerialized } from "../Entity/__types__";
+import type { SceneManageSerialized, SceneName } from "./__types__";
 import { Scene } from "./Scene";
-import type { SceneManageSerialized, SceneName } from "./SceneManageSerialized";
 
 export interface SceneEngineOptions {
   engine: TypeEngine;

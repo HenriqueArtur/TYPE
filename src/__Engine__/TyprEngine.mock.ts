@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import type { GameObjectSerialized } from "./Engines/Entity/GameObjectSerialized";
+import type { GameObjectSerialized } from "./Engines/Entity/__types__";
 import { TypeEngine } from "./TypeEngine";
 
 export interface MockSceneSetupResult {

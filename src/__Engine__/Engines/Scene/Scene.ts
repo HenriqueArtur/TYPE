@@ -1,8 +1,5 @@
-import type {
-  GameObjectSerialized,
-  GroupGameObjectSerialized,
-} from "../Entity/GameObjectSerialized";
-import type { SceneSerialized } from "./SceneSerialized";
+import type { GameObjectSerialized, GroupGameObjectSerialized } from "../Entity/__types__";
+import type { SceneSerialized } from "./__types__";
 
 /**
  * Scene - Represents a game scene with a name and file path

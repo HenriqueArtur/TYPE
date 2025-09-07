@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TypeEngine } from "../../TypeEngine";
+import type { SceneManageSerialized } from "./__types__";
 import { Scene } from "./Scene";
 import type { SceneEngine } from "./SceneEngine";
-import type { SceneManageSerialized } from "./SceneManageSerialized";
 
 // Mock Scene class
 vi.mock("./Scene");
