@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   pathParse: (filePath: string) => ipcRenderer.invoke("path-parse", filePath),
   pathJoin: (...paths: string[]) => ipcRenderer.invoke("path-join", ...paths),
   readJsonFile: (filePath: string) => ipcRenderer.invoke("read-json-file", filePath),
+  absolutePath: (filePath: string) => ipcRenderer.invoke("absolute-path", filePath),
 });
 
 declare global {
@@ -16,6 +17,7 @@ declare global {
       ) => Promise<{ name: string; dir: string; ext: string; base: string; root: string }>;
       pathJoin: (...paths: string[]) => Promise<string>;
       readJsonFile: <T>(filePath: string) => Promise<T>;
+      absolutePath: (filePath: string) => Promise<string>;
     };
   }
 }
