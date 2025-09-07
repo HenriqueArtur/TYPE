@@ -7,6 +7,8 @@
  * @template TEngine - The type of engine instance passed to system methods
  */
 export interface System<TEngine = unknown> {
+  name: string;
+
   /** Priority determines the order of system execution (lower values execute first) */
   priority: number;
 

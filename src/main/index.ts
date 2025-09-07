@@ -6,7 +6,7 @@ import { ipcMain } from "electron/main";
 let mainWindow: BrowserWindow;
 let gameWindow: BrowserWindow | null = null;
 
-function _createMainWindow() {
+export function _createMainWindow() {
   mainWindow = new BrowserWindow({
     title: "Engine TS",
     width: 1280,

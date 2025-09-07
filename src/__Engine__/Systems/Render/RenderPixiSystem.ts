@@ -3,6 +3,7 @@ import type { TypeEngine } from "../../TypeEngine";
 import type { System } from "../System";
 
 export class RenderPixiSystem implements System<TypeEngine> {
+  name = "RenderPixiSystem";
   priority = 2;
   enabled = true;
 

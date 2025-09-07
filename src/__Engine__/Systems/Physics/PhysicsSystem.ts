@@ -2,6 +2,7 @@ import type { TypeEngine } from "../../TypeEngine";
 import type { System } from "../System";
 
 export class PhysicsSystem implements System<TypeEngine> {
+  name = "PhysicsSystem";
   priority = 1;
   enabled = true;
 

@@ -1,4 +1,5 @@
 import type { TypeEngine } from "../../TypeEngine";
+import type { GameObjectSerialized } from "../Entity/GameObjectSerialized";
 import { Scene } from "./Scene";
 import type { SceneManageSerialized, SceneName } from "./SceneManageSerialized";
 
@@ -26,11 +27,9 @@ export class SceneEngine {
     this.scenes = new Map(Object.entries(sceneManageData.scenes));
 
     const initialScenePath = sceneManageData.scenes[sceneManageData.initialScene];
-    if (initialScenePath) {
-      Scene.fromPath(initialScenePath).then((scene) => {
-        this.currentScene = scene;
-      });
-    }
+    const scene = await Scene.fromPath(`${this.engine.projectPath}/${initialScenePath}`);
+    this.currentScene = scene;
+    return scene.load();
   }
 
   /**
@@ -48,21 +47,19 @@ export class SceneEngine {
    * @param engine - The TypeEngine instance to load the scene into
    * @throws Error if the scene doesn't exist
    */
-  async transition(sceneName: SceneName): Promise<void> {
+  async transition(
+    sceneName: SceneName,
+  ): Promise<{ systemsEnabled: string[]; entities: GameObjectSerialized[] }> {
     if (!this.has(sceneName)) {
       throw new Error(`Scene "${sceneName}" does not exist`);
     }
-
     const scenePath = this.scenes.get(sceneName);
     if (!scenePath) {
       throw new Error(`Scene path not found for "${sceneName}"`);
     }
-    this.engine.PhysicsEngine.clear();
-    this.engine.RenderEngine.clear();
-
-    const scene = await Scene.fromPath(scenePath);
+    const scene = await Scene.fromPath(`${this.engine.projectPath}/${scenePath}`);
     this.currentScene = scene;
-    await scene.load(this.engine);
+    return await scene.load();
   }
 
   /**

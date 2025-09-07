@@ -23,7 +23,7 @@ export class SpriteComponent {
   visible: boolean;
 
   constructor(data: SpriteComponentData) {
-    this.texture_path = formatTexturePath(data.texture_path);
+    this.texture_path = data.texture_path;
     this.position = data.position ?? { x: 0, y: 0 };
     this.scale = data.scale ?? { x: 1, y: 1 };
     this.rotation = data.rotation ?? 0;
@@ -42,14 +42,4 @@ export class SpriteComponent {
       visible: this.visible,
     });
   }
-}
-
-function formatTexturePath(path: string): string {
-  if (!path) {
-    throw new Error("Texture path must be a non-empty string");
-  }
-  if (path.startsWith("/")) {
-    return `..${path}`;
-  }
-  return `../${path}`;
 }

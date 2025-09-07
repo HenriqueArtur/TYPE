@@ -1,4 +1,3 @@
-import type { SystemName } from "../../Systems/System";
 import type { RelativePathInProject } from "../../Utils/Types";
 import type {
   GameObjectSerialized,
@@ -8,6 +7,6 @@ import type {
 export interface SceneSerialized {
   name: string;
   path: RelativePathInProject;
-  systems: Record<SystemName, RelativePathInProject>;
+  systems: string[];
   gameObjects: (GameObjectSerialized | GroupGameObjectSerialized)[];
 }

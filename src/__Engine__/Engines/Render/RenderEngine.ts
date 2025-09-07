@@ -49,7 +49,10 @@ export class RenderEngine {
     }>(["SpriteComponent"]);
     for (const { entityId, components } of sprite_entities) {
       const sprite_component = components.SpriteComponent;
-      const texture = await Assets.load<Texture>(sprite_component.texture_path);
+      const imgPath = await window.electronAPI.absolutePath(
+        `${this.engine.projectPath}/${sprite_component.texture_path}`,
+      );
+      const texture = await Assets.load<Texture>(imgPath);
       sprite_component._sprite.texture = texture;
       this._instance.stage.addChild(sprite_component._sprite);
 
