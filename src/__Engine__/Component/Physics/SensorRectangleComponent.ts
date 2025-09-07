@@ -1,15 +1,8 @@
-import { Bodies, type Body } from "matter-js";
+import { Bodies } from "matter-js";
+import type { ComponentInstanceManage, ComponentSerialized } from "../ComponentInstanceManage";
+import type { BodyComponent } from "./__type__";
 
-export interface SensorRectangleComponent {
-  _body: Body;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation: number;
-}
-
-export interface SensorRectangleComponentOptions {
+export interface SensorRectangleComponentData {
   x: number;
   y: number;
   width: number;
@@ -17,18 +10,37 @@ export interface SensorRectangleComponentOptions {
   rotation?: number;
 }
 
-export function createSensorRectangleComponent(
-  options: SensorRectangleComponentOptions,
-): SensorRectangleComponent {
-  return {
-    _body: Bodies.rectangle(options.x, options.y, options.width, options.height, {
-      isStatic: true,
-      isSensor: true,
-    }),
-    x: options.x,
-    y: options.y,
-    width: options.width,
-    height: options.height,
-    rotation: options.rotation ?? 0,
-  };
-}
+export type SensorRectangleComponent = Required<SensorRectangleComponentData> & BodyComponent;
+
+export const SENSOR_RECTANGLE_COMPONENT: ComponentInstanceManage<
+  "SensorRectangleComponent",
+  SensorRectangleComponentData,
+  SensorRectangleComponent
+> = {
+  name: "SensorRectangleComponent",
+  create: (data: SensorRectangleComponentData): SensorRectangleComponent => {
+    return {
+      x: data.x,
+      y: data.y,
+      width: data.width,
+      height: data.height,
+      rotation: data.rotation ?? 0,
+      _body: Bodies.rectangle(data.x, data.y, data.width, data.height, {
+        isStatic: true,
+        isSensor: true,
+      }),
+    };
+  },
+  serialize: ({
+    _body,
+    ...component
+  }: SensorRectangleComponent): ComponentSerialized<
+    "SensorRectangleComponent",
+    SensorRectangleComponentData
+  > => ({
+    name: "SensorRectangleComponent",
+    data: {
+      ...component,
+    },
+  }),
+};

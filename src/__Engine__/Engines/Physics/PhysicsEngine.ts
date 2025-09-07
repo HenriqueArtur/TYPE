@@ -1,5 +1,5 @@
 import { type Body, Events, type IEventCollision, Engine as MatterEngine, World } from "matter-js";
-import { PHYSICS_COMPONENTS } from "../../Component/Physics";
+import { PHYSICS_COMPONENTS } from "../../Component/Physics/__const__";
 import type { TypeEngine } from "../../TypeEngine";
 import type { EventEngine } from "../Event/EventEngine";
 

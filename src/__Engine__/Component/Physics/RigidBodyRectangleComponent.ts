@@ -1,21 +1,8 @@
-import { Bodies, type Body } from "matter-js";
+import { Bodies } from "matter-js";
+import type { ComponentInstanceManage, ComponentSerialized } from "../ComponentInstanceManage";
+import type { BodyComponent } from "./__type__";
 
-export interface RigidBodyRectangleComponent {
-  _body: Body;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  velocity: { x: number; y: number };
-  angularVelocity: number;
-  rotation: number;
-  restitution: number;
-  friction: number;
-  frictionAir: number;
-  density: number;
-}
-
-export interface RigidBodyRectangleComponentOptions {
+export interface RigidBodyRectangleComponentData {
   x: number;
   y: number;
   width: number;
@@ -29,27 +16,65 @@ export interface RigidBodyRectangleComponentOptions {
   density?: number;
 }
 
-export function createRigidBodyRectangleComponent(
-  options: RigidBodyRectangleComponentOptions,
-): RigidBodyRectangleComponent {
-  return {
-    _body: Bodies.rectangle(options.x, options.y, options.width, options.height, {
-      isStatic: false,
-      restitution: options.restitution ?? 0.8,
-      friction: options.friction ?? 0.001,
-      frictionAir: options.frictionAir ?? 0.01,
-      density: options.density ?? 0.001,
-    }),
-    x: options.x,
-    y: options.y,
-    width: options.width,
-    height: options.height,
-    velocity: options.velocity ?? { x: 0, y: 0 },
-    angularVelocity: options.angularVelocity ?? 0,
-    rotation: options.rotation ?? 0,
-    restitution: options.restitution ?? 0.8,
-    friction: options.friction ?? 0.001,
-    frictionAir: options.frictionAir ?? 0.01,
-    density: options.density ?? 0.001,
-  };
-}
+export type RigidBodyRectangleComponent = Required<
+  Omit<
+    RigidBodyRectangleComponentData,
+    | "velocity"
+    | "angularVelocity"
+    | "rotation"
+    | "restitution"
+    | "friction"
+    | "frictionAir"
+    | "density"
+  >
+> & {
+  velocity: { x: number; y: number };
+  angularVelocity: number;
+  rotation: number;
+  restitution: number;
+  friction: number;
+  frictionAir: number;
+  density: number;
+} & BodyComponent;
+
+export const RIGID_BODY_RECTANGLE_COMPONENT: ComponentInstanceManage<
+  "RigidBodyRectangleComponent",
+  RigidBodyRectangleComponentData,
+  RigidBodyRectangleComponent
+> = {
+  name: "RigidBodyRectangleComponent",
+  create: (data: RigidBodyRectangleComponentData): RigidBodyRectangleComponent => {
+    return {
+      x: data.x,
+      y: data.y,
+      width: data.width,
+      height: data.height,
+      velocity: data.velocity ?? { x: 0, y: 0 },
+      angularVelocity: data.angularVelocity ?? 0,
+      rotation: data.rotation ?? 0,
+      restitution: data.restitution ?? 0.8,
+      friction: data.friction ?? 0.001,
+      frictionAir: data.frictionAir ?? 0.01,
+      density: data.density ?? 0.001,
+      _body: Bodies.rectangle(data.x, data.y, data.width, data.height, {
+        isStatic: false,
+        restitution: data.restitution ?? 0.8,
+        friction: data.friction ?? 0.001,
+        frictionAir: data.frictionAir ?? 0.01,
+        density: data.density ?? 0.001,
+      }),
+    };
+  },
+  serialize: ({
+    _body,
+    ...component
+  }: RigidBodyRectangleComponent): ComponentSerialized<
+    "RigidBodyRectangleComponent",
+    RigidBodyRectangleComponentData
+  > => ({
+    name: "RigidBodyRectangleComponent",
+    data: {
+      ...component,
+    },
+  }),
+};

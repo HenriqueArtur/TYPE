@@ -1,6 +1,6 @@
 import { Bodies, type Body, type Engine, type IEventCollision } from "matter-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createColliderRectangleComponent } from "../../Component/Physics/ColliderRectangleComponent";
+import { COLLIDER_RECTANGLE_COMPONENT } from "../../Component/Physics/ColliderRectangleComponent";
 import { TypeEngine } from "../../TypeEngine";
 import { setupBasicTypeEngineMocks } from "../../TyprEngine.mock";
 import type { PhysicsEngine } from "./PhysicsEngine";
@@ -298,7 +298,7 @@ describe("PhysicsEngine", () => {
       // Create entity with physics component in the real TypeEngine using the proper component factory
       typeEngine.EntityEngine.registerComponent(
         "ColliderRectangleComponent",
-        createColliderRectangleComponent as (args: object) => unknown,
+        COLLIDER_RECTANGLE_COMPONENT.create as (args: object) => unknown,
       );
       const entity1 = typeEngine.EntityEngine.createEntity("entity1");
       typeEngine.EntityEngine.addComponent(entity1, "ColliderRectangleComponent", {
