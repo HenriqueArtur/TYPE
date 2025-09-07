@@ -1,4 +1,4 @@
-import { SpriteComponent, type SpriteComponentData } from "../../__Engine__/Component/Drawable";
+import { SPRITE_COMPONENT } from "../../__Engine__/Component/Drawable/SpriteComponent";
 import { TypeEngine } from "../../__Engine__/TypeEngine";
 
 export async function Game() {
@@ -7,8 +7,8 @@ export async function Game() {
     Render: { width: 800, height: 600 },
   });
   engine.EntityEngine.registerComponent(
-    "SpriteComponent",
-    <T = SpriteComponentData>(data: T) => new SpriteComponent(data as SpriteComponentData),
+    SPRITE_COMPONENT.name,
+    SPRITE_COMPONENT.create as (...args: unknown[]) => unknown,
   );
   await engine.setup();
   engine.start();

@@ -1,10 +1,10 @@
-import type { ComponentSerialized } from "../../Component/ComponentSerialized";
+import type { ComponentSerialized } from "../../Component/ComponentInstanceManage";
 import type { RelativePathInProject } from "../../Utils/Types";
 
 export interface BlueprintSerialized {
   name: string;
   path: RelativePathInProject;
-  components: ComponentSerialized[];
+  components: ComponentSerialized<string, unknown>[];
 }
 
 export interface GameObjectSerialized {
@@ -13,7 +13,7 @@ export interface GameObjectSerialized {
     name: string;
     path: RelativePathInProject;
   };
-  components: ComponentSerialized[];
+  components: ComponentSerialized<string, unknown>[];
 }
 
 export interface GroupGameObjectSerialized {

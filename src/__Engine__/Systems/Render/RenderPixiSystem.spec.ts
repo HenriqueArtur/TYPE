@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { SpriteComponent } from "../../Component/Drawable/SpriteComponent";
+import { SPRITE_COMPONENT } from "../../Component/Drawable/SpriteComponent";
 import type { TypeEngine } from "../../TypeEngine";
 import { RenderPixiSystem } from "./RenderPixiSystem";
 
@@ -97,7 +97,7 @@ describe("RenderPixiSystem", () => {
       };
 
       const mockSpriteComponent = {
-        _sprite: mockSprite,
+        _drawable: mockSprite,
         position: { x: 100, y: 200 },
         scale: { x: 2, y: 3 },
         rotation: 1.5,
@@ -139,7 +139,7 @@ describe("RenderPixiSystem", () => {
       };
 
       const mockSpriteComponent = {
-        _sprite: mockSprite,
+        _drawable: mockSprite,
         position: { x: 50, y: 75 },
         scale: { x: 1, y: 1 },
         rotation: 0,
@@ -198,7 +198,7 @@ describe("RenderPixiSystem", () => {
       };
 
       const mockSpriteComponent1 = {
-        _sprite: mockSprite1,
+        _drawable: mockSprite1,
         position: { x: 10, y: 20 },
         scale: { x: 1, y: 1 },
         rotation: 0,
@@ -209,7 +209,7 @@ describe("RenderPixiSystem", () => {
       };
 
       const mockSpriteComponent2 = {
-        _sprite: mockSprite2,
+        _drawable: mockSprite2,
         position: { x: 30, y: 40 },
         scale: { x: 2, y: 2 },
         rotation: 3.14,
@@ -265,7 +265,7 @@ describe("RenderPixiSystem", () => {
 
   describe("integration with SpriteComponent", () => {
     it("should work with real SpriteComponent instances", () => {
-      const spriteComponent = new SpriteComponent({
+      const spriteComponent = SPRITE_COMPONENT.create({
         texture_path: "test.png",
         position: { x: 150, y: 250 },
         scale: { x: 1.5, y: 2.5 },
@@ -286,13 +286,13 @@ describe("RenderPixiSystem", () => {
 
       system.update(mockEngine, 16.67);
 
-      expect(spriteComponent._sprite.position.set).toHaveBeenCalledWith(150, 250);
-      expect(spriteComponent._sprite.scale.set).toHaveBeenCalledWith(1.5, 2.5);
-      expect(spriteComponent._sprite.anchor.set).toHaveBeenCalledWith(0.9);
-      expect(spriteComponent._sprite.rotation).toBe(2.1);
-      expect(spriteComponent._sprite.alpha).toBe(0.7);
-      expect(spriteComponent._sprite.visible).toBe(false);
-      expect(spriteComponent._sprite.tint).toBe(0x0000ff);
+      expect(spriteComponent._drawable.position.set).toHaveBeenCalledWith(150, 250);
+      expect(spriteComponent._drawable.scale.set).toHaveBeenCalledWith(1.5, 2.5);
+      expect(spriteComponent._drawable.anchor.set).toHaveBeenCalledWith(0.9);
+      expect(spriteComponent._drawable.rotation).toBe(2.1);
+      expect(spriteComponent._drawable.alpha).toBe(0.7);
+      expect(spriteComponent._drawable.visible).toBe(false);
+      expect(spriteComponent._drawable.tint).toBe(0x0000ff);
     });
   });
 });

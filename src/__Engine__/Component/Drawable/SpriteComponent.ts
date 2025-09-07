@@ -1,4 +1,6 @@
-import { Sprite, Texture } from "pixi.js";
+import { type Container, Sprite, Texture } from "pixi.js";
+import type { ComponentInstanceManage, ComponentSerialized } from "../ComponentInstanceManage";
+import type { Drawable } from "./__type__";
 
 export interface SpriteComponentData {
   texture_path: string;
@@ -11,35 +13,49 @@ export interface SpriteComponentData {
   anchor?: number;
 }
 
-export class SpriteComponent {
-  _sprite: Sprite;
-  texture_path: string;
-  position: { x: number; y: number };
-  scale: { x: number; y: number };
-  rotation: number;
-  alpha: number;
+export type SpriteComponent = Required<Omit<SpriteComponentData, "texture_path" | "tint">> & {
   tint?: number;
-  anchor: number;
-  visible: boolean;
+} & Drawable<Sprite, string>;
 
-  constructor(data: SpriteComponentData) {
-    this.texture_path = data.texture_path;
-    this.position = data.position ?? { x: 0, y: 0 };
-    this.scale = data.scale ?? { x: 1, y: 1 };
-    this.rotation = data.rotation ?? 0;
-    this.alpha = data.alpha ?? 1;
-    this.tint = data.tint;
-    this.visible = data.visible ?? true;
-    this.anchor = data.anchor ?? 0.5;
-    this._sprite = new Sprite({
+export const SPRITE_COMPONENT: ComponentInstanceManage<
+  "SpriteComponent",
+  SpriteComponentData,
+  SpriteComponent
+> = {
+  name: "SpriteComponent",
+  create: (data: SpriteComponentData): SpriteComponent => {
+    const beforeDrawable = {
+      position: data.position ?? { x: 0, y: 0 },
+      scale: data.scale ?? { x: 1, y: 1 },
+      rotation: data.rotation ?? 0,
+      alpha: data.alpha ?? 1,
+      tint: data.tint,
+      visible: data.visible ?? true,
+      anchor: data.anchor ?? 0.5,
+      _resource: data.texture_path,
+      _drawable: null as null | Container,
+    };
+    beforeDrawable._drawable = new Sprite({
       texture: Texture.EMPTY,
-      position: { x: this.position.x, y: this.position.y },
-      scale: { x: this.scale.x, y: this.scale.y },
-      rotation: this.rotation,
-      alpha: this.alpha,
-      tint: this.tint,
-      anchor: this.anchor,
-      visible: this.visible,
+      position: { x: beforeDrawable.position.x, y: beforeDrawable.position.y },
+      scale: { x: beforeDrawable.scale.x, y: beforeDrawable.scale.y },
+      rotation: beforeDrawable.rotation,
+      alpha: beforeDrawable.alpha,
+      tint: beforeDrawable.tint,
+      anchor: beforeDrawable.anchor,
+      visible: beforeDrawable.visible,
     });
-  }
-}
+    return beforeDrawable as SpriteComponent;
+  },
+  serialize: ({
+    _resource,
+    _drawable,
+    ...component
+  }: SpriteComponent): ComponentSerialized<"SpriteComponent", SpriteComponentData> => ({
+    name: "SpriteComponent",
+    data: {
+      ...component,
+      texture_path: _resource,
+    },
+  }),
+};

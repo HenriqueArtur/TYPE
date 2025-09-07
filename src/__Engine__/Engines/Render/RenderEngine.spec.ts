@@ -1,5 +1,7 @@
+import type { Container } from "pixi.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { SpriteComponent } from "../../Component/Drawable/SpriteComponent";
+import type { Drawable } from "../../Component/Drawable/__type__";
+import { SPRITE_COMPONENT } from "../../Component/Drawable/SpriteComponent";
 import { TypeEngine } from "../../TypeEngine";
 import { setupBasicTypeEngineMocks, TypeEngineMock } from "../../TyprEngine.mock";
 import { RenderEngine } from "./RenderEngine";
@@ -14,7 +16,7 @@ const getRenderEngineStatic = () =>
 // Helper for accessing private instance properties in tests
 const getRenderEnginePrivate = (engine: RenderEngine) =>
   engine as unknown as {
-    spriteMap: Map<string, SpriteComponent>;
+    drawablesMap: Map<string, Map<string, Drawable<Container, unknown>[]>>;
   };
 
 // Mock document and DOM elements
@@ -103,7 +105,7 @@ describe("RenderEngine", () => {
       expect(customTypeEngine.RenderEngine._instance).toBeDefined();
     });
 
-    it("should set up event listeners for remove:drawable", async () => {
+    it("should set up event listeners for drawable events", async () => {
       const testTypeEngine = new TypeEngine({
         projectPath: "/test-listeners",
         Render: {
@@ -126,6 +128,8 @@ describe("RenderEngine", () => {
 
       expect(testTypeEngine.EventEngine.hasListeners("remove:drawable")).toBe(true);
       expect(testTypeEngine.EventEngine.getListenerCount("remove:drawable")).toBe(1);
+      expect(testTypeEngine.EventEngine.hasListeners("add:drawable")).toBe(true);
+      expect(testTypeEngine.EventEngine.getListenerCount("add:drawable")).toBe(1);
     });
 
     it("should append canvas to DOM element", async () => {
@@ -163,7 +167,7 @@ describe("RenderEngine", () => {
     });
 
     it("should load sprites from engine entities", async () => {
-      const mockSpriteComponent = new SpriteComponent({
+      const mockSpriteComponent = SPRITE_COMPONENT.create({
         texture_path: "test.png",
         position: { x: 10, y: 20 },
       });
@@ -185,7 +189,7 @@ describe("RenderEngine", () => {
 
       expect(typeEngine.EntityEngine.queryEntities).toHaveBeenCalledWith(["SpriteComponent"]);
       expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(
-        mockSpriteComponent._sprite,
+        mockSpriteComponent._drawable,
       );
     });
 
@@ -208,7 +212,7 @@ describe("RenderEngine", () => {
         {
           entityId: "entity-1",
           components: {
-            SpriteComponent: new SpriteComponent({ texture_path: "test.png" }),
+            SpriteComponent: SPRITE_COMPONENT.create({ texture_path: "test.png" }),
           },
         },
       ]);
@@ -218,8 +222,8 @@ describe("RenderEngine", () => {
     });
 
     it("should load multiple sprite entities", async () => {
-      const sprite1 = new SpriteComponent({ texture_path: "sprite1.png" });
-      const sprite2 = new SpriteComponent({ texture_path: "sprite2.png" });
+      const sprite1 = SPRITE_COMPONENT.create({ texture_path: "sprite1.png" });
+      const sprite2 = SPRITE_COMPONENT.create({ texture_path: "sprite2.png" });
 
       vi.spyOn(typeEngine.EntityEngine, "queryEntities").mockReturnValue([
         { entityId: "entity-1", components: { SpriteComponent: sprite1 } },
@@ -233,8 +237,8 @@ describe("RenderEngine", () => {
       await renderEngine.setupScene();
 
       expect(renderEngine._instance.stage.addChild).toHaveBeenCalledTimes(2);
-      expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(sprite1._sprite);
-      expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(sprite2._sprite);
+      expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(sprite1._drawable);
+      expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(sprite2._drawable);
     });
   });
 
@@ -272,21 +276,25 @@ describe("RenderEngine", () => {
 
       await testTypeEngine.setup();
       expect(testTypeEngine.EventEngine.hasListeners("remove:drawable")).toBe(true);
+      expect(testTypeEngine.EventEngine.hasListeners("add:drawable")).toBe(true);
 
       testTypeEngine.RenderEngine.destroy(testTypeEngine);
 
       expect(testTypeEngine.EventEngine.hasListeners("remove:drawable")).toBe(false);
+      expect(testTypeEngine.EventEngine.hasListeners("add:drawable")).toBe(false);
     });
 
-    it("should clear spriteMap on destroy", () => {
-      const spriteComponent = new SpriteComponent({ texture_path: "test.png" });
-      getRenderEnginePrivate(renderEngine).spriteMap.set("test-entity", spriteComponent);
+    it("should clear drawablesMap on destroy", () => {
+      const spriteComponent = SPRITE_COMPONENT.create({ texture_path: "test.png" });
+      const componentsMap = new Map();
+      componentsMap.set("SpriteComponent", [spriteComponent]);
+      getRenderEnginePrivate(renderEngine).drawablesMap.set("test-entity", componentsMap);
 
-      expect(getRenderEnginePrivate(renderEngine).spriteMap.size).toBe(1);
+      expect(getRenderEnginePrivate(renderEngine).drawablesMap.size).toBe(1);
 
       renderEngine.destroy(typeEngine);
 
-      expect(getRenderEnginePrivate(renderEngine).spriteMap.size).toBe(0);
+      expect(getRenderEnginePrivate(renderEngine).drawablesMap.size).toBe(0);
     });
 
     it("should handle destroy when app is null", () => {
@@ -314,15 +322,17 @@ describe("RenderEngine", () => {
 
   describe("remove:drawable event handling", () => {
     it("should remove sprite from container when remove:drawable event is received", async () => {
-      const spriteComponent = new SpriteComponent({
+      const spriteComponent = SPRITE_COMPONENT.create({
         texture_path: "test.png",
         position: { x: 10, y: 20 },
       });
 
-      // Add sprite to the spriteMap (simulate setupScene)
+      // Add sprite to the drawablesMap (simulate setupScene)
       const entityId = "test-entity";
       const renderEnginePrivate = getRenderEnginePrivate(renderEngine);
-      renderEnginePrivate.spriteMap.set(entityId, spriteComponent);
+      const componentsMap = new Map();
+      componentsMap.set("SpriteComponent", [spriteComponent]);
+      renderEnginePrivate.drawablesMap.set(entityId, componentsMap);
 
       // Call the private handleRemoveDrawable method directly
       // biome-ignore lint/suspicious/noExplicitAny: Accessing private method for testing
@@ -330,13 +340,13 @@ describe("RenderEngine", () => {
       handleRemoveDrawable.call(renderEngine, {
         entityId,
         componentName: "SpriteComponent",
-        componentData: { texture: "test.png" },
+        componentData: spriteComponent,
       });
 
       expect(renderEngine._instance.stage.removeChild).toHaveBeenCalledWith(
-        spriteComponent._sprite,
+        spriteComponent._drawable,
       );
-      expect(renderEnginePrivate.spriteMap.has(entityId)).toBe(false);
+      expect(renderEnginePrivate.drawablesMap.has(entityId)).toBe(false);
     });
 
     it("should handle remove:drawable event when sprite not found", async () => {
@@ -345,10 +355,11 @@ describe("RenderEngine", () => {
       vi.spyOn(document, "getElementById").mockReturnValue(null);
       await renderEngine.setup();
 
+      const nonExistentComponent = SPRITE_COMPONENT.create({ texture_path: "test.png" });
       typeEngine.EventEngine.emit("remove:drawable", {
         entityId: "non-existent-entity",
         componentName: "SpriteComponent",
-        componentData: { texture: "test.png" },
+        componentData: nonExistentComponent,
       });
 
       // Should not try to remove from stage when sprite not found
@@ -356,7 +367,7 @@ describe("RenderEngine", () => {
     });
 
     it("should handle remove:drawable event when stage is null", async () => {
-      const spriteComponent = new SpriteComponent({
+      const spriteComponent = SPRITE_COMPONENT.create({
         texture_path: "test.png",
       });
 
@@ -367,7 +378,9 @@ describe("RenderEngine", () => {
       renderEngine._instance.stage = null as any;
 
       const renderEnginePrivate = getRenderEnginePrivate(renderEngine);
-      renderEnginePrivate.spriteMap.set(entityId, spriteComponent);
+      const componentsMap = new Map();
+      componentsMap.set("SpriteComponent", [spriteComponent]);
+      renderEnginePrivate.drawablesMap.set(entityId, componentsMap);
 
       // Call the private handleRemoveDrawable method directly
       // biome-ignore lint/suspicious/noExplicitAny: Accessing private method for testing
@@ -377,17 +390,17 @@ describe("RenderEngine", () => {
         handleRemoveDrawable.call(renderEngine, {
           entityId,
           componentName: "SpriteComponent",
-          componentData: { texture: "test.png" },
+          componentData: spriteComponent,
         });
       }).not.toThrow();
 
       // Sprite should be removed from map even if stage is null
-      expect(renderEnginePrivate.spriteMap.has(entityId)).toBe(false);
+      expect(renderEnginePrivate.drawablesMap.has(entityId)).toBe(false);
     });
 
-    it("should track sprites in spriteMap during setupScene", async () => {
-      const sprite1 = new SpriteComponent({ texture_path: "sprite1.png" });
-      const sprite2 = new SpriteComponent({ texture_path: "sprite2.png" });
+    it("should track sprites in drawablesMap during setupScene", async () => {
+      const sprite1 = SPRITE_COMPONENT.create({ texture_path: "sprite1.png" });
+      const sprite2 = SPRITE_COMPONENT.create({ texture_path: "sprite2.png" });
 
       vi.spyOn(typeEngine.EntityEngine, "queryEntities").mockReturnValue([
         { entityId: "entity-1", components: { SpriteComponent: sprite1 } },
@@ -401,15 +414,98 @@ describe("RenderEngine", () => {
 
       await renderEngine.setupScene();
 
-      expect(getRenderEnginePrivate(renderEngine).spriteMap.size).toBe(2);
-      expect(getRenderEnginePrivate(renderEngine).spriteMap.get("entity-1")).toBe(sprite1);
-      expect(getRenderEnginePrivate(renderEngine).spriteMap.get("entity-2")).toBe(sprite2);
+      expect(getRenderEnginePrivate(renderEngine).drawablesMap.size).toBe(2);
+
+      const entity1Components = getRenderEnginePrivate(renderEngine).drawablesMap.get("entity-1");
+      expect(entity1Components?.get("SpriteComponent")?.[0]).toBe(sprite1);
+
+      const entity2Components = getRenderEnginePrivate(renderEngine).drawablesMap.get("entity-2");
+      expect(entity2Components?.get("SpriteComponent")?.[0]).toBe(sprite2);
+    });
+  });
+
+  describe("add:drawable event handling", () => {
+    it("should add sprite to container when add:drawable event is received", async () => {
+      const spriteComponent = SPRITE_COMPONENT.create({
+        texture_path: "test.png",
+        position: { x: 10, y: 20 },
+      });
+
+      const entityId = "test-entity";
+      const renderEnginePrivate = getRenderEnginePrivate(renderEngine);
+
+      // Call the private handleAddDrawable method directly
+      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method for testing
+      const handleAddDrawable = (renderEngine as any).handleAddDrawable;
+      await handleAddDrawable.call(renderEngine, {
+        entityId,
+        componentName: "SpriteComponent",
+        componentData: spriteComponent,
+      });
+
+      expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(spriteComponent._drawable);
+
+      const entityComponents = renderEnginePrivate.drawablesMap.get(entityId);
+      expect(entityComponents?.get("SpriteComponent")?.[0]).toBe(spriteComponent);
+    });
+
+    it("should handle add:drawable event for multiple components", async () => {
+      const sprite1 = SPRITE_COMPONENT.create({ texture_path: "sprite1.png" });
+      const sprite2 = SPRITE_COMPONENT.create({ texture_path: "sprite2.png" });
+
+      const entityId = "test-entity";
+      const renderEnginePrivate = getRenderEnginePrivate(renderEngine);
+
+      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method for testing
+      const handleAddDrawable = (renderEngine as any).handleAddDrawable;
+
+      // Add first sprite
+      await handleAddDrawable.call(renderEngine, {
+        entityId,
+        componentName: "SpriteComponent",
+        componentData: sprite1,
+      });
+
+      // Add second sprite of same type
+      await handleAddDrawable.call(renderEngine, {
+        entityId,
+        componentName: "SpriteComponent",
+        componentData: sprite2,
+      });
+
+      expect(renderEngine._instance.stage.addChild).toHaveBeenCalledTimes(2);
+
+      const entityComponents = renderEnginePrivate.drawablesMap.get(entityId);
+      const spriteComponents = entityComponents?.get("SpriteComponent");
+      expect(spriteComponents).toHaveLength(2);
+      expect(spriteComponents?.[0]).toBe(sprite1);
+      expect(spriteComponents?.[1]).toBe(sprite2);
+    });
+
+    it("should handle add:drawable event when entity does not exist", async () => {
+      const spriteComponent = SPRITE_COMPONENT.create({ texture_path: "new.png" });
+      const entityId = "new-entity";
+      const renderEnginePrivate = getRenderEnginePrivate(renderEngine);
+
+      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method for testing
+      const handleAddDrawable = (renderEngine as any).handleAddDrawable;
+      await handleAddDrawable.call(renderEngine, {
+        entityId,
+        componentName: "SpriteComponent",
+        componentData: spriteComponent,
+      });
+
+      expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(spriteComponent._drawable);
+
+      expect(renderEnginePrivate.drawablesMap.has(entityId)).toBe(true);
+      const entityComponents = renderEnginePrivate.drawablesMap.get(entityId);
+      expect(entityComponents?.get("SpriteComponent")?.[0]).toBe(spriteComponent);
     });
   });
 
   describe("integration", () => {
     it("should work with TypeEngine sprite query", async () => {
-      const spriteComponent = new SpriteComponent({
+      const spriteComponent = SPRITE_COMPONENT.create({
         texture_path: "integration.png",
         position: { x: 100, y: 200 },
         scale: { x: 2, y: 2 },
@@ -434,7 +530,7 @@ describe("RenderEngine", () => {
       await renderEngine.setupScene();
 
       expect(typeEngine.EntityEngine.queryEntities).toHaveBeenCalledWith(["SpriteComponent"]);
-      expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(spriteComponent._sprite);
+      expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(spriteComponent._drawable);
     });
   });
 });
