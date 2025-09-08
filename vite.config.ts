@@ -40,7 +40,7 @@ export default defineConfig({
       preserveEntrySignatures: "strict",
       plugins: [
         {
-          name: "copy-resoucers",
+          name: "copy-resources",
           closeBundle() {
             const allFiles = globSync("src/__Project__/**/*");
             const resourceFiles = allFiles.filter(file => {
