@@ -19,6 +19,8 @@ export default withMermaid(
       }
     },
 
+    ignoreDeadLinks: true,
+
     themeConfig: {
       logo: '/logo.png',
       siteTitle: false,
