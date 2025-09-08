@@ -7,7 +7,7 @@
   "version": "0.2.0",
   "type": "module",
   "main": "out/main/index.js",
-  "packageManager": "pnpm@10.14.0",
+  "packageManager": "pnpm@10.15.1",
   "scripts": {
     "dev": "electron-vite build && vite build && electron-vite dev",
     "build": "electron-vite build",
@@ -71,13 +71,13 @@
     "material-symbols": "0.34.1",
     "matter-js": "^0.20.0",
     "nanoid": "5.1.5",
-    "pixi.js": "8.12.0",
+    "pixi.js": "8.13.1",
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "tailwindcss": "4.1.13"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.1.4",
+    "@biomejs/biome": "2.2.3",
     "@types/react": "19.1.12",
     "@types/react-dom": "19.1.9",
     "@vitejs/plugin-react": "5.0.2",
@@ -85,7 +85,7 @@
     "electron-builder": "26.0.12",
     "electron-vite": "4.0.0",
     "husky": "9.1.7",
-    "npm-check-updates": "18.0.2",
+    "npm-check-updates": "18.1.0",
     "typescript": "5.9.2",
     "vite": "7.1.4",
     "vitest": "3.2.4"
