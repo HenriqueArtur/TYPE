@@ -19,6 +19,9 @@
     "test": "vitest",
     "test:ci": "vitest run --config vitest.config.ts",
     "test:type": "pnpm exec tsc --noEmit -p tsconfig.app.json",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
     "prepare": "husky",
     "update:dependencies": "pnpm exec ncu -i --format group -p pnpm"
   },
@@ -78,16 +81,25 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.3",
+    "@braintree/sanitize-url": "^7.1.1",
+    "@mermaid-js/mermaid-mindmap": "^9.3.0",
     "@types/react": "19.1.12",
     "@types/react-dom": "19.1.9",
     "@vitejs/plugin-react": "5.0.2",
+    "cytoscape": "^3.33.1",
+    "cytoscape-cose-bilkent": "^4.1.0",
+    "dayjs": "^1.11.18",
+    "debug": "^4.4.1",
     "electron": "38.0.0",
     "electron-builder": "26.0.12",
     "electron-vite": "4.0.0",
     "husky": "9.1.7",
+    "mermaid": "^11.11.0",
     "npm-check-updates": "18.1.0",
     "typescript": "5.9.2",
     "vite": "7.1.4",
+    "vitepress": "^1.6.4",
+    "vitepress-plugin-mermaid": "^2.0.17",
     "vitest": "3.2.4"
   }
 }
