@@ -8,9 +8,12 @@ const mockElectronAPI = {
   readJsonFile: vi.fn(),
 };
 
+// Mock window with DOM event methods for MouseSystem
 Object.defineProperty(global, "window", {
   value: {
     electronAPI: mockElectronAPI,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
   },
   writable: true,
 });
@@ -41,10 +44,11 @@ describe("SystemEngine", () => {
     it("should have default systems after setup", () => {
       const systems = systemEngine.getAll();
 
-      // Should have default PhysicsSystem and RenderPixiSystem
+      // Should have default PhysicsSystem, RenderPixiSystem, and MouseSystem
       expect(systems.length).toBeGreaterThan(0);
       expect(systems.some((s) => s.constructor.name === "PhysicsSystem")).toBe(true);
       expect(systems.some((s) => s.constructor.name === "RenderPixiSystem")).toBe(true);
+      expect(systems.some((s) => s.constructor.name === "MouseSystem")).toBe(true);
     });
 
     it("should sort systems by priority", () => {
