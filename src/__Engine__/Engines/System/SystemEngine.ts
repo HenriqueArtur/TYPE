@@ -1,4 +1,4 @@
-import { PhysicsSystem, RenderPixiSystem } from "../../Systems";
+import { MouseSystem, PhysicsSystem, RenderPixiSystem } from "../../Systems";
 import type { System } from "../../Systems/System";
 import type { TypeEngine } from "../../TypeEngine";
 import type { EventEngine } from "../Event/EventEngine";
@@ -47,15 +47,19 @@ export class SystemEngine {
   private addDefaultSystems(): void {
     const physicsSystem = new PhysicsSystem();
     const renderSystem = new RenderPixiSystem();
+    const mouseSystem = new MouseSystem();
 
     this.add(physicsSystem.name, physicsSystem);
     this.add(renderSystem.name, renderSystem);
+    this.add(mouseSystem.name, mouseSystem);
 
     this.systemsList.push(physicsSystem);
     this.systemsList.push(renderSystem);
+    this.systemsList.push(mouseSystem);
 
     this.systemsDefault.push(physicsSystem.name);
     this.systemsDefault.push(renderSystem.name);
+    this.systemsDefault.push(mouseSystem.name);
   }
 
   /**

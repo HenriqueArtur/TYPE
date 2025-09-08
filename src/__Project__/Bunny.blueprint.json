@@ -19,6 +19,23 @@
         "visible": true,
         "anchor": 0.5
       }
+    },
+    {
+      "name": "MouseComponent",
+      "data": {
+        "screenPosition": { "x": 0, "y": 0 },
+        "windowPosition": { "x": 0, "y": 0 },
+        "buttons": {
+          "left": false,
+          "right": false,
+          "middle": false
+        },
+        "wheel": {
+          "deltaX": 0,
+          "deltaY": 0,
+          "deltaZ": 0
+        }
+      }
     }
   ]
 }
