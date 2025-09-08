@@ -8,5 +8,10 @@ export default defineConfig({
   test: {
     globals: true,
     exclude: ["tests", "node_modules", "build", "dist-electron", "public"],
+    silent: true,
+    reporters: [['default', { summary: false }]],
+    onConsoleLog() {
+      return false;
+    },
   },
 });

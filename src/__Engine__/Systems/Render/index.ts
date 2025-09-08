@@ -1,0 +1,1 @@
+export { RenderPixiSystem } from "./RenderPixiSystem";

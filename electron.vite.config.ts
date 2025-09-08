@@ -26,13 +26,20 @@ export default defineConfig({
   },
   renderer: {
     plugins: [react(), tailwindcss()],
-    publicDir: resolve(__dirname, "src/__Project__/"),
     build: {
       rollupOptions: {
         input: {
           index: resolve(__dirname, "src/renderer/editor/index.html"),
-          game: resolve(__dirname, "src/renderer/game/index.html"),
+          gameLoad: resolve(__dirname, "src/renderer/game/index.html"),
         },
+        output: [{
+          dir: "out/renderer",
+          format: "esm",
+          entryFileNames: "[name].js",
+          sourcemap: false,
+          preserveModules: true,
+        }],
+        preserveEntrySignatures: "allow-extension"
       },
     },
   },

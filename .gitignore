@@ -28,3 +28,9 @@ dist-electron
 release
 out
 .ai-journal/
+
+# VitePress
+docs/.vitepress/cache
+docs/.vitepress/dist
+.vitepress/cache
+.vitepress/dist

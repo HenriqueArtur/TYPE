@@ -1,225 +1,377 @@
-# 🚀 TYPE: Game Engine & Editor
+<div align="center">
+  <img src="doc-assets/logo.png" alt="Type Game Engine Logo" width="200"/>
+</div>
+<br/>
 
-**TYPE** _(TypeScript Yields Powerful Engines)_ - A TypeScript-based game engine and visual editor built with Electron, React, and PIXI.js. This project serves as both a functional game development platform and an academic exploration of modern software architecture patterns.
+**Type** _(TypeScript Yields Powerful [Game] Engines)_ - A modern TypeScript-based game engine built with Electron, React, and PIXI.js. This project implements Entity Component System (ECS) architecture with a sophisticated multi-engine design pattern for high-performance game development.
 
 **Academic Context**: Final project for MBA in Software Engineering at USP Brazil 🎓🇧🇷
 
 ## 🎯 Project Overview
 
-TYPE is a desktop application that provides:
+Type provides a complete game development ecosystem:
 
-- **Visual Game Editor**: React-based interface for game development
-- **Lightweight Game Runtime**: PIXI.js-powered 2D rendering engine with physics simulation
-- **Component-Based Architecture**: Modular system for game objects and scenes
-- **Physics Engine Integration**: Matter.js-powered physics simulation with sprite synchronization
-- **JSON-Based Project Files**: Human-readable, version-control-friendly game data
+- **Lightweight Game Runtime**: PIXI.js-powered 2D rendering with physics simulation
+- **ECS Architecture**: Entity Component System with modular sub-engines
+- **Physics Integration**: Matter.js-powered physics simulation with automatic sprite synchronization
+- **JSON-Based Projects**: Human-readable, version-control-friendly game data
+- **Cross-Platform**: Electron-based desktop application framework
 
 ### Core Technologies
 
 - **TypeScript**: Type-safe development with modern language features
 - **Electron**: Cross-platform desktop application framework
-- **React 19**: Modern UI library for the editor interface
+- **React 19**: Modern UI library for desktop interface
 - **PIXI.js 8**: High-performance 2D WebGL rendering
 - **Matter.js**: 2D physics engine for realistic simulation
 - **Vite**: Fast build tooling and development server
 - **Vitest**: Comprehensive testing framework
 - **Biome**: Code formatting and linting
 
-## 🏗️ Architecture
+## 🏗️ Architecture Overview
 
 ### Multi-Process Electron Structure
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Main Process  │    │  Editor Renderer │    │  Game Renderer  │
-│                 │    │     (React)      │    │    (PIXI.js)    │
-│ • App lifecycle │    │ • Visual editor  │    │ • Game runtime  │
-│ • Window mgmt   │◄──►│ • Asset mgmt     │    │ • JSON loading  │
-│ • File system   │    │ • Scene editor   │    │ • TypeEngine    │
-│ • IPC handling  │    │ • UI components  │    │ • Physics sim   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         ▲                        ▲                        ▲
-         │                        │                        │
-         └────────────────────────┼────────────────────────┘
-                                  │
-                   ┌─────────────────────────────┐
-                   │      Preload Script         │
-                   │   (Secure IPC Bridge)       │
-                   └─────────────────────────────┘
+```mermaid
+graph TB
+    subgraph "Electron Application"
+        MP["🔧 Main Process<br/>• App lifecycle<br/>• Window management<br/>• File system access<br/>• IPC coordination"]
+        PS["🔒 Preload Script<br/>• Secure IPC bridge<br/>• Context isolation<br/>• API exposure"]
+        
+        subgraph "Renderer Processes"
+            GR["🎮 Game Renderer<br/>• PIXI.js runtime<br/>• TypeEngine<br/>• JSON loading<br/>• Physics simulation"]
+        end
+    end
+    
+    MP <--> PS
+    PS <--> GR
+    MP <--> GR
 ```
 
 ### Engine Architecture
 
-The engine is built around a singleton pattern with clear separation of concerns:
-
+```mermaid
+graph TB
+    subgraph "TypeEngine - Main Coordinator"
+        TE["🎛️ TypeEngine<br/>• Engine lifecycle<br/>• Scene coordination<br/>• Update loop<br/>• Dependency injection"]
+    end
+    
+    subgraph "Sub-Engines"
+        EE["👥 EntityEngine<br/>• Entity management<br/>• Component registration<br/>• Entity lifecycle"]
+        RE["🖼️ RenderEngine<br/>• Sprite management<br/>• PIXI.js coordination<br/>• Visual rendering"]
+        PE["⚡ PhysicsEngine<br/>• Matter.js integration<br/>• Body management<br/>• Physics simulation"]
+        ScE["🎬 SceneEngine<br/>• Scene loading<br/>• Scene transitions<br/>• Asset coordination"]
+        SysE["⚙️ SystemEngine<br/>• System management<br/>• Update coordination<br/>• System lifecycle"]
+        EvE["📡 EventEngine<br/>• Event dispatching<br/>• Inter-engine communication<br/>• Event queuing"]
+        TiE["⏰ TimeEngine<br/>• Frame timing<br/>• Delta calculation<br/>• Update scheduling"]
+    end
+    
+    subgraph "Systems Layer"
+        RS["🎨 RenderPixiSystem<br/>• Sprite rendering<br/>• Visual updates"]
+        PS["🏃 PhysicsSystem<br/>• Physics updates<br/>• Collision detection"]
+        MS["🖱️ MouseSystem<br/>• Input handling<br/>• Mouse events"]
+    end
+    
+    subgraph "Components Layer"
+        DC["🖼️ Drawable Components<br/>• SpriteComponent"]
+        PC["⚡ Physics Components<br/>• RigidBodyRectangle<br/>• ColliderRectangle<br/>• SensorRectangle"]
+        IC["🎯 Input Components<br/>• MouseComponent"]
+    end
+    
+    TE --> EE
+    TE --> RE
+    TE --> PE
+    TE --> ScE
+    TE --> SysE
+    TE --> EvE
+    TE --> TiE
+    
+    SysE --> RS
+    SysE --> PS
+    SysE --> MS
+    
+    RS --> DC
+    PS --> PC
+    MS --> IC
 ```
-┌─────────────────┐
-│   TypeEngine    │ ◄─── Singleton coordinator
-│   (Singleton)   │
-│                 │
-│ • Scene mgmt    │ ┌─────────────────┐
-│ • Game loop     │ │  RenderEngine   │ ◄─── Pure sprite management
-│ • Coordination  │ │                 │
-└─────────────────┘ │ • Sprite mgmt   │
-         │          │ • PIXI.js       │
-         │          │ • No physics    │
-         ▼          └─────────────────┘
-┌─────────────────┐
-│ PhysicsWorld    │ ◄─── Pure physics simulation
-│   Manager       │
-│                 │
-│ • Matter.js     │
-│ • Bodies mgmt   │
-│ • No sprites    │
-└─────────────────┘
+
+### Data Flow Architecture
+
+```mermaid
+sequenceDiagram
+    participant Project as 📁 __Project__ Files
+    participant TypeEngine as 🎛️ TypeEngine
+    participant Systems as ⚙️ Systems
+    participant Components as 🔧 Components
+    
+    Project->>TypeEngine: Load game data
+    TypeEngine->>Systems: Initialize systems
+    Systems->>Components: Process components
+    
+    loop Game Loop
+        TypeEngine->>Systems: Update (deltaTime)
+        Systems->>Components: Transform data
+        Components->>TypeEngine: State changes
+    end
 ```
 
-### Directory Structure
+## 📁 Project Structure
 
 ```
 src/
-├── __Engine__/              # Reusable game engine core
-│   ├── Component/           # ECS components (Transform, Sprite, Body)
-│   │   └── Body/           # Physics body components
-│   ├── GameObject/          # Game object abstractions
-│   ├── Scene/              # Scene management and loading
-│   ├── Physics/            # Physics engine and world management
-│   ├── Render/             # Render engine for sprite management
-│   ├── TypeEngine.ts       # Main engine singleton
-│   ├── InputDevices/       # Input handling (Mouse, etc.)
-│   └── Utils/              # Engine utilities
-├── __Project__/            # Game-specific content
-│   ├── *.ts                # Game object classes
-│   ├── *.obj.json          # Object initial values
-│   ├── *.loaded.ts         # Object loading logic
-│   └── assets/             # Game assets (images, sounds)
-├── main/                   # Electron main process
-├── preload/                # Secure IPC bridge
+├── __Engine__/                 # 🎮 Game Engine Core
+│   ├── TypeEngine.ts          # Main engine coordinator
+│   ├── Engines/               # Sub-engine implementations
+│   │   ├── Entity/           # Entity management
+│   │   ├── Event/            # Event system
+│   │   ├── Physics/          # Physics integration
+│   │   ├── Render/           # Rendering management
+│   │   ├── Scene/            # Scene management
+│   │   ├── System/           # System coordination
+│   │   └── Time/             # Time management
+│   ├── Systems/              # Game logic systems
+│   │   ├── Physics/          # Physics system
+│   │   ├── Render/           # Rendering system
+│   │   └── Input/            # Input systems
+│   ├── Component/            # ECS components
+│   │   ├── Drawable/         # Visual components
+│   │   ├── Physics/          # Physics components
+│   │   └── Input/            # Input components
+│   └── Utils/                # Engine utilities
+├── __Project__/              # 🧪 Test Game Assets
+│   ├── *.scene.json         # Scene definitions
+│   ├── *.blueprint.json     # Entity blueprints
+│   ├── *.system.ts          # Game systems
+│   ├── *.component.ts       # Game components
+│   └── assets/              # Game assets
+├── main/                     # 🔧 Electron Main Process
+├── preload/                  # 🔒 Secure IPC Bridge
 └── renderer/
-    ├── editor/             # React-based game editor
-    └── game/               # PIXI.js game runtime
+    └── game/                # 🎮 PIXI.js Game Runtime
 ```
 
-### Data Flow
+## 🎮 Engine System Deep Dive
 
-```
-Editor (React) ←→ src/__Project__/*.json ←→ Game Runtime (TypeEngine)
-                                                      ↓
-                                            ┌─────────────────┐
-                                            │ RenderEngine    │
-                                            │ (Sprites)       │
-                                            └─────────────────┘
-                                                      ↓
-                                            ┌─────────────────┐
-                                            │ PhysicsWorld    │
-                                            │ (Bodies)        │
-                                            └─────────────────┘
-```
+### TypeEngine - Main Coordinator
 
-## 🎮 Engine Components
-
-### TypeEngine (Singleton)
-
-The central coordinator that manages the entire game lifecycle:
+The TypeEngine serves as the central coordinator implementing dependency injection and lifecycle management:
 
 ```typescript
-// Get the singleton instance
-const engine = TypeEngine.getInstance();
+const engine = new TypeEngine({
+  projectPath: './src/__Project__',
+  Render: { 
+    canvas: document.getElementById('game-canvas'),
+    width: 1024,
+    height: 768 
+  },
+  Physics: { 
+    gravity: { x: 0, y: 0.8 } 
+  }
+});
 
-// Load a scene
-await engine.loadScene(scene);
+// Setup all sub-engines
+await engine.setup();
 
 // Start the game loop
-engine.startGameLoop();
-
-// Access sub-engines
-const renderEngine = engine.getRenderEngine();
-const physicsManager = engine.getCurrentScene()?.getPhysicsManager();
+engine.start();
 ```
 
 **Key Features:**
-- **Singleton Pattern**: Single instance manages entire game state
-- **Game Loop Management**: requestAnimationFrame-based update cycle
-- **Scene Coordination**: Loads and manages current scene
-- **Sprite-Body Synchronization**: Automatically syncs physics bodies with visual sprites
-- **Resource Management**: Proper cleanup and memory management
+- **Dependency Injection**: All sub-engines receive dependencies through constructor
+- **Lifecycle Management**: Coordinates setup, start, stop, and cleanup
+- **Scene Coordination**: Manages scene transitions and asset loading
+- **Update Loop**: Orchestrates system updates with proper timing
 
-### RenderEngine
+### Sub-Engines
 
-Dedicated sprite management without physics coupling:
+#### EntityEngine
+Manages entities and their components within the ECS architecture:
 
 ```typescript
-// Pure sprite operations
-renderEngine.addSprite(spriteComponent);
-renderEngine.removeSprite(spriteComponent);
-await renderEngine.loadAllSprites();
+// Register entity with components
+entityEngine.setupScene([
+  {
+    id: 'player',
+    components: [
+      { type: 'SpriteComponent', data: { texturePath: 'player.png' } },
+      { type: 'RigidBodyRectangleComponent', data: { width: 32, height: 32 } }
+    ]
+  }
+]);
 ```
 
-**Key Features:**
-- **Pure Rendering**: Only handles sprite display and PIXI.js operations
-- **No Physics References**: Completely decoupled from physics simulation
-- **Efficient Loading**: Batch sprite loading with Promise.all
-- **Memory Management**: Proper sprite cleanup and removal
+#### RenderEngine
+Handles all visual rendering through PIXI.js integration:
 
-### PhysicsWorldManager
+- Pure sprite management without physics coupling
+- Efficient batch operations for sprite loading
+- Memory management and cleanup
+- PIXI.js abstraction layer
 
-Pure physics simulation without rendering concerns:
+#### PhysicsEngine
+Manages physics simulation through Matter.js:
 
-```typescript
-// Pure physics operations
-physicsManager.addBody(bodyComponent);
-physicsManager.removeBody(bodyComponent);
-physicsManager.update(deltaTime);
+- Physics body creation and management
+- Collision detection and response
+- Physics world simulation
+- Automatic synchronization with visual sprites
+
+#### SystemEngine
+Coordinates game logic systems:
+
+- System registration and lifecycle
+- Priority-based execution order
+- System enable/disable management
+- Update loop coordination
+
+### Systems Layer
+
+Systems contain game logic and operate on entities with specific components:
+
+```mermaid
+graph LR
+    subgraph "System Interface"
+        SI["📋 System Interface<br/>• name: string<br/>• priority: number<br/>• enabled: boolean<br/>• init(engine)<br/>• update(engine, deltaTime)<br/>• destroy(engine)"]
+    end
+    
+    subgraph "Built-in Systems"
+        RPS["🎨 RenderPixiSystem<br/>Priority: 1000<br/>Updates sprite rendering"]
+        PhS["⚡ PhysicsSystem<br/>Priority: 500<br/>Updates physics bodies"]
+        MoS["🖱️ MouseSystem<br/>Priority: 100<br/>Handles mouse input"]
+    end
+    
+    SI --> RPS
+    SI --> PhS
+    SI --> MoS
 ```
 
-**Key Features:**
-- **Matter.js Integration**: Full physics simulation with collision detection
-- **No Sprite References**: Focuses purely on physics bodies
-- **Performance Optimized**: Efficient physics updates and body management
-- **Collision Detection**: Built-in collision handling and response
+### Components Layer
+
+Components store data and define entity behavior:
+
+```mermaid
+graph TB
+    subgraph "Component Types"
+        DC["🖼️ Drawable Components"]
+        PC["⚡ Physics Components"] 
+        IC["🎯 Input Components"]
+    end
+    
+    subgraph "Drawable Components"
+        SC["SpriteComponent<br/>• texturePath<br/>• position<br/>• scale<br/>• rotation"]
+    end
+    
+    subgraph "Physics Components"
+        RBC["RigidBodyRectangleComponent<br/>• width, height<br/>• mass, friction<br/>• restitution"]
+        CC["ColliderRectangleComponent<br/>• Static collision body<br/>• Collision detection"]
+        SRC["SensorRectangleComponent<br/>• Trigger areas<br/>• No collision response"]
+    end
+    
+    subgraph "Input Components"
+        MC["MouseComponent<br/>• Mouse position<br/>• Click events<br/>• Hover states"]
+    end
+    
+    DC --> SC
+    PC --> RBC
+    PC --> CC
+    PC --> SRC
+    IC --> MC
+```
+
+## 🧪 __Project__ Directory - Test Environment
+
+The `__Project__` directory serves as a **test environment** and **example implementation** demonstrating engine capabilities:
+
+- **Scene Definitions**: JSON files defining game scenes and entity layouts
+- **Entity Blueprints**: JSON templates for creating entities with predefined components
+- **Test Systems**: Example game logic systems for testing engine functionality
+- **Test Components**: Custom components demonstrating component creation patterns
+- **Asset Management**: Example assets (sprites, sounds) for testing rendering and loading
+
+**Example Scene Structure:**
+```json
+{
+  "name": "Initial",
+  "systems": ["ExampleSystem"],
+  "entities": [
+    {
+      "blueprint": "Bunny",
+      "position": { "x": 400, "y": 300 },
+      "components": {
+        "SpriteComponent": { "texturePath": "bunny.png" }
+      }
+    }
+  ]
+}
+```
+
+## ⚡ Electron Process Architecture
+
+```mermaid
+graph TB
+    subgraph "Electron Security Model"
+        MP["🔧 Main Process<br/>• Node.js access<br/>• File system operations<br/>• Window management<br/>• Native APIs"]
+        
+        subgraph "Sandboxed Renderer Process"
+            GR["🎮 Game Renderer<br/>• PIXI.js runtime<br/>• No Node.js access<br/>• Secure context"]
+        end
+        
+        PS["🔒 Preload Scripts<br/>• contextIsolation: true<br/>• nodeIntegration: false<br/>• Secure API bridge"]
+    end
+    
+    subgraph "IPC Communication"
+        IPC["📡 Inter-Process Communication<br/>• File operations<br/>• Window management<br/>• Secure data exchange"]
+    end
+    
+    MP <--> PS
+    PS <--> GR
+    MP <--> IPC
+    GR <--> IPC
+```
+
+**Security Features:**
+- **Context Isolation**: Renderer process runs in isolated context
+- **No Node.js Integration**: Renderer cannot access Node.js APIs directly
+- **Secure IPC**: All communication validated and sanitized
+- **Sandboxed Environment**: Maximum security for game content
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- **Node.js** 18+ 
+- **Node.js** 18+
 - **pnpm** 8+ (recommended package manager)
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/HenriqueArtur/TYPE.git
-   cd TYPE
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/HenriqueArtur/Type.git
+cd Type
 
-2. **Install dependencies**
-   ```bash
-   pnpm install
-   ```
+# Install dependencies
+pnpm install
 
-3. **Start development**
-   ```bash
-   pnpm dev
-   ```
+# Start development
+pnpm dev
+```
 
-This launches both the editor and game runtime in development mode with hot reloading.
+This launches the game runtime in development mode with hot reloading.
 
-## 🛠️ Development
-
-### Available Commands
+## 🛠️ Development Commands
 
 ```bash
-# Development
+# Core Development
 pnpm dev                    # Start development mode
 pnpm build                  # Build for production
 pnpm test                   # Run test suite
 pnpm test:type             # TypeScript type checking
 pnpm lint                  # Code linting and formatting
 
-# Testing
+# Testing & Quality
 pnpm test -- <file>        # Run specific test file
 pnpm test:ci               # CI test configuration
+pnpm lint:ci               # CI-specific linting
 
 # Building & Distribution
 pnpm build:linux          # Build Linux distributables
@@ -230,164 +382,137 @@ pnpm build:win             # Build Windows distributables
 pnpm update:dependencies   # Interactive dependency updates
 ```
 
-### Development Workflow
-
-This project follows **Test-Driven Development (TDD)**:
-
-1. **Write Tests First**: Create `.spec.ts` files before implementing features
-2. **Red Phase**: Ensure tests fail initially
-3. **Green Phase**: Write minimal code to pass tests
-4. **Refactor Phase**: Improve code while maintaining test coverage
-
-### Code Quality Standards
-
-- **Type Safety**: Strict TypeScript configuration
-- **Code Style**: Biome formatter with 2-space indentation, 100-char line width
-- **Testing**: Comprehensive test coverage with Vitest
-- **Linting**: Zero-tolerance for `any` types and code quality issues
-
 ## 🎮 Creating Games
 
-### Component-Based Architecture
-
-Games are built using an Entity-Component System with physics integration:
+### Entity-Component-System Pattern
 
 ```typescript
-// Game objects with physics bodies
-const gameObject = new ConcreteGameObject({
-  transform: new TransformComponent({
-    position: { x: 100, y: 200 },
-    scale: { x: 1, y: 1 },
-    rotation: Angle.fromDegrees(45)
-  }),
-  sprite: new SpriteComponent({
-    texture: new TextureComponent({ path: "player.png" }),
-    // ... transform properties inherited
-  }),
-  body: new RectangularBodyComponent({
-    width: 64,
-    height: 64,
-    x: 100,
-    y: 200
-  })
-});
+// Define a game system
+export class PlayerMovementSystem implements System {
+  name = 'PlayerMovementSystem';
+  priority = 200;
+  enabled = true;
+
+  init(engine: TypeEngine): void {
+    // System initialization
+  }
+
+  update(engine: TypeEngine, deltaTime: number): void {
+    // Update entities with movement components
+    const entities = engine.EntityEngine.getEntitiesByComponent('MovementComponent');
+    for (const entity of entities) {
+      // Process movement logic
+    }
+  }
+}
 ```
 
-### Physics Integration
-
-The engine provides seamless physics integration:
+### Component Creation
 
 ```typescript
-// Bodies are automatically synchronized with sprites
-const bunny = new Bunny({
-  // Sprite properties
-  texture: new TextureComponent({ path: "bunny.png" }),
-  
-  // Physics properties
-  body: new RectangularBodyComponent({
-    width: 32,
-    height: 32,
-    friction: 0.8,
-    restitution: 0.2
-  })
-});
-
-// Physics updates automatically sync with visual representation
+// Define a custom component
+export interface MovementComponent {
+  type: 'MovementComponent';
+  velocity: { x: number; y: number };
+  acceleration: { x: number; y: number };
+  maxSpeed: number;
+}
 ```
 
-### Game Object Structure
+### Scene Definition
 
-Each game object requires three files:
-
-- **`GameObject.ts`**: Class definition with game logic
-- **`GameObject.obj.json`**: Serialized initial values
-- **`GameObject.loaded.ts`**: Loading and initialization logic
-
-### Scene Management
-
-Scenes coordinate both rendering and physics:
-
-```typescript
-// Scene automatically manages both systems
-const scene = new GameScene([
-  // Game objects with sprites and bodies
-  bunny1,
-  bunny2
-]);
-
-// TypeEngine coordinates everything
-const engine = TypeEngine.getInstance();
-await engine.loadScene(scene);
-engine.startGameLoop(); // Handles rendering + physics
+```json
+{
+  "name": "GameLevel1",
+  "systems": ["PlayerMovementSystem", "EnemyAISystem"],
+  "entities": [
+    {
+      "blueprint": "Player",
+      "position": { "x": 100, "y": 100 }
+    },
+    {
+      "blueprint": "Enemy",
+      "position": { "x": 500, "y": 300 }
+    }
+  ]
+}
 ```
 
 ## 🔧 Extending the Engine
 
+### Adding New Systems
+
+1. **Implement System Interface** in `src/__Engine__/Systems/`
+2. **Define Priority** (lower values execute first)
+3. **Register in SystemEngine**
+4. **Write Comprehensive Tests**
+
 ### Adding New Components
 
-1. **Create component class** in `src/__Engine__/Component/`
-2. **Implement required interfaces** (`GameComponent`)
-3. **Register in component registry** (`COMPONENT_CLASSES`)
-4. **Write comprehensive tests** (`.spec.ts`)
+1. **Define Component Interface** in `src/__Engine__/Component/`
+2. **Register in Component Registry**
+3. **Update TypeScript Types**
+4. **Create Test Suite**
 
-### Adding Physics Bodies
+### Custom Engines
 
-1. **Extend `BodyComponent`** abstract class
-2. **Implement physics properties** and Matter.js integration
-3. **Add to `Component/Body/` directory**
-4. **Create comprehensive test suite**
+1. **Extend Base Engine Pattern**
+2. **Integrate with TypeEngine**
+3. **Implement Lifecycle Methods**
+4. **Add to Engine Dependencies**
 
-### Adding Input Devices
+## 📊 Performance Considerations
 
-1. **Create device class** in `src/__Engine__/InputDevices/`
-2. **Implement event handling**
-3. **Integrate with game loop**
-4. **Add tests for all functionality**
+- **ECS Architecture**: Optimal data locality and cache efficiency
+- **Priority-Based Systems**: Control execution order for performance
+- **Batch Operations**: Minimize individual API calls
+- **Memory Management**: Proper cleanup and resource disposal
+- **Physics-Render Sync**: Efficient synchronization without coupling
 
-### Custom Game Objects
+## 🔒 Security & Best Practices
 
-1. **Extend `GameObject`** abstract class
-2. **Implement `update()` method**
-3. **Create associated `.obj.json` and `.loaded.ts` files
-4. **Reference in scene definitions**
+- **Electron Security**: Context isolation and sandboxing enabled
+- **Type Safety**: Strict TypeScript configuration
+- **Input Validation**: All data validated at boundaries
+- **Asset Path Integrity**: Protected asset loading mechanisms
+- **Memory Safety**: Proper cleanup and disposal patterns
 
-## 📁 Important Files
+## 🧪 Testing Strategy
 
-- **`CLAUDE.md`**: AI development guidelines and TDD requirements
-- **`biome.json`**: Code formatting and linting configuration
-- **`electron.vite.config.ts`**: Build configuration for all processes
-- **`vitest.config.ts`**: Testing framework configuration
+### Test-Driven Development
 
-## 🔒 Security Considerations
+Following TDD principles throughout development:
 
-- **IPC Validation**: All inter-process communication is validated
-- **File System Access**: Secure path handling prevents directory traversal
-- **Electron Security**: Context isolation enabled, node integration disabled
-- **Asset Path Integrity**: Critical paths in `src/renderer/game/index.ts` are protected
+1. **Red Phase**: Write failing tests first
+2. **Green Phase**: Implement minimal code to pass
+3. **Refactor Phase**: Improve while maintaining tests
 
-## 🧪 Testing
+### Test Categories
 
-Comprehensive test coverage includes:
+- **Unit Tests**: Individual components and systems
+- **Integration Tests**: Engine coordination and data flow
+- **System Tests**: Full engine lifecycle testing
+- **Performance Tests**: Benchmarking and optimization
 
-- **Unit Tests**: All components, utilities, and core functionality
-- **Integration Tests**: Scene loading, component interactions, engine coordination
-- **Physics Tests**: Matter.js integration and body synchronization
-- **Type Tests**: TypeScript type safety verification
-- **Mocking**: PIXI.js, Matter.js, and Electron APIs for isolated testing
-
-Run tests with:
 ```bash
-pnpm test              # All tests
-pnpm test:type         # Type checking
-pnpm lint              # Code quality
+# Run all tests
+pnpm test
+
+# Run with coverage
+pnpm test --coverage
+
+# Run specific test category
+pnpm test systems/
+pnpm test engines/
+pnpm test components/
 ```
 
 ## 📖 Documentation
 
+- **Engine Architecture**: See `for-LLMs/engine.md`
 - **Development Guidelines**: See `CLAUDE.md`
-- **Engine Architecture**: See `.for-LLMs/engine.md`
+- **Commit Standards**: See `for-LLMs/gitmoji.md`
 - **API Documentation**: Generated from TypeScript annotations
-- **Architecture Decisions**: Documented in code comments
 
 ## 🤝 Contributing
 
@@ -396,7 +521,8 @@ This project follows strict development practices:
 1. **TDD Approach**: Tests before implementation
 2. **Type Safety**: No `any` types allowed
 3. **Code Quality**: Biome linting with error-level rules
-4. **Security First**: Follow security guidelines in `GEMINI.md`
+4. **Security First**: Follow Electron security best practices
+5. **Gitmoji Commits**: Consistent commit message formatting
 
 ## 📄 License
 
@@ -406,4 +532,5 @@ This project is part of an academic research program at USP Brazil. Please respe
 
 **Academic Institution**: Universidade de São Paulo (USP) 🇧🇷  
 **Program**: MBA in Software Engineering  
-**Focus**: Modern software architecture and game engine design patterns
+**Focus**: Modern software architecture and ECS game engine design patterns  
+**Project Type**: Game Engine with Multi-Engine Architecture

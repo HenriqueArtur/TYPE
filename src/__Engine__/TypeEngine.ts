@@ -1,142 +1,128 @@
-import type { DrawableComponent } from "./Component/DrawableComponent";
-import type { RectangularBodyComponent } from "./Component/Physics/RectangularBodyComponent";
-import type { PhysicsComponent } from "./Component/PhysicsComponent";
-import type { GameObject } from "./GameObject";
-import type { Mouse } from "./InputDevices/Mouse";
-import { PhysicsWorldManager } from "./Physics";
-import { RenderEngine } from "./Render";
-import type { GameScene } from "./Scene";
+import {
+  EntityEngine,
+  EventEngine,
+  PhysicsEngine,
+  RenderEngine,
+  SystemEngine,
+  TimeEngine,
+} from "./Engines";
+import type { PhysicsEngineOptions } from "./Engines/Physics/PhysicsEngine";
+import type { RenderEngineOptions } from "./Engines/Render/RenderEngine";
+import { SceneEngine } from "./Engines/Scene/SceneEngine";
 
+export interface TypeEngineOptions {
+  projectPath: string;
+  Render: Omit<RenderEngineOptions, "engine" | "EventEngine">;
+  Physics?: Omit<PhysicsEngineOptions, "engine" | "EventEngine">;
+}
+
+/**
+ * TypeEngine - Entity Component System (ECS) architecture implementation
+ *
+ * The main engine class that manages systems and coordinates between different engine components.
+ * Uses dependency injection for better testability and modularity.
+ */
 export class TypeEngine {
-  private static instance: TypeEngine | null = null;
-  private currentScene: GameScene | null = null;
-  private renderEngine: RenderEngine;
-  private physicsWorldManager: PhysicsWorldManager;
-  private gameLoopId: number | null = null;
-  private lastTime: number = 0;
+  // ** DATA ** //
+  readonly projectPath: string;
+  private isRunning = false;
+  private updateAddedToTimeEngine = false;
 
-  private constructor() {
-    // Private constructor to prevent direct instantiation
-    this.renderEngine = new RenderEngine();
-    this.physicsWorldManager = new PhysicsWorldManager();
+  // ** ENGINES ** //
+  readonly EventEngine: EventEngine;
+  readonly EntityEngine: EntityEngine;
+  readonly PhysicsEngine: PhysicsEngine;
+  readonly SceneEngine: SceneEngine;
+  readonly SystemEngine: SystemEngine;
+  readonly TimeEngine: TimeEngine;
+  readonly RenderEngine: RenderEngine;
+
+  constructor({ Render, Physics, projectPath }: TypeEngineOptions) {
+    this.projectPath = projectPath;
+    this.EventEngine = new EventEngine();
+    this.EntityEngine = new EntityEngine({ engine: this, EventEngine: this.EventEngine });
+    this.PhysicsEngine = new PhysicsEngine({
+      engine: this,
+      EventEngine: this.EventEngine,
+      ...Physics,
+    });
+    this.SceneEngine = new SceneEngine({ engine: this });
+    this.SystemEngine = new SystemEngine({
+      projectPath,
+      EventEngine: this.EventEngine,
+      engine: this,
+    });
+    this.RenderEngine = new RenderEngine({
+      engine: this,
+      EventEngine: this.EventEngine,
+      ...Render,
+    });
+    this.TimeEngine = new TimeEngine();
   }
 
-  static getInstance(): TypeEngine {
-    if (!TypeEngine.instance) {
-      TypeEngine.instance = new TypeEngine();
+  async setup() {
+    await this.EntityEngine.setup();
+    await this.PhysicsEngine.setup();
+    await this.RenderEngine.setup();
+    await this.SystemEngine.setup();
+    const { systemsEnabled, entities } = await this.SceneEngine.setup();
+    this.EntityEngine.setupScene(entities);
+    this.PhysicsEngine.setupScene();
+    this.RenderEngine.setupScene();
+    this.SystemEngine.setupScene(systemsEnabled);
+  }
+
+  async transitionScene(sceneName: string) {
+    this.PhysicsEngine.clear();
+    this.RenderEngine.clear();
+    this.EntityEngine.clear();
+    this.SystemEngine.clear();
+    const { systemsEnabled, entities } = await this.SceneEngine.transition(sceneName);
+    this.SystemEngine.setupScene(systemsEnabled);
+    this.EntityEngine.setupScene(entities);
+    this.RenderEngine.setupScene();
+    this.PhysicsEngine.setupScene();
+  }
+
+  // ========================================
+  // ENGINE LIFECYCLE
+  // ========================================
+
+  /**
+   * Starts the engine and time engine, enabling system updates
+   * Automatically adds the update method to TimeEngine if not already added
+   */
+  start(): void {
+    this.isRunning = true;
+    if (!this.updateAddedToTimeEngine) {
+      this.TimeEngine.add(this.update.bind(this));
+      this.updateAddedToTimeEngine = true;
     }
-    return TypeEngine.instance;
+    this.TimeEngine.start();
   }
 
-  static resetInstance(): void {
-    TypeEngine.instance = null;
+  /**
+   * Stops the engine and time engine, disabling system updates
+   */
+  stop(): void {
+    this.isRunning = false;
+    this.TimeEngine.stop();
   }
 
-  loadScene(scene: GameScene): void {
-    this.currentScene = scene;
-
-    // Clear previous render data
-    this.renderEngine.destroy();
-    this.renderEngine = new RenderEngine();
-
-    // Clear and reinitialize physics
-    this.physicsWorldManager = new PhysicsWorldManager();
-
-    // Add all drawable components to render engine
-    scene.components.sprites.forEach((drawable) => {
-      this.renderEngine.addDrawable(drawable);
-    });
-
-    // Add all physics components to physics world
-    scene.components.bodies.forEach((physicsComponent) => {
-      this.physicsWorldManager.addPhysicsComponent(physicsComponent);
-    });
-  }
-
-  getCurrentScene(): GameScene | null {
-    return this.currentScene;
-  }
-
-  getPhysicsManager(): PhysicsWorldManager {
-    return this.physicsWorldManager;
-  }
-
-  getRenderEngine(): RenderEngine {
-    return this.renderEngine;
-  }
-
+  /**
+   * Updates all enabled systems if the engine is running
+   * Processes queued events before and after system updates
+   * @param deltaTime - Time elapsed since last update in milliseconds
+   */
   update(deltaTime: number): void {
-    if (this.currentScene) {
-      // Update physics world
-      this.physicsWorldManager.update(deltaTime);
-
-      // Update scene (collision detection and game object management)
-      const bodiesToRemove = this.currentScene.update(deltaTime);
-
-      // Remove destroyed physics components from physics world
-      if (bodiesToRemove) {
-        bodiesToRemove.forEach((physicsComponent) => {
-          this.physicsWorldManager.removePhysicsComponent(physicsComponent);
-        });
-      }
+    if (!this.isRunning) {
+      return;
     }
-  }
-
-  removePhysicsComponent(component: PhysicsComponent): void {
-    this.physicsWorldManager.removePhysicsComponent(component);
-  }
-
-  addDrawableComponent(component: DrawableComponent): void {
-    this.renderEngine.addDrawable(component);
-  }
-
-  removeDrawableComponent(component: DrawableComponent): void {
-    this.renderEngine.removeDrawable(component);
-  }
-
-  // Legacy method for backward compatibility
-  removeBodyFromPhysics(body: RectangularBodyComponent): void {
-    this.physicsWorldManager.removePhysicsComponent(body);
-  }
-
-  startGameLoop(updateCallback?: (deltaTime: number) => void, mouse?: Mouse): void {
-    const gameLoop = (currentTime: number) => {
-      const deltaTime = currentTime - this.lastTime;
-      this.lastTime = currentTime;
-
-      if (this.currentScene) {
-        // Update all game objects
-        this.currentScene.gameObjects.forEach((gameObject: GameObject) => {
-          gameObject.update({ deltaTime, mouse: mouse || { position: { x: 0, y: 0 } } });
-        });
-
-        // Update scene (includes physics world and collision detection)
-        this.update(deltaTime);
-      }
-
-      // Call optional update callback
-      if (updateCallback) {
-        updateCallback(deltaTime);
-      }
-
-      // Continue the game loop
-      this.gameLoopId = requestAnimationFrame(gameLoop);
-    };
-
-    // Start the game loop
-    this.gameLoopId = requestAnimationFrame(gameLoop);
-  }
-
-  stopGameLoop(): void {
-    if (this.gameLoopId !== null) {
-      cancelAnimationFrame(this.gameLoopId);
-      this.gameLoopId = null;
-    }
-  }
-
-  destroy(): void {
-    this.stopGameLoop();
-    this.renderEngine.destroy();
-    this.currentScene = null;
+    this.EventEngine.emit("engine:update:start", deltaTime);
+    this.EventEngine.processEvents();
+    this.SystemEngine.update(deltaTime);
+    this.EventEngine.processEvents();
+    this.EventEngine.emit("engine:update:end", deltaTime);
+    this.EventEngine.processEvents();
   }
 }

@@ -1,3 +1,4 @@
+import { promises as fs } from "node:fs";
 import path from "node:path";
 import { app, BrowserWindow } from "electron";
 import { ipcMain } from "electron/main";
@@ -5,7 +6,7 @@ import { ipcMain } from "electron/main";
 let mainWindow: BrowserWindow;
 let gameWindow: BrowserWindow | null = null;
 
-function createMainWindow() {
+export function _createMainWindow() {
   mainWindow = new BrowserWindow({
     title: "Engine TS",
     width: 1280,
@@ -52,14 +53,32 @@ function createGameWindow(): void {
   });
 }
 
-if (process.env.APP_MODE === "game") {
-  app.whenReady().then(createGameWindow);
-} else {
-  app.whenReady().then(createMainWindow);
-}
+app.whenReady().then(createGameWindow);
+// app.whenReady().then(createMainWindow);
 
 ipcMain.handle("open-game-window", () => {
   createGameWindow();
+});
+
+ipcMain.handle("path-parse", (_, filePath: string) => {
+  return path.parse(filePath);
+});
+
+ipcMain.handle("path-join", (_, ...paths: string[]) => {
+  return path.join(...paths);
+});
+
+ipcMain.handle("read-json-file", async (_, filePath: string) => {
+  try {
+    const fileContent = await fs.readFile(path.join(__dirname, filePath), "utf-8");
+    return JSON.parse(fileContent);
+  } catch (error) {
+    throw new Error(`Failed to read JSON file: ${(error as Error).message}`);
+  }
+});
+
+ipcMain.handle("absolute-path", async (_, filePath: string) => {
+  return path.join(__dirname, filePath);
 });
 
 app.on("window-all-closed", () => {

@@ -122,22 +122,8 @@ All commits **MUST** follow the [Gitmoji](https://gitmoji.dev/) pattern for cons
 <gitmoji> <type>: <concise description>
 ```
 
-### Common Gitmojis for This Project
-- 🎉 `:tada:` - Initial commit
-- ✨ `:sparkles:` - New feature
-- 🐛 `:bug:` - Bug fix
-- 🔧 `:wrench:` - Configuration
-- 📝 `:memo:` - Documentation
-- ✅ `:white_check_mark:` - Tests
-- 🎨 `:art:` - Code structure
-- ⚡ `:zap:` - Performance
-- 🔥 `:fire:` - Remove code
-- 🚚 `:truck:` - Move/rename
-- 📦 `:package:` - Dependencies
-- 🔒 `:lock:` - Security
-- 🚨 `:rotating_light:` - Linter warnings
-- 🎮 `:video_game:` - Game engine
-- 🖥️ `:desktop_computer:` - Electron
+### Gitmoji Reference
+For a complete list of available gitmojis and their descriptions, see `.for-LLMs/gitmoji.md`.
 
 ### Examples
 ```bash
