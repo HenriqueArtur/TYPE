@@ -87,7 +87,7 @@ export class RenderEngine {
   }
 
   private async setupByResouce(
-    componentnName: string,
+    componentName: string,
     currentComponent: Drawable<Container, unknown>,
   ) {
     if (typeof currentComponent._resource === "string") {
@@ -98,7 +98,7 @@ export class RenderEngine {
       (currentComponent._drawable as Sprite).texture = texture;
       return;
     }
-    throw new Error(`Pixi.js Drawable "${componentnName}" not implemented.`);
+    throw new Error(`Pixi.js Drawable "${componentName}" not implemented.`);
   }
 
   /**

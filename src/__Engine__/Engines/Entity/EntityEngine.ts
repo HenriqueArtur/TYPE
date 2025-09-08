@@ -52,7 +52,7 @@ export class EntityEngine {
 
   async setup() {
     this.setupDefaultComponents();
-    await this.setupCustomComponens();
+    await this.setupCustomComponents();
   }
 
   private setupDefaultComponents() {
@@ -61,7 +61,7 @@ export class EntityEngine {
     }
   }
 
-  private async setupCustomComponens() {
+  private async setupCustomComponents() {
     const managePath = `${this.engine.projectPath}/component.manage.json`;
     const customComponentsMap: ComponentsManageSerialized =
       await window.electronAPI.readJsonFile(managePath);
@@ -252,10 +252,10 @@ export class EntityEngine {
 
     if (component && typeof component.data === "object" && component.data) {
       if ("_drawable" in component.data) {
-        this.eventEngine.emit("add:drawable", entityId, componentId, component.data);
+        this.eventEngine.emit("add:drawable", entityId, componentName, component.data);
       }
       if ("_body" in component.data) {
-        this.eventEngine.emit("physics:add:body", entityId, componentId, component.data);
+        this.eventEngine.emit("physics:add:body", entityId, componentName, component.data);
       }
     }
 
@@ -375,10 +375,10 @@ export class EntityEngine {
     // Emit events for drawable and physics components
     if (typeof component.data === "object" && component.data) {
       if ("_drawable" in component.data) {
-        this.eventEngine.emit("remove:drawable", ownerEntityId, componentId, component.data);
+        this.eventEngine.emit("remove:drawable", ownerEntityId, component.name, component.data);
       }
       if ("_body" in component.data) {
-        this.eventEngine.emit("physics:remove:body", ownerEntityId, componentId, component.data);
+        this.eventEngine.emit("physics:remove:body", ownerEntityId, component.name, component.data);
       }
     }
 

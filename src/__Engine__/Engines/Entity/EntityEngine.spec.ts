@@ -263,7 +263,7 @@ describe("EntityEngine", () => {
       it("should emit 'physics:add:body' event when adding physics component", () => {
         const bodyData = { x: 10, y: 20, mass: 5 };
 
-        const result = entityEngine.addComponent(entityId, "PhysicsBody", bodyData);
+        entityEngine.addComponent(entityId, "PhysicsBody", bodyData);
 
         // Should emit component:added event
         expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
@@ -277,7 +277,7 @@ describe("EntityEngine", () => {
         expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
           "physics:add:body",
           entityId,
-          result.componentId,
+          "PhysicsBody",
           { ...bodyData, _body: true },
         );
       });
@@ -285,7 +285,7 @@ describe("EntityEngine", () => {
       it("should emit 'add:drawable' event when adding drawable component", () => {
         const drawableData = { texture: "sprite.png", width: 32, height: 32 };
 
-        const result = entityEngine.addComponent(entityId, "DrawableSprite", drawableData);
+        entityEngine.addComponent(entityId, "DrawableSprite", drawableData);
 
         // Should emit component:added event
         expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
@@ -299,7 +299,7 @@ describe("EntityEngine", () => {
         expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
           "add:drawable",
           entityId,
-          result.componentId,
+          "DrawableSprite",
           { ...drawableData, _drawable: true },
         );
       });
@@ -323,7 +323,7 @@ describe("EntityEngine", () => {
     describe("removeComponent events", () => {
       it("should emit 'physics:remove:body' event when removing physics component", () => {
         const bodyData = { x: 10, y: 20, mass: 5 };
-        const result = entityEngine.addComponent(entityId, "PhysicsBody", bodyData);
+        entityEngine.addComponent(entityId, "PhysicsBody", bodyData);
 
         // Clear previous events
         vi.clearAllMocks();
@@ -342,14 +342,14 @@ describe("EntityEngine", () => {
         expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
           "physics:remove:body",
           entityId,
-          result.componentId,
+          "PhysicsBody",
           { ...bodyData, _body: true },
         );
       });
 
       it("should emit 'remove:drawable' event when removing drawable component", () => {
         const drawableData = { texture: "sprite.png", width: 32, height: 32 };
-        const result = entityEngine.addComponent(entityId, "DrawableSprite", drawableData);
+        entityEngine.addComponent(entityId, "DrawableSprite", drawableData);
 
         // Clear previous events
         vi.clearAllMocks();
@@ -368,7 +368,7 @@ describe("EntityEngine", () => {
         expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
           "remove:drawable",
           entityId,
-          result.componentId,
+          "DrawableSprite",
           { ...drawableData, _drawable: true },
         );
       });
@@ -503,7 +503,7 @@ describe("EntityEngine", () => {
         expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
           "physics:remove:body",
           entityId,
-          result.componentId,
+          "PhysicsBody",
           { ...bodyData, _body: true },
         );
       });
