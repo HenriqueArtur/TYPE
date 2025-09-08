@@ -93,9 +93,9 @@ export default withMermaid(
       }
     },
 
-    // Mermaid configuration
+    // Mermaid configuration - Auto theme switching
     mermaid: {
-      theme: 'dark'
+      theme: 'default'
     }
   })
 )
