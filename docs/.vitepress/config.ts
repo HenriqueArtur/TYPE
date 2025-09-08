@@ -22,6 +22,10 @@ export default withMermaid(
     themeConfig: {
       logo: '/logo.png',
       siteTitle: false,
+
+      search: {
+        provider: 'local'
+      },
       
       nav: [
         { text: 'Home', link: '/' },
