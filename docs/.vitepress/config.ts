@@ -87,7 +87,10 @@ export default withMermaid(
 
     // Custom CSS variables for theme customization
     markdown: {
-      theme: 'github-dark'
+      theme: {
+        light: 'github-light',
+        dark: 'github-dark'
+      }
     },
 
     // Mermaid configuration
