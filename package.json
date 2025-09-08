@@ -4,7 +4,7 @@
   "homepage": "github.com/HenriqueArtur/TYPE",
   "repository": "github.com/HenriqueArtur/TYPE",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.4.0",
   "type": "module",
   "main": "out/main/index.js",
   "packageManager": "pnpm@10.15.1",
