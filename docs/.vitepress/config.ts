@@ -86,38 +86,9 @@ export default withMermaid(
       theme: 'github-dark'
     },
 
-    // Mermaid configuration - Auto theme switching for optimal contrast
+    // Mermaid configuration
     mermaid: {
-      // Use 'neutral' theme which adapts better to different backgrounds
-      theme: 'neutral',
-      // Configure specific colors for better readability
-      themeVariables: {
-        // Light mode colors (high contrast)
-        primaryColor: '#ffffff',
-        primaryTextColor: '#1a1a1f', 
-        primaryBorderColor: '#2e2e32',
-        lineColor: '#2e2e32',
-        secondaryColor: '#f6f6f7',
-        tertiaryColor: '#e2e2e3',
-        background: '#ffffff',
-        mainBkg: '#ffffff',
-        secondBkg: '#f6f6f7',
-        textColor: '#1a1a1f',
-        labelTextColor: '#1a1a1f',
-        edgeLabelBackground: '#ffffff',
-        clusterBkg: '#f6f6f7',
-        clusterBorder: '#2e2e32',
-        
-        // Enhanced colors for flowchart elements
-        fillType0: '#ffffff',
-        fillType1: '#f6f6f7', 
-        fillType2: '#e2e2e3',
-        fillType3: '#d1d1d6',
-        fillType4: '#c0c0c5',
-        fillType5: '#b0b0b5',
-        fillType6: '#9f9fa4',
-        fillType7: '#8f8f94'
-      },
+      theme: 'dark'
     }
   })
 )

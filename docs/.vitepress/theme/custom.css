@@ -76,3 +76,16 @@
 .DocSearch {
   --docsearch-primary-color: var(--vp-c-brand-1) !important;
 }
+
+/**
+ * Component: Mermaid Dark Mode Contrast Fix
+ * -------------------------------------------------------------------------- */
+
+/* Simple fix for Mermaid text contrast in dark mode */
+.dark .mermaid text {
+  fill: #e2e8f0 !important;
+}
+
+.dark .mermaid .edgeLabel text {
+  fill: #f8fafc !important;
+}
