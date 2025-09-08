@@ -5,7 +5,7 @@ export default withMermaid(
   defineConfig({
     title: 'Type Game Engine',
     description: 'TypeScript Yields Powerful [Game] Engines - Modern ECS Game Engine Documentation',
-    base: '/Type/',
+    base: '/TYPE/',
     
     vite: {
       optimizeDeps: { 
@@ -74,7 +74,7 @@ export default withMermaid(
       ],
 
       socialLinks: [
-        { icon: 'github', link: 'https://github.com/HenriqueArtur/Type' }
+        { icon: 'github', link: 'https://github.com/HenriqueArtur/TYPE' }
       ],
 
       footer: {
