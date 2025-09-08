@@ -33,17 +33,16 @@ jobs:
         with:
           fetch-depth: 0 # Not needed if lastUpdated is not enabled
 
-      - name: 📦 Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-          run_install: false
-
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
 
       - name: 🔧 Install Dependencies
         run: pnpm install --frozen-lockfile
