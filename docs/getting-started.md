@@ -1,21 +1,25 @@
 # Getting Started
 
-Welcome to **Type** - the modern TypeScript game engine! This guide will help you get up and running quickly.
+Welcome to **TYPE** - the modern TypeScript game engine! This guide will help you get up and running quickly.
+
+::: danger
+This is a project under construction and some bugs may occur. Some documentation may not be fully updated. Use at your own risk for development purposes.
+:::
 
 ## Prerequisites
 
 Before you begin, make sure you have the following installed:
 
-- **Node.js** 18 or higher
-- **pnpm** 8 or higher (recommended package manager)
+- **Node.js** 22 or higher
+- **pnpm** 10 or higher (recommended package manager)
 
 ## Installation
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/HenriqueArtur/Type.git
-cd Type
+git clone https://github.com/HenriqueArtur/TYPE.git
+cd TYPE
 ```
 
 ### 2. Install Dependencies
@@ -30,21 +34,21 @@ pnpm install
 pnpm dev
 ```
 
-This launches the game runtime in development mode with hot reloading.
+This launches both the Electron editor and game runtime in development mode with hot reloading.
 
 ## Project Structure
 
 Once you have the project running, you'll see this structure:
 
 ```
-Type/
+TYPE/
 ├── src/
 │   ├── __Engine__/              # 🎮 Core Engine
 │   │   ├── TypeEngine.ts        # Main coordinator
 │   │   ├── Engines/             # Sub-engines
 │   │   ├── Systems/             # Game logic systems
 │   │   └── Component/           # ECS components
-│   ├── __Project__/             # 🧪 Test environment
+│   ├── __Project__/             # 🎯 Your Game Development Area
 │   ├── main/                    # 🔧 Electron main process
 │   ├── preload/                 # 🔒 IPC bridge
 │   └── renderer/game/           # 🎮 Game runtime
@@ -52,33 +56,16 @@ Type/
 └── package.json
 ```
 
-## Your First Engine Instance
+## Creating Your Game
 
-Create a basic TypeEngine setup:
+**You should create your game inside the `__Project__` folder.** This is where you'll place:
 
-```typescript
-import { TypeEngine } from './__Engine__/TypeEngine'
+- Scene files (`.scene.json`)
+- Blueprint files (`.blueprint.json`)
+- Custom components (`.component.js`)
+- Game assets (images, sounds, etc.)
 
-// Create engine with configuration
-const engine = new TypeEngine({
-  projectPath: './src/__Project__',
-  Render: {
-    canvas: document.getElementById('game-canvas') as HTMLCanvasElement,
-    width: 1024,
-    height: 768,
-    backgroundColor: 0x1099bb
-  },
-  Physics: {
-    gravity: { x: 0, y: 0.8 }
-  }
-})
-
-// Initialize all sub-engines
-await engine.setup()
-
-// Start the game loop
-engine.start()
-```
+**No additional setup is required** - the Electron renderer automatically handles the game execution and setup process for you.
 
 ## Available Commands
 
@@ -103,17 +90,17 @@ Type follows **Test-Driven Development (TDD)**:
 
 ## Next Steps
 
-Now that you have Type running locally:
+Now that you have TYPE running locally:
 
 1. **Explore the Architecture**: Learn about the [multi-engine design](/architecture)
-2. **Understanding ECS**: Dive into the [Entity Component System](/architecture/ecs)  
+2. **Understanding ECS**: Dive into the [Entity Component System](/architecture#ecs-architecture)  
 3. **Create Components**: Build your first [custom components](/components)
 4. **Write Systems**: Implement [game logic systems](/systems)
 
 ## Need Help?
 
 - 📚 Check the full [documentation](/architecture)
-- 🐛 Report issues on [GitHub](https://github.com/HenriqueArtur/Type/issues)
+- 🐛 Report issues on [GitHub](https://github.com/HenriqueArtur/TYPE/issues)
 - 💡 Join discussions in the repository
 
 ---

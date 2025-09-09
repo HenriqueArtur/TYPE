@@ -33,6 +33,7 @@ export default withMermaid(
         { text: 'Home', link: '/' },
         { text: 'Getting Started', link: '/getting-started' },
         { text: 'Architecture', link: '/architecture' },
+        { text: 'Build System', link: '/build' },
         { text: 'API Reference', link: '/api' }
       ],
 
@@ -42,7 +43,6 @@ export default withMermaid(
           items: [
             { text: 'What is Type?', link: '/' },
             { text: 'Getting Started', link: '/getting-started' },
-            { text: 'Quick Start', link: '/quick-start' }
           ]
         },
         {
@@ -50,6 +50,7 @@ export default withMermaid(
           items: [
             { text: 'Overview', link: '/architecture' },
             { text: 'TypeEngine', link: '/architecture/type-engine' },
+            { text: 'Build System', link: '/build' },
             {
               text: 'Sub-Engines',
               collapsed: false,
