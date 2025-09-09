@@ -7,19 +7,19 @@ The Type Game Engine implements a sophisticated **multi-engine architecture** wi
 The TypeEngine serves as the main coordinator that manages all sub-engines through dependency injection:
 
 ```mermaid
-graph TB
+graph LR
     subgraph "TypeEngine - Main Coordinator"
-        TE["🎛️ TypeEngine<br/>• Engine lifecycle<br/>• Scene coordination<br/>• Update loop<br/>• Dependency injection"]
+        TE["🎛️ TypeEngine"]
     end
     
     subgraph "Sub-Engines"
-        EE["👥 EntityEngine<br/>• Entity management<br/>• Component registration<br/>• Entity lifecycle"]
-        RE["🖼️ RenderEngine<br/>• Sprite management<br/>• PIXI.js coordination<br/>• Visual rendering"]
-        PE["⚡ PhysicsEngine<br/>• Matter.js integration<br/>• Body management<br/>• Physics simulation"]
-        ScE["🎬 SceneEngine<br/>• Scene loading<br/>• Scene transitions<br/>• Asset coordination"]
-        SysE["⚙️ SystemEngine<br/>• System management<br/>• Update coordination<br/>• System lifecycle"]
-        EvE["📡 EventEngine<br/>• Event dispatching<br/>• Inter-engine communication<br/>• Event queuing"]
-        TiE["⏰ TimeEngine<br/>• Frame timing<br/>• Delta calculation<br/>• Update scheduling"]
+        EE["👥 EntityEngine"]
+        RE["🖼️ RenderEngine"]
+        PE["⚡ PhysicsEngine"]
+        ScE["🎬 SceneEngine"]
+        SysE["⚙️ SystemEngine"]
+        EvE["📡 EventEngine"]
+        TiE["⏰ TimeEngine"]
     end
     
     TE --> EE
@@ -37,7 +37,7 @@ The engine follows a clear data flow pattern that ensures separation of concerns
 
 ```mermaid
 sequenceDiagram
-    participant Project as 📁 __Project__ Files
+    participant Project as 📁 Project Folder
     participant TypeEngine as 🎛️ TypeEngine
     participant Systems as ⚙️ Systems
     participant Components as 🔧 Components
@@ -57,30 +57,87 @@ sequenceDiagram
 
 The Entity Component System is built with three core layers:
 
+### Simplified Layer Structure
 ```mermaid
 graph TB
+    subgraph "🔧 Systems Layer"
+        SL["Process components<br/>Implement behavior"]
+    end
+    
+    subgraph "📦 Components Layer" 
+        CL["Store data<br/>Define properties"]
+    end
+    
+    subgraph "🎮 Entities Layer"
+        EL["Unique identifiers<br/>Component containers"]
+    end
+    
+    SL --> CL
+    CL --> EL
+```
+
+### Complex System-Component Relationships
+```mermaid
+graph LR
     subgraph "Systems Layer"
-        RS["🎨 RenderPixiSystem<br/>• Sprite rendering<br/>• Visual updates"]
-        PS["🏃 PhysicsSystem<br/>• Physics updates<br/>• Collision detection"]
-        MS["🖱️ MouseSystem<br/>• Input handling<br/>• Mouse events"]
+        MS["🖱️ MouseSystem"]
+        RS["🎨 RenderPixiSystem"]
+        PS["🏃 PhysicsSystem"]
+        AS["⚡ AnimationSystem"]
+        HS["❤️ HealthSystem"]
+        IS["🎯 InventorySystem"]
     end
     
     subgraph "Components Layer"
-        DC["🖼️ Drawable Components<br/>• SpriteComponent"]
-        PC["⚡ Physics Components<br/>• RigidBodyRectangle<br/>• ColliderRectangle<br/>• SensorRectangle"]
-        IC["🎯 Input Components<br/>• MouseComponent"]
+        MC["🖱️ MouseComponent"]
+        SC["🖼️ SpriteComponent"]
+        TC["📍 TransformComponent"]
+        RBC["🟦 RigidBodyComponent"]
+        CC["🔲 ColliderComponent"]
+        AC["🎬 AnimationComponent"]
+        HC["❤️ HealthComponent"]
+        IC["🎒 InventoryComponent"]
+        WC["⚔️ WeaponComponent"]
     end
     
     subgraph "Entities Layer"
-        E["🎮 Game Entities<br/>• Composition of components<br/>• Unique identifiers<br/>• Lifecycle management"]
+        PE["🐰 Player Entity"]
+        EE["👹 Enemy Entity"]
+        IE["📦 Item Entity"]
+        BE["💥 Bullet Entity"]
     end
     
-    RS --> DC
-    PS --> PC
-    MS --> IC
-    DC --> E
-    PC --> E
-    IC --> E
+    MS --> MC
+    RS --> SC
+    RS --> TC
+    PS --> RBC
+    PS --> CC
+    AS --> SC
+    AS --> AC
+    HS --> HC
+    IS --> IC
+    IS --> WC
+    
+    MC --> PE
+    SC --> PE
+    SC --> EE
+    SC --> IE
+    SC --> BE
+    TC --> PE
+    TC --> EE
+    TC --> IE
+    TC --> BE
+    RBC --> PE
+    RBC --> EE
+    CC --> PE
+    CC --> EE
+    CC --> IE
+    AC --> PE
+    AC --> EE
+    HC --> PE
+    HC --> EE
+    IC --> PE
+    WC --> PE
 ```
 
 ## Design Principles
@@ -134,7 +191,12 @@ This multi-engine approach provides excellent **modularity**, **testability**, a
 
 ::: info Next Steps
 Learn more about specific engines:
-- [TypeEngine Details](/architecture/type-engine)
-- [Sub-Engines](/architecture/sub-engines) 
-- [ECS Implementation](/architecture/ecs)
+- [TypeEngine](/architecture/type-engine) - Central coordinator and main engine
+- [EntityEngine](/architecture/entity-engine) - Entity and component management
+- [RenderEngine](/architecture/render-engine) - PIXI.js rendering coordination
+- [PhysicsEngine](/architecture/physics-engine) - Matter.js physics integration
+- [SceneEngine](/architecture/scene-engine) - Scene loading and transitions
+- [SystemEngine](/architecture/system-engine) - System management and execution
+- [EventEngine](/architecture/event-engine) - Event-driven communication
+- [TimeEngine](/architecture/time-engine) - Frame timing and delta calculation
 :::

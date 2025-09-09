@@ -50,8 +50,19 @@ export default withMermaid(
           items: [
             { text: 'Overview', link: '/architecture' },
             { text: 'TypeEngine', link: '/architecture/type-engine' },
-            { text: 'Sub-Engines', link: '/architecture/sub-engines' },
-            { text: 'ECS System', link: '/architecture/ecs' }
+            {
+              text: 'Sub-Engines',
+              collapsed: false,
+              items: [
+                { text: 'EntityEngine', link: '/architecture/entity-engine' },
+                { text: 'RenderEngine', link: '/architecture/render-engine' },
+                { text: 'PhysicsEngine', link: '/architecture/physics-engine' },
+                { text: 'SceneEngine', link: '/architecture/scene-engine' },
+                { text: 'SystemEngine', link: '/architecture/system-engine' },
+                { text: 'EventEngine', link: '/architecture/event-engine' },
+                { text: 'TimeEngine', link: '/architecture/time-engine' }
+              ]
+            }
           ]
         },
         {
