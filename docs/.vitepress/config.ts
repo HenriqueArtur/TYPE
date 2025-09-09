@@ -58,17 +58,56 @@ export default withMermaid(
           text: 'Components',
           items: [
             { text: 'Overview', link: '/components' },
-            { text: 'Drawable Components', link: '/components/drawable' },
-            { text: 'Physics Components', link: '/components/physics' },
-            { text: 'Input Components', link: '/components/input' }
+            {
+              text: 'Drawable Components',
+              collapsed: false,
+              items: [
+                { text: 'Sprite Component', link: '/components/drawable/sprite' }
+              ]
+            },
+            {
+              text: 'Physics Components', 
+              collapsed: false,
+              items: [
+                { text: 'Collider Rectangle', link: '/components/physics/collider-rectangle' },
+                { text: 'Rigid Body Rectangle', link: '/components/physics/rigid-body-rectangle' },
+                { text: 'Sensor Rectangle', link: '/components/physics/sensor-rectangle' }
+              ]
+            },
+            {
+              text: 'Input Components',
+              collapsed: false,
+              items: [
+                { text: 'Mouse Component', link: '/components/input/mouse' }
+              ]
+            }
           ]
         },
         {
           text: 'Systems',
           items: [
             { text: 'Overview', link: '/systems' },
-            { text: 'Creating Systems', link: '/systems/creating' },
-            { text: 'Built-in Systems', link: '/systems/built-in' }
+            {
+              text: 'Physics Systems',
+              collapsed: false,
+              items: [
+                { text: 'Physics System', link: '/systems/physics' }
+              ]
+            },
+            {
+              text: 'Rendering Systems',
+              collapsed: false,
+              items: [
+                { text: 'Render PIXI System', link: '/systems/render-pixi' }
+              ]
+            },
+            {
+              text: 'Input Systems',
+              collapsed: false,
+              items: [
+                { text: 'Mouse System', link: '/systems/input/mouse' }
+              ]
+            }
           ]
         }
       ],
