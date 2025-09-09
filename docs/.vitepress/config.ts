@@ -33,8 +33,8 @@ export default withMermaid(
         { text: 'Home', link: '/' },
         { text: 'Getting Started', link: '/getting-started' },
         { text: 'Architecture', link: '/architecture' },
-        { text: 'Build System', link: '/build' },
-        { text: 'API Reference', link: '/api' }
+        { text: 'Components', link: '/components' },
+        { text: 'Systems', link: '/systems' },
       ],
 
       sidebar: [

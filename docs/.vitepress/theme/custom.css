@@ -40,10 +40,90 @@
 
   --vp-home-hero-image-background-image: linear-gradient(
     -45deg,
-    #007AFF 50%,
-    #005DD6 50%
+    #6b46c1 50%,
+    #1e3a8a 50%
   );
   --vp-home-hero-image-filter: blur(44px);
+}
+
+/* Apply animation only to the background, not the logo */
+.VPHome .VPHero .VPImage::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--vp-home-hero-image-background-image);
+  animation: gradientShift 8s ease-in-out infinite;
+  z-index: -1;
+}
+
+/* Ensure the hero logo is visible and not blurred */
+.VPHome .VPHero .VPImage img {
+  filter: none !important;
+  position: relative;
+  z-index: 1;
+  max-height: 300px;
+  width: auto;
+}
+
+@keyframes gradientShift {
+  0% {
+    filter: hue-rotate(0deg) blur(44px) brightness(1);
+  }
+  25% {
+    filter: hue-rotate(15deg) blur(48px) brightness(1.1);
+  }
+  50% {
+    filter: hue-rotate(30deg) blur(52px) brightness(1.2);
+  }
+  75% {
+    filter: hue-rotate(15deg) blur(48px) brightness(1.1);
+  }
+  100% {
+    filter: hue-rotate(0deg) blur(44px) brightness(1);
+  }
+}
+
+@media (min-width: 640px) {
+  @keyframes gradientShift {
+    0% {
+      filter: hue-rotate(0deg) blur(56px) brightness(1);
+    }
+    25% {
+      filter: hue-rotate(15deg) blur(60px) brightness(1.1);
+    }
+    50% {
+      filter: hue-rotate(30deg) blur(64px) brightness(1.2);
+    }
+    75% {
+      filter: hue-rotate(15deg) blur(60px) brightness(1.1);
+    }
+    100% {
+      filter: hue-rotate(0deg) blur(56px) brightness(1);
+    }
+  }
+}
+
+@media (min-width: 960px) {
+  @keyframes gradientShift {
+    0% {
+      filter: hue-rotate(0deg) blur(68px) brightness(1);
+    }
+    25% {
+      filter: hue-rotate(15deg) blur(72px) brightness(1.1);
+    }
+    50% {
+      filter: hue-rotate(30deg) blur(76px) brightness(1.2);
+    }
+    75% {
+      filter: hue-rotate(15deg) blur(72px) brightness(1.1);
+    }
+    100% {
+      filter: hue-rotate(0deg) blur(68px) brightness(1);
+    }
+  }
 }
 
 @media (min-width: 640px) {
