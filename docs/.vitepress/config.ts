@@ -43,6 +43,7 @@ export default withMermaid(
           items: [
             { text: 'What is Type?', link: '/' },
             { text: 'Getting Started', link: '/getting-started' },
+            { text: 'Building a Game', link: '/building-a-game' },
           ]
         },
         {
@@ -134,9 +135,7 @@ export default withMermaid(
       }
     },
 
-    head: [
-      ['link', { rel: 'icon', href: '/favicon.ico' }]
-    ],
+    head: [['link', { rel: 'icon', href: '/favicon.ico' }]],
 
     // Custom CSS variables for theme customization
     markdown: {
