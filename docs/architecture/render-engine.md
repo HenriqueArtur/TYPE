@@ -171,8 +171,10 @@ Drawable components are automatically registered with RenderEngine:
 
 ```typescript
 // Default drawable components
-SPRITE_COMPONENT  // Renders textures as sprites
-// Future: TEXT_COMPONENT, SHAPE_COMPONENT, etc.
+SPRITE_COMPONENT     // Renders textures as sprites
+CIRCLE_COMPONENT     // Renders circular shapes with fill/stroke
+RECTANGLE_COMPONENT  // Renders rectangular shapes with anchor positioning
+// Future: TEXT_COMPONENT, PARTICLE_COMPONENT, etc.
 ```
 
 ### Drawable Lifecycle
@@ -289,6 +291,8 @@ const engine = new TypeEngine({
 
 ### Current Support
 - **SpriteComponent**: Texture-based sprites with transforms
+- **CircleComponent**: Circular shapes with fill and stroke styling
+- **RectangleComponent**: Rectangular shapes with anchor positioning
 - **Container Support**: PIXI.js Container objects for grouping
 
 ### Future Extensions

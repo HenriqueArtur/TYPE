@@ -9,6 +9,8 @@ TYPE Game Engine provides several categories of components:
 ### Drawable Components
 Visual components that handle rendering and display:
 - **[Sprite Component](/components/drawable/sprite)** - Renders textures and images
+- **[Circle Component](/components/drawable/circle)** - Renders circular shapes with customizable styling
+- **[Rectangle Component](/components/drawable/rectangle)** - Renders rectangular shapes with anchor positioning
 
 ### Physics Components  
 Physics simulation components using Matter.js:

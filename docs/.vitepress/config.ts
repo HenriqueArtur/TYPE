@@ -75,7 +75,9 @@ export default withMermaid(
               text: 'Drawable Components',
               collapsed: false,
               items: [
-                { text: 'Sprite Component', link: '/components/drawable/sprite' }
+                { text: 'Sprite Component', link: '/components/drawable/sprite' },
+                { text: 'Circle Component', link: '/components/drawable/circle' },
+                { text: 'Rectangle Component', link: '/components/drawable/rectangle' }
               ]
             },
             {
