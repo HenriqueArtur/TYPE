@@ -2,8 +2,11 @@ import { CIRCLE_COMPONENT } from "./Drawable/Shapes/CircleComponent";
 import { RECTANGLE_COMPONENT } from "./Drawable/Shapes/RectangleComponent";
 import { SPRITE_COMPONENT } from "./Drawable/SpriteComponent";
 import { MOUSE_COMPONENT } from "./Input/MouseComponent";
+import { COLLIDER_CIRCLE_COMPONENT } from "./Physics/ColliderCircleComponent";
 import { COLLIDER_RECTANGLE_COMPONENT } from "./Physics/ColliderRectangleComponent";
+import { RIGID_BODY_CIRCLE_COMPONENT } from "./Physics/RigidBodyCircleComponent";
 import { RIGID_BODY_RECTANGLE_COMPONENT } from "./Physics/RigidBodyRectangleComponent";
+import { SENSOR_CIRCLE_COMPONENT } from "./Physics/SensorCircleComponent";
 import { SENSOR_RECTANGLE_COMPONENT } from "./Physics/SensorRectangleComponent";
 
 export const DEFAULT_COMPONENTS = [
@@ -17,4 +20,7 @@ export const DEFAULT_COMPONENTS = [
   COLLIDER_RECTANGLE_COMPONENT,
   RIGID_BODY_RECTANGLE_COMPONENT,
   SENSOR_RECTANGLE_COMPONENT,
+  COLLIDER_CIRCLE_COMPONENT,
+  RIGID_BODY_CIRCLE_COMPONENT,
+  SENSOR_CIRCLE_COMPONENT,
 ];

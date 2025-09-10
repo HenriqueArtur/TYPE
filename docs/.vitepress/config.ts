@@ -86,7 +86,10 @@ export default withMermaid(
               items: [
                 { text: 'Collider Rectangle', link: '/components/physics/collider-rectangle' },
                 { text: 'Rigid Body Rectangle', link: '/components/physics/rigid-body-rectangle' },
-                { text: 'Sensor Rectangle', link: '/components/physics/sensor-rectangle' }
+                { text: 'Sensor Rectangle', link: '/components/physics/sensor-rectangle' },
+                { text: 'Collider Circle', link: '/components/physics/collider-circle' },
+                { text: 'Rigid Body Circle', link: '/components/physics/rigid-body-circle' },
+                { text: 'Sensor Circle', link: '/components/physics/sensor-circle' }
               ]
             },
             {

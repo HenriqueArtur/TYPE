@@ -17,6 +17,9 @@ Physics simulation components using Matter.js:
 - **[Collider Rectangle Component](/components/physics/collider-rectangle)** - Static collision bodies
 - **[Rigid Body Rectangle Component](/components/physics/rigid-body-rectangle)** - Dynamic physics bodies
 - **[Sensor Rectangle Component](/components/physics/sensor-rectangle)** - Trigger detection areas
+- **[Collider Circle Component](/components/physics/collider-circle)** - Static circular collision bodies
+- **[Rigid Body Circle Component](/components/physics/rigid-body-circle)** - Dynamic circular physics bodies
+- **[Sensor Circle Component](/components/physics/sensor-circle)** - Circular trigger detection areas
 
 ### Input Components
 Components that handle user input:
