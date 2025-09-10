@@ -1,7 +1,8 @@
 {
-  "initialScene": "Initial",
+  "initialScene": "Flappy",
   "scenes": {
-    "Initial": "Tests/Initial.scene.json"
+    "Initial": "Tests/Initial.scene.json",
+    "Flappy": "Flappy/Flappy.scene.json"
   }
 }
 

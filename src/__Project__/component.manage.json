@@ -1,4 +1,7 @@
 {
   "ExampleComponent": "Tests/ExampleComponent.component.js",
-  "PendulumComponent": "Tests/PendulumComponent.component.js"
+  "PendulumComponent": "Tests/PendulumComponent.component.js",
+  "BirdControlComponent": "Flappy/BirdControlComponent.component.js",
+  "GameStateComponent": "Flappy/GameStateComponent.component.js",
+  "PipeMovementComponent": "Flappy/PipeMovementComponent.component.js"
 }
