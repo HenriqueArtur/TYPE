@@ -107,7 +107,7 @@ describe("RenderPixiSystem", () => {
         tint: 0xff0000,
       };
 
-      mockEngine.EntityEngine.query = vi.fn().mockReturnValue([
+      mockEngine.EntityEngine.queryWithAny = vi.fn().mockReturnValue([
         {
           components: {
             SpriteComponent: [mockSpriteComponent],
@@ -117,7 +117,7 @@ describe("RenderPixiSystem", () => {
 
       system.update(mockEngine, 16.67);
 
-      expect(mockEngine.EntityEngine.query).toHaveBeenCalledWith(["SpriteComponent"]);
+      expect(mockEngine.EntityEngine.queryWithAny).toHaveBeenCalledWith(["SpriteComponent", "RectangleComponent", "CircleComponent"]);
       expect(mockSprite.position.set).toHaveBeenCalledWith(100, 200);
       expect(mockSprite.scale.set).toHaveBeenCalledWith(2, 3);
       expect(mockSprite.anchor.set).toHaveBeenCalledWith(0.7);
@@ -149,7 +149,7 @@ describe("RenderPixiSystem", () => {
         tint: undefined,
       };
 
-      mockEngine.EntityEngine.query = vi.fn().mockReturnValue([
+      mockEngine.EntityEngine.queryWithAny = vi.fn().mockReturnValue([
         {
           components: {
             SpriteComponent: [mockSpriteComponent],
@@ -170,10 +170,10 @@ describe("RenderPixiSystem", () => {
     });
 
     it("should handle empty sprite entities", () => {
-      mockEngine.EntityEngine.query = vi.fn().mockReturnValue([]);
+      mockEngine.EntityEngine.queryWithAny = vi.fn().mockReturnValue([]);
 
       expect(() => system.update(mockEngine, 16.67)).not.toThrow();
-      expect(mockEngine.EntityEngine.query).toHaveBeenCalledWith(["SpriteComponent"]);
+      expect(mockEngine.EntityEngine.queryWithAny).toHaveBeenCalledWith(["SpriteComponent", "RectangleComponent", "CircleComponent"]);
     });
 
     it("should handle multiple sprites", () => {
@@ -219,7 +219,7 @@ describe("RenderPixiSystem", () => {
         tint: undefined,
       };
 
-      mockEngine.EntityEngine.query = vi
+      mockEngine.EntityEngine.queryWithAny = vi
         .fn()
         .mockReturnValue([
           { components: { SpriteComponent: [mockSpriteComponent1] } },
@@ -276,7 +276,7 @@ describe("RenderPixiSystem", () => {
         tint: 0x0000ff,
       });
 
-      mockEngine.EntityEngine.query = vi.fn().mockReturnValue([
+      mockEngine.EntityEngine.queryWithAny = vi.fn().mockReturnValue([
         {
           components: {
             SpriteComponent: [spriteComponent],
