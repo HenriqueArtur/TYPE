@@ -41,19 +41,15 @@ The `ComponentInstanceManage` is used by the engine during development for:
 - Deserializing components from saved data
 
 ```typescript
-export const COMPONENT_NAME: ComponentInstanceManage<
-  "ComponentName",
-  ComponentDataInterface,
-  ComponentType
-> = {
+export default {
   name: "ComponentName",
   create: (data: ComponentDataInterface): ComponentType => {
     // Component creation logic with default values
   },
-  serialize: (component: ComponentType): ComponentSerialized => {
+  serialize: (component: ComponentType): ComponentSerialized<"ComponentName", ComponentDataInterface> => {
     // Serialization logic for saving/loading
-  }
-}
+  },
+} as ComponentInstanceManage<"ComponentName", ComponentDataInterface, ComponentType>;
 ```
 
 ### Data-Only Design
@@ -85,7 +81,10 @@ Export an object that follows the `ComponentInstanceManage` interface:
 
 ```typescript
 // PlayerHealthComponent.component.ts
-import type { ComponentInstanceManage, ComponentSerialized } from "path/to/ComponentInstanceManage";
+import type {
+  ComponentInstanceManage,
+  ComponentSerialized,
+} from "../../__Engine__/Component/ComponentInstanceManage";
 
 export interface PlayerHealthComponentData {
   maxHealth: number;
@@ -93,31 +92,30 @@ export interface PlayerHealthComponentData {
   regenerationRate?: number;
 }
 
-export type PlayerHealthComponent = Required<PlayerHealthComponentData>;
+export interface PlayerHealthComponent {
+  maxHealth: number;
+  currentHealth: number;
+  regenerationRate: number;
+}
 
-export const PLAYER_HEALTH_COMPONENT: ComponentInstanceManage<
-  "PlayerHealthComponent",
-  PlayerHealthComponentData,
-  PlayerHealthComponent
-> = {
+export default {
   name: "PlayerHealthComponent",
   create: (data: PlayerHealthComponentData): PlayerHealthComponent => ({
     maxHealth: data.maxHealth,
     currentHealth: data.currentHealth ?? data.maxHealth,
-    regenerationRate: data.regenerationRate ?? 0
+    regenerationRate: data.regenerationRate ?? 0,
   }),
-  serialize: (component: PlayerHealthComponent): ComponentSerialized<
-    "PlayerHealthComponent", 
-    PlayerHealthComponentData
-  > => ({
+  serialize: (
+    component: PlayerHealthComponent,
+  ): ComponentSerialized<"PlayerHealthComponent", PlayerHealthComponentData> => ({
     name: "PlayerHealthComponent",
     data: {
       maxHealth: component.maxHealth,
       currentHealth: component.currentHealth,
-      regenerationRate: component.regenerationRate
-    }
-  })
-};
+      regenerationRate: component.regenerationRate,
+    },
+  }),
+} as ComponentInstanceManage<"PlayerHealthComponent", PlayerHealthComponentData, PlayerHealthComponent>;
 ```
 
 ### 3. Register in component.manage.json

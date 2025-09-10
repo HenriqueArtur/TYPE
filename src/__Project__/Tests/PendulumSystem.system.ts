@@ -9,7 +9,7 @@ export class PendulumSystem implements System<TypeEngine> {
   enabled = true;
 
   async init(_engine: TypeEngine): Promise<void> {
-    // System initialization
+    // never use
   }
 
   update(engine: TypeEngine, deltaTime: number): void {

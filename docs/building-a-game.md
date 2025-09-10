@@ -284,36 +284,37 @@ Create `GameLevel.scene.json`:
 Create `PlayerMovement.component.ts`:
 
 ```typescript
-import type { ComponentInstanceManage, ComponentSerialized } from "../__Engine__/Component/ComponentInstanceManage";
+import type {
+  ComponentInstanceManage,
+  ComponentSerialized,
+} from "../../__Engine__/Component/ComponentInstanceManage";
 
 export interface PlayerMovementData {
-  speed: number;
+  speed?: number;
   direction: { x: number; y: number };
 }
 
-// Use primitive object instead of class
 export interface PlayerMovementComponent {
   speed: number;
   direction: { x: number; y: number };
 }
 
-export const PLAYER_MOVEMENT_COMPONENT: ComponentInstanceManage<
-  PlayerMovementComponent,
-  PlayerMovementData
-> = {
+export default {
   name: "PlayerMovementComponent",
   create: (data: PlayerMovementData): PlayerMovementComponent => ({
-    speed: data.speed,
-    direction: { ...data.direction }
+    speed: data.speed ?? 100,
+    direction: { ...data.direction },
   }),
-  serialize: (component: PlayerMovementComponent): ComponentSerialized<PlayerMovementData> => ({
+  serialize: (
+    component: PlayerMovementComponent,
+  ): ComponentSerialized<"PlayerMovementComponent", PlayerMovementData> => ({
     name: "PlayerMovementComponent",
     data: {
       speed: component.speed,
-      direction: component.direction
-    }
-  })
-};
+      direction: component.direction,
+    },
+  }),
+} as ComponentInstanceManage<"PlayerMovementComponent", PlayerMovementData, PlayerMovementComponent>;
 ```
 
 ### 2. Register the Component
@@ -332,27 +333,31 @@ Add to `component.manage.json`:
 Create `Movement.system.ts`:
 
 ```typescript
-import type { System } from "../__Engine__/System/System";
-import type { TypeEngine } from "../__Engine__/TypeEngine";
+import type { SpriteComponent } from "../../__Engine__/Component/Drawable/SpriteComponent";
+import type { System } from "../../__Engine__/Systems/System";
+import type { TypeEngine } from "../../__Engine__/TypeEngine";
+import type { PlayerMovementComponent } from "./PlayerMovement.component";
 
-// System is a class with only name, priority, and update method
 export class MovementSystem implements System<TypeEngine> {
   name = "MovementSystem";
   priority = 1;
+  enabled = true;
 
-  // Engine is always passed as first argument
+  async init(_engine: TypeEngine): Promise<void> {
+    // never use
+  }
+
   update(engine: TypeEngine, deltaTime: number): void {
-    // Get all entities with PlayerMovementComponent and SpriteComponent
-    const entities = engine.EntityEngine.getEntitiesWithComponents([
-      "PlayerMovementComponent",
-      "SpriteComponent"
-    ]);
+    const entities = engine.EntityEngine.query<{
+      SpriteComponent: SpriteComponent[];
+      PlayerMovementComponent: PlayerMovementComponent[];
+    }>(["SpriteComponent", "PlayerMovementComponent"]);
 
-    for (const entity of entities) {
-      const movement = engine.EntityEngine.getComponent(entity, "PlayerMovementComponent");
-      const sprite = engine.EntityEngine.getComponent(entity, "SpriteComponent");
+    for (const { components } of entities) {
+      for (let i = 0; i < components.SpriteComponent.length; i++) {
+        const sprite = components.SpriteComponent[i];
+        const movement = components.PlayerMovementComponent[i];
 
-      if (movement && sprite) {
         // Update position based on movement
         sprite.position.x += movement.direction.x * movement.speed * deltaTime;
         sprite.position.y += movement.direction.y * movement.speed * deltaTime;
@@ -412,7 +417,9 @@ pnpm dev
 - Components should be pure data structures
 
 ### System Architecture
-- Systems should only have `name`, `priority`, and `update` method
+- Systems should have `name`, `priority`, `enabled`, `init`, and `update` methods
+- `enabled` should always be set to `true`
+- `init` method should be implemented but never used (comment: `// never use`)
 - No additional state should be stored in systems
 - Engine is always passed as first argument to update method
 - Use deltaTime for frame-rate independent updates
