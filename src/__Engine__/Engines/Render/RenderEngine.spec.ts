@@ -187,7 +187,11 @@ describe("RenderEngine", () => {
 
       await renderEngine.setupScene();
 
-      expect(typeEngine.EntityEngine.queryWithAny).toHaveBeenCalledWith(["SpriteComponent", "RectangleComponent", "CircleComponent"]);
+      expect(typeEngine.EntityEngine.queryWithAny).toHaveBeenCalledWith([
+        "SpriteComponent",
+        "RectangleComponent",
+        "CircleComponent",
+      ]);
       expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(
         mockSpriteComponent._drawable,
       );
@@ -529,7 +533,11 @@ describe("RenderEngine", () => {
 
       await renderEngine.setupScene();
 
-      expect(typeEngine.EntityEngine.queryWithAny).toHaveBeenCalledWith(["SpriteComponent", "RectangleComponent", "CircleComponent"]);
+      expect(typeEngine.EntityEngine.queryWithAny).toHaveBeenCalledWith([
+        "SpriteComponent",
+        "RectangleComponent",
+        "CircleComponent",
+      ]);
       expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(spriteComponent._drawable);
     });
   });
