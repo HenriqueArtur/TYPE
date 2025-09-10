@@ -54,7 +54,7 @@ export default withMermaid(
             { text: 'Build System', link: '/build' },
             {
               text: 'Sub-Engines',
-              collapsed: false,
+              collapsed: true,
               items: [
                 { text: 'EntityEngine', link: '/architecture/entity-engine' },
                 { text: 'RenderEngine', link: '/architecture/render-engine' },
@@ -73,7 +73,7 @@ export default withMermaid(
             { text: 'Overview', link: '/components' },
             {
               text: 'Drawable Components',
-              collapsed: false,
+              collapsed: true,
               items: [
                 { text: 'Sprite Component', link: '/components/drawable/sprite' },
                 { text: 'Circle Component', link: '/components/drawable/circle' },
@@ -82,7 +82,7 @@ export default withMermaid(
             },
             {
               text: 'Physics Components', 
-              collapsed: false,
+              collapsed: true,
               items: [
                 { text: 'Collider Rectangle', link: '/components/physics/collider-rectangle' },
                 { text: 'Rigid Body Rectangle', link: '/components/physics/rigid-body-rectangle' },
@@ -94,7 +94,7 @@ export default withMermaid(
             },
             {
               text: 'Input Components',
-              collapsed: false,
+              collapsed: true,
               items: [
                 { text: 'Mouse Component', link: '/components/input/mouse' }
               ]
@@ -107,21 +107,21 @@ export default withMermaid(
             { text: 'Overview', link: '/systems' },
             {
               text: 'Physics Systems',
-              collapsed: false,
+              collapsed: true,
               items: [
                 { text: 'Physics System', link: '/systems/physics' }
               ]
             },
             {
               text: 'Rendering Systems',
-              collapsed: false,
+              collapsed: true,
               items: [
                 { text: 'Render PIXI System', link: '/systems/render-pixi' }
               ]
             },
             {
               text: 'Input Systems',
-              collapsed: false,
+              collapsed: true,
               items: [
                 { text: 'Mouse System', link: '/systems/input/mouse' }
               ]
@@ -140,7 +140,7 @@ export default withMermaid(
       }
     },
 
-    head: [['link', { rel: 'icon', href: '/favicon.ico' }]],
+    head: [['link', { rel: 'icon', href: '/TYPE/favicon.ico' }]],
 
     // Custom CSS variables for theme customization
     markdown: {
