@@ -1,7 +1,7 @@
-import type { SpriteComponent } from "../__Engine__/Component/Drawable/SpriteComponent";
-import type { MouseComponent } from "../__Engine__/Component/Input/MouseComponent";
-import type { System } from "../__Engine__/Systems/System";
-import type { TypeEngine } from "../__Engine__/TypeEngine";
+import type { SpriteComponent } from "../../__Engine__/Component/Drawable/SpriteComponent";
+import type { MouseComponent } from "../../__Engine__/Component/Input/MouseComponent";
+import type { System } from "../../__Engine__/Systems/System";
+import type { TypeEngine } from "../../__Engine__/TypeEngine";
 
 export class ExampleSystem implements System {
   name = "ExampleSystem";

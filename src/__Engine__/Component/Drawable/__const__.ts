@@ -1,1 +1,1 @@
-export const DRAWABLE_COMPONENTS = ["SpriteComponent"];
+export const DRAWABLE_COMPONENTS = ["SpriteComponent", "RectangleComponent", "CircleComponent"];

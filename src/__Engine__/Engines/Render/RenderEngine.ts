@@ -60,9 +60,10 @@ export class RenderEngine {
 
   async setupScene(): Promise<void> {
     const drawable_entities =
-      this.engine.EntityEngine.query<Record<string, Drawable<Container, unknown>[]>>(
+      this.engine.EntityEngine.queryWithAny<Record<string, Drawable<Container, unknown>[]>>(
         DRAWABLE_COMPONENTS,
       );
+
     for (const { entityId, components } of drawable_entities) {
       for (const [name, entityComponentList] of Object.entries(components)) {
         for (const currentDrawable of entityComponentList) {
@@ -98,6 +99,13 @@ export class RenderEngine {
       (currentComponent._drawable as Sprite).texture = texture;
       return;
     }
+
+    // Handle shape components (Rectangle and Circle) that use object resources
+    if (componentName === "RectangleComponent" || componentName === "CircleComponent") {
+      // Graphics-based components don't need resource setup - they're already created
+      return;
+    }
+
     throw new Error(`Pixi.js Drawable "${componentName}" not implemented.`);
   }
 

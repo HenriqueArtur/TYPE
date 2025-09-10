@@ -1,3 +1,4 @@
 {
-  "ExampleComponent": "ExampleComponent.component.js"
+  "ExampleComponent": "Tests/ExampleComponent.component.js",
+  "PendulumComponent": "Tests/PendulumComponent.component.js"
 }

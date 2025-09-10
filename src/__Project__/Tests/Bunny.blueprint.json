@@ -1,11 +1,11 @@
 {
   "name": "Bunny",
-  "path": "Bunny.blueprint.json",
+  "path": "Tests/Bunny.blueprint.json",
   "components": [
     {
       "name": "SpriteComponent",
       "data": {
-        "texture_path": "bunny.png",
+        "texture_path": "Tests/bunny.png",
         "position": {
           "x": 400,
           "y": 300

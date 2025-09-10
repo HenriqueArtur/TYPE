@@ -12,8 +12,8 @@ function createEntries(patterns, baseDir = 'src/__Project__') {
     
     files.forEach(file => {
       const relativePath = file.replace(baseDir + '/', '');
-      const nameWithoutExt = relativePath.replace(/\.[^.]+$/, '').replace(/\//g, '_');
-      const name = prefix ? `${nameWithoutExt}` : nameWithoutExt;
+      const nameWithoutExt = relativePath.replace(/\.[^.]+$/, '');
+      const name = prefix ? `${prefix}${nameWithoutExt}` : nameWithoutExt;
       
       entries[name] = resolve(__dirname, file);
     });
@@ -26,16 +26,16 @@ export default defineConfig({
     build: {
     minify: false,
     rollupOptions: {
-      input: {
-        ...createEntries([
-          { pattern: "src/__Project__/**/*.ts" },
-        ])
-      },
+      input: createEntries([
+        { pattern: "src/__Project__/**/*.ts" },
+      ]),
       output: [{
         dir: "out/game",
         format: "esm",
         entryFileNames: "[name].js",
+        chunkFileNames: "[name].js",
         preserveModules: true,
+        preserveModulesRoot: 'src/__Project__',
       }],
       preserveEntrySignatures: "strict",
       plugins: [

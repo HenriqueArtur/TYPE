@@ -1,3 +1,5 @@
 {
-  "ExampleSystem": "ExampleSystem.system.js"
+  "ExampleSystem": "Tests/ExampleSystem.system.js",
+  "RotationSystem": "Tests/RotationSystem.system.js",
+  "PendulumSystem": "Tests/PendulumSystem.system.js"
 }

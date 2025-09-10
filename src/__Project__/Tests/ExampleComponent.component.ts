@@ -1,7 +1,7 @@
 import type {
   ComponentInstanceManage,
   ComponentSerialized,
-} from "../__Engine__/Component/ComponentInstanceManage";
+} from "../../__Engine__/Component/ComponentInstanceManage";
 
 type ExampleComponentSerialized = {
   hp: number;

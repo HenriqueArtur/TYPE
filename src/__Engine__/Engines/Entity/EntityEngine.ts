@@ -73,6 +73,7 @@ export class EntityEngine {
         const componentModule = await import(absolute);
         const ComponentModule: ComponentInstanceManage<string, unknown, unknown> | undefined =
           componentModule.default || componentModule[name];
+
         if (ComponentModule) {
           this.registerComponent(name, ComponentModule.create);
         }

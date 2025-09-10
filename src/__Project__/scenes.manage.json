@@ -1,7 +1,7 @@
 {
   "initialScene": "Initial",
   "scenes": {
-    "Initial": "Initial.scene.json"
+    "Initial": "Tests/Initial.scene.json"
   }
 }
 

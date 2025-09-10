@@ -1,0 +1,124 @@
+{
+  "name": "Initial",
+  "path": "Tests/Initial.scene.json",
+  "systems": ["RotationSystem", "PendulumSystem"],
+  "gameObjects": [
+    {
+      "name": "Bunny",
+      "blueprint": {
+        "name": "Bunny",
+        "path": "Tests/Bunny.blueprint.json"
+      },
+      "components": [
+        {
+          "name": "SpriteComponent",
+          "data": {
+            "texture_path": "Tests/bunny.png",
+            "position": {
+              "x": 400,
+              "y": 300
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "rotation": 0,
+            "alpha": 1,
+            "visible": true,
+            "anchor": 0.5
+          }
+        },
+        {
+          "name": "MouseComponent",
+          "data": {
+            "screenPosition": { "x": 0, "y": 0 },
+            "windowPosition": { "x": 0, "y": 0 },
+            "buttons": {
+              "left": false,
+              "right": false,
+              "middle": false
+            },
+            "wheel": {
+              "deltaX": 0,
+              "deltaY": 0,
+              "deltaZ": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "RotatingRectangle",
+      "components": [
+        {
+          "name": "RectangleComponent",
+          "data": {
+            "width": 60,
+            "height": 36,
+            "position": {
+              "x": 200,
+              "y": 150
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "rotation": 0,
+            "alpha": 1,
+            "visible": true,
+            "anchor": 0.5,
+            "fill": {
+              "enabled": true,
+              "color": "#33ccff"
+            },
+            "stroke": {
+              "enabled": true,
+              "color": "#ffffff",
+              "width": 2
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PendulumCircle",
+      "components": [
+        {
+          "name": "CircleComponent",
+          "data": {
+            "radius": 25,
+            "position": {
+              "x": 600,
+              "y": 200
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "rotation": 0,
+            "alpha": 1,
+            "visible": true,
+            "fill": {
+              "enabled": true,
+              "color": "#ff0000"
+            },
+            "stroke": {
+              "enabled": true,
+              "color": "#000000",
+              "width": 3
+            }
+          }
+        },
+        {
+          "name": "PendulumComponent",
+          "data": {
+            "time": 0,
+            "amplitude": 100,
+            "frequency": 0.3,
+            "baseX": 600
+          }
+        }
+      ]
+    }
+  ]
+}
