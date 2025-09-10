@@ -1,26 +1,18 @@
-import { CIRCLE_COMPONENT } from "./Drawable/Shapes/CircleComponent";
-import { RECTANGLE_COMPONENT } from "./Drawable/Shapes/RectangleComponent";
-import { SPRITE_COMPONENT } from "./Drawable/SpriteComponent";
-import { MOUSE_COMPONENT } from "./Input/MouseComponent";
-import { COLLIDER_CIRCLE_COMPONENT } from "./Physics/ColliderCircleComponent";
-import { COLLIDER_RECTANGLE_COMPONENT } from "./Physics/ColliderRectangleComponent";
-import { RIGID_BODY_CIRCLE_COMPONENT } from "./Physics/RigidBodyCircleComponent";
-import { RIGID_BODY_RECTANGLE_COMPONENT } from "./Physics/RigidBodyRectangleComponent";
-import { SENSOR_CIRCLE_COMPONENT } from "./Physics/SensorCircleComponent";
-import { SENSOR_RECTANGLE_COMPONENT } from "./Physics/SensorRectangleComponent";
+import { DEFAULT_DRAWABLE_COMPONENTS, DRAWABLE_COMPONENTS } from "./Drawable/__const__";
+import { DEFAULT_EVENT_COMPONENTS, EVENT_COMPONENTS } from "./Event/__const__";
+import { DEFAULT_INPUT_COMPONENTS, INPUT_COMPONENTS } from "./Input/__const__";
+import { DEFAULT_PHYSICS_COMPONENTS, PHYSICS_COMPONENTS } from "./Physics/__const__";
 
 export const DEFAULT_COMPONENTS = [
-  /* Drawables */
-  SPRITE_COMPONENT,
-  RECTANGLE_COMPONENT,
-  CIRCLE_COMPONENT,
-  /* Input */
-  MOUSE_COMPONENT,
-  /* Physics */
-  COLLIDER_RECTANGLE_COMPONENT,
-  RIGID_BODY_RECTANGLE_COMPONENT,
-  SENSOR_RECTANGLE_COMPONENT,
-  COLLIDER_CIRCLE_COMPONENT,
-  RIGID_BODY_CIRCLE_COMPONENT,
-  SENSOR_CIRCLE_COMPONENT,
+  ...DEFAULT_DRAWABLE_COMPONENTS,
+  ...DEFAULT_EVENT_COMPONENTS,
+  ...DEFAULT_INPUT_COMPONENTS,
+  ...DEFAULT_PHYSICS_COMPONENTS,
+];
+
+export const COMPONENT_NAMES = [
+  ...DRAWABLE_COMPONENTS,
+  ...EVENT_COMPONENTS,
+  ...INPUT_COMPONENTS,
+  ...PHYSICS_COMPONENTS,
 ];
