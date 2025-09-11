@@ -21,6 +21,11 @@ Physics simulation components using Matter.js:
 - **[Rigid Body Circle Component](/components/physics/rigid-body-circle)** - Dynamic circular physics bodies
 - **[Sensor Circle Component](/components/physics/sensor-circle)** - Circular trigger detection areas
 
+### Event Components
+Components that handle game events and script execution:
+- **[Event Component](/components/event/event-component)** - General purpose event handling with custom scripts
+- **[OnCollision Event Component](/components/event/on-collision-event-component)** - Collision-specific event handling
+
 ### Input Components
 Components that handle user input:
 - **[Mouse Component](/components/input/mouse)** - Mouse input handling

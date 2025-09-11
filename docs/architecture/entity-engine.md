@@ -31,61 +31,405 @@ graph TB
     EE --> S
 ```
 
+## Entity Query System
+
+The Entity Query System is the **most critical part** of the EntityEngine. These methods are called extensively by systems to find entities with specific component combinations and form the backbone of game logic execution.
+
+### Core Query Methods
+
+#### `query<T>(componentNames: string[]): Array<{ entityId: string; components: T }>`
+Finds all entities that have **ALL** specified components. This is the primary method used by systems.
+
+#### `queryWithAny<T>(componentNames: string[]): Array<{ entityId: string; components: T }>`
+Finds all entities that have **ANY** of the specified components. Useful for optional component handling.
+
+### Query Return Object Structure
+
+Both query methods return an array of objects with this structure:
+
+```typescript
+interface QueryResult<T> {
+  entityId: string;    // The unique ID of the entity
+  components: T;       // Object containing arrays of component data
+}
+```
+
+### Detailed Query Examples
+
+#### Example 1: Movement System Query
+```typescript
+// Query for entities with position and velocity
+const entities = engine.EntityEngine.query<{
+  PositionComponent: PositionComponent[];
+  VelocityComponent: VelocityComponent[];
+}>(['PositionComponent', 'VelocityComponent']);
+
+// Returned object structure:
+[
+  {
+    entityId: "ENT_abc123",
+    components: {
+      PositionComponent: [
+        { x: 100, y: 200, z: 0 },
+        { x: 150, y: 250, z: 5 }  // If entity has multiple PositionComponents
+      ],
+      VelocityComponent: [
+        { x: 10, y: -5, z: 0 },
+        { x: -2, y: 15, z: 1 }
+      ]
+    }
+  },
+  {
+    entityId: "ENT_def456", 
+    components: {
+      PositionComponent: [
+        { x: 300, y: 400, z: 0 }
+      ],
+      VelocityComponent: [
+        { x: 0, y: 0, z: 0 }
+      ]
+    }
+  }
+]
+```
+
+#### Example 2: Rendering System Query
+```typescript
+// Query for renderable entities
+const renderables = engine.EntityEngine.query<{
+  SpriteComponent: SpriteComponent[];
+  TransformComponent: TransformComponent[];
+}>(['SpriteComponent', 'TransformComponent']);
+
+// Returned object structure:
+[
+  {
+    entityId: "ENT_player",
+    components: {
+      SpriteComponent: [
+        {
+          texture_path: "player.png",
+          position: { x: 100, y: 200 },
+          scale: { x: 1, y: 1 },
+          rotation: 0,
+          alpha: 1,
+          visible: true,
+          anchor: 0.5,
+          _drawable: { /* PIXI.Sprite instance */ }
+        }
+      ],
+      TransformComponent: [
+        {
+          position: { x: 100, y: 200, z: 0 },
+          rotation: { x: 0, y: 0, z: 0 },
+          scale: { x: 1, y: 1, z: 1 }
+        }
+      ]
+    }
+  }
+]
+```
+
+#### Example 3: Collision Detection Query
+```typescript
+// Query for physics bodies
+const physicsEntities = engine.EntityEngine.query<{
+  RigidBodyRectangleComponent: RigidBodyRectangleComponent[];
+  SpriteComponent: SpriteComponent[];
+}>(['RigidBodyRectangleComponent', 'SpriteComponent']);
+
+// Returned object structure:
+[
+  {
+    entityId: "ENT_box001",
+    components: {
+      RigidBodyRectangleComponent: [
+        {
+          x: 100,
+          y: 200, 
+          width: 32,
+          height: 32,
+          isStatic: false,
+          friction: 0.5,
+          restitution: 0.3,
+          _body: { /* Matter.js Body instance */ }
+        }
+      ],
+      SpriteComponent: [
+        {
+          texture_path: "box.png",
+          position: { x: 100, y: 200 },
+          _drawable: { /* PIXI.Sprite instance */ }
+        }
+      ]
+    }
+  }
+]
+```
+
+#### Example 4: queryWithAny for Input Handling
+```typescript
+// Find entities with ANY input component
+const inputEntities = engine.EntityEngine.queryWithAny<{
+  MouseComponent?: MouseComponent[];
+  KeyboardComponent?: KeyboardComponent[];
+  GamepadComponent?: GamepadComponent[];
+}>(['MouseComponent', 'KeyboardComponent', 'GamepadComponent']);
+
+// Returned object structure:
+[
+  {
+    entityId: "ENT_player",
+    components: {
+      MouseComponent: [
+        {
+          screenPosition: { x: 400, y: 300 },
+          windowPosition: { x: 400, y: 300 },
+          buttons: { left: false, right: false, middle: false }
+        }
+      ],
+      KeyboardComponent: [
+        {
+          keys: { w: false, a: false, s: false, d: false, space: true },
+          previousKeys: { w: false, a: false, s: false, d: false, space: false }
+        }
+      ]
+      // GamepadComponent may not exist for this entity
+    }
+  },
+  {
+    entityId: "ENT_npc",
+    components: {
+      // Only has GamepadComponent, no Mouse or Keyboard
+      GamepadComponent: [
+        {
+          connected: true,
+          buttons: [false, false, true, false],
+          axes: [0.2, -0.8, 0.0, 0.0]
+        }
+      ]
+    }
+  }
+]
+```
+
+### Processing Query Results
+
+#### Single Component Per Entity (Most Common)
+```typescript
+const entities = engine.EntityEngine.query<{
+  PositionComponent: PositionComponent[];
+  VelocityComponent: VelocityComponent[];
+}>(['PositionComponent', 'VelocityComponent']);
+
+for (const { entityId, components } of entities) {
+  // Most entities have only one component of each type
+  const position = components.PositionComponent[0];
+  const velocity = components.VelocityComponent[0];
+  
+  // Update position based on velocity
+  position.x += velocity.x * deltaTime;
+  position.y += velocity.y * deltaTime;
+}
+```
+
+#### Multiple Components Per Entity (Advanced)
+```typescript
+const entities = engine.EntityEngine.query<{
+  WeaponComponent: WeaponComponent[];
+  AmmoComponent: AmmoComponent[];
+}>(['WeaponComponent', 'AmmoComponent']);
+
+for (const { entityId, components } of entities) {
+  // Entity might have multiple weapons, each with corresponding ammo
+  for (let i = 0; i < components.WeaponComponent.length; i++) {
+    const weapon = components.WeaponComponent[i];
+    const ammo = components.AmmoComponent[i]; // Corresponding ammo
+    
+    if (weapon.firing && ammo.count > 0) {
+      // Fire weapon and consume ammo
+      this.fireWeapon(weapon);
+      ammo.count--;
+    }
+  }
+}
+```
+
+#### Conditional Component Access with queryWithAny
+```typescript
+const entities = engine.EntityEngine.queryWithAny<{
+  HealthComponent?: HealthComponent[];
+  ShieldComponent?: ShieldComponent[];
+}>(['HealthComponent', 'ShieldComponent']);
+
+for (const { entityId, components } of entities) {
+  // Check which components exist
+  if (components.ShieldComponent && components.ShieldComponent.length > 0) {
+    const shield = components.ShieldComponent[0];
+    if (shield.active && shield.strength > 0) {
+      // Damage shield first
+      shield.strength -= damage;
+    }
+  } else if (components.HealthComponent && components.HealthComponent.length > 0) {
+    const health = components.HealthComponent[0];
+    // Damage health directly if no shield
+    health.current -= damage;
+  }
+}
+```
+
+### Query Performance Characteristics
+
+#### Fast Lookups
+```typescript
+// Internal structure optimized for queries
+private entities: Map<string, Set<string>>;        // entityId -> componentIds
+private components: Map<string, ComponentInstance>; // componentId -> component data
+```
+
+#### Query Complexity
+- **`query()`**: O(n * m) where n = total entities, m = component types to check
+- **`queryWithAny()`**: O(n * m) with early termination optimization
+- **Component access**: O(1) lookup using Maps and Sets
+
+### Common Query Patterns in Game Systems
+
+#### Pattern 1: Core Game Loop Systems
+```typescript
+// Physics System - called every frame
+const physicsEntities = engine.EntityEngine.query([
+  'RigidBodyRectangleComponent', 
+  'PositionComponent'
+]);
+
+// Render System - called every frame  
+const renderEntities = engine.EntityEngine.query([
+  'SpriteComponent',
+  'TransformComponent'
+]);
+
+// Input System - called every frame
+const inputEntities = engine.EntityEngine.query([
+  'InputComponent',
+  'PlayerComponent'
+]);
+```
+
+#### Pattern 2: Event-Driven Systems
+```typescript
+// Damage System - called when damage events occur
+const damageableEntities = engine.EntityEngine.query([
+  'HealthComponent',
+  'ColliderComponent'
+]);
+
+// Animation System - called when animation events trigger
+const animatedEntities = engine.EntityEngine.query([
+  'SpriteComponent', 
+  'AnimationComponent'
+]);
+```
+
+#### Pattern 3: Conditional Logic Systems
+```typescript
+// AI System - different behaviors based on available components
+const aiEntities = engine.EntityEngine.queryWithAny([
+  'PatrolComponent',
+  'ChaseComponent', 
+  'AttackComponent'
+]);
+```
+
 ## Public Methods
 
 ### Entity Management
 ```typescript
-createEntity(components?: ComponentSerialized[]): string
+create(id?: string): string
 ```
-Creates a new entity with optional initial components. Returns unique entity ID.
+Creates a new entity with optional custom ID. Auto-generates with "ENT_" prefix if not provided. Returns unique entity ID.
 
 ```typescript
-removeEntity(entityId: string): void
+remove(entityId: string): void
 ```
-Removes an entity and all its components from the engine.
+Removes an entity and all its associated components from the engine.
 
 ```typescript
-entityExists(entityId: string): boolean
+get<T extends Record<string, unknown>>(entityId: string): EntityFetchResult<T>
 ```
-Checks if an entity with the given ID exists.
+Gets an entity by its ID with all its components, or undefined if entity doesn't exist.
+
+```typescript
+clear(): void
+```
+Removes all entities and their components from the engine.
 
 ### Component Management
 ```typescript
-addComponent(entityId: string, component: ComponentSerialized): ComponentAddResult
+addComponent<T>(entityId: string, componentName: string, componentData: NonNullable<T>): ComponentAddResult
 ```
-Adds a component to an entity. Returns component ID for tracking.
-
-```typescript
-removeComponent(entityId: string, componentId: string): void
-```
-Removes a specific component from an entity.
+Adds a component to an entity. Returns object containing componentId for tracking.
 
 ```typescript
 getComponent<T>(entityId: string, componentName: string): T[]
 ```
-Retrieves all components of a specific type from an entity.
+Gets all components of a specific type from an entity. Returns array of component data.
+
+```typescript
+getComponents<T>(entityId: string, componentName: string): T[]
+```
+Alias for getComponent. Gets all components of a specific type from an entity.
+
+```typescript
+getComponentById<T>(componentId: string): T | undefined
+```
+Gets a specific component by its ID. Returns component data or undefined if not found.
+
+```typescript
+hasComponent(entityId: string, componentName: string): boolean
+```
+Checks if an entity has a specific component type.
+
+```typescript
+getComponentIds(entityId: string, componentName: string): string[]
+```
+Gets all component IDs of a specific type for an entity.
+
+```typescript
+removeComponent(entityId: string, componentName: string): boolean
+```
+Removes the first component of a specific type from an entity. Returns true if removed.
+
+```typescript
+removeComponentById(componentId: string): boolean
+```
+Removes a specific component by its ID. Returns true if removed.
+
+```typescript
+removeAllComponents(entityId: string, componentName: string): number
+```
+Removes all components of a specific type from an entity. Returns number of components removed.
 
 ### Entity Queries
 ```typescript
-query<T>(componentNames: string[]): EntityFetchResult<T>[]
+query<T extends Record<string, unknown>>(componentNames: string[]): Array<{ entityId: string; components: T }>
 ```
-Finds all entities that have ALL specified components. This is the primary method for systems to find relevant entities.
+Queries entities that have ALL specified components. This is the primary method for systems.
 
 ```typescript
-getEntitiesWithComponent(componentName: string): string[]
+queryWithAny<T extends Record<string, unknown>>(componentNames: string[]): Array<{ entityId: string; components: T }>
 ```
-Returns all entity IDs that have a specific component type.
+Queries entities that have ANY of the specified components.
 
 ### Component Type Management
 ```typescript
-registerComponent(component: ComponentInstanceManage): void
+registerComponent(name: string, func: (args: object) => unknown): this
 ```
-Registers a new component type with its factory functions.
+Registers a new component type with the engine. Returns this for method chaining.
 
 ```typescript
-getComponentFactory(componentName: string): (args: object) => unknown
+getRegisteredComponents(): string[]
 ```
-Retrieves the factory function for a component type.
+Gets a list of all registered component names.
 
 ## Interaction with Other Engines
 
@@ -103,12 +447,14 @@ class MovementSystem implements System<TypeEngine> {
 
     // Process each entity
     for (const { entityId, components } of entities) {
-      const position = components.PositionComponent[0];
-      const velocity = components.VelocityComponent[0];
-      
-      // Update position based on velocity
-      position.x += velocity.x * (deltaTime / 1000);
-      position.y += velocity.y * (deltaTime / 1000);
+      for (let i = 0; i < components.PositionComponent.length; i++) {
+        const position = components.PositionComponent[i];
+        const velocity = components.VelocityComponent[i];
+        
+        // Update position based on velocity
+        position.x += velocity.x * (deltaTime / 1000);
+        position.y += velocity.y * (deltaTime / 1000);
+      }
     }
   }
 }
@@ -119,10 +465,15 @@ EntityEngine emits events for entity and component lifecycle:
 
 ```typescript
 // Events emitted by EntityEngine
-this.eventEngine.emit('entity:created', { entityId });
-this.eventEngine.emit('entity:removed', { entityId });
-this.eventEngine.emit('component:added', { entityId, componentName, componentData });
-this.eventEngine.emit('component:removed', { entityId, componentName });
+this.eventEngine.emit('entity:created', entityId);
+this.eventEngine.emit('entity:removing', entityId, componentNames);
+this.eventEngine.emit('entity:removed', entityId);
+this.eventEngine.emit('component:added', entityId, componentName, componentData);
+this.eventEngine.emit('component:removed', entityId, componentName, componentData);
+this.eventEngine.emit('add:drawable', entityId, componentName, componentData);
+this.eventEngine.emit('remove:drawable', entityId, componentName, componentData);
+this.eventEngine.emit('physics:add:body', entityId, componentName, componentData);
+this.eventEngine.emit('physics:remove:body', entityId, componentName, componentData);
 ```
 
 ### With SceneEngine
@@ -130,7 +481,8 @@ EntityEngine works with SceneEngine to load entities from scene files:
 
 ```typescript
 // SceneEngine uses EntityEngine to create entities from scene data
-const entityId = engine.EntityEngine.createEntity(entityData.components);
+const entityId = engine.EntityEngine.create();
+engine.EntityEngine.addComponent(entityId, componentName, componentData);
 ```
 
 ## Component Registration System
@@ -232,31 +584,6 @@ const entityId = engine.EntityEngine.createEntity(blueprintData.components);
 - Referenced by Editor for entity template selection
 - Can be version controlled as part of project assets
 
-## Entity Query System
-
-### Query Performance
-The EntityEngine uses efficient data structures for fast queries:
-
-```typescript
-// Internal structure optimized for queries
-private entities: Map<string, Set<string>>;        // entityId -> componentIds
-private components: Map<string, ComponentInstance>; // componentId -> component data
-```
-
-### Query Examples
-```typescript
-// Find entities with specific component combination
-const playerEntities = engine.EntityEngine.query(['PlayerComponent', 'HealthComponent']);
-
-// Find entities with multiple physics components
-const physicsEntities = engine.EntityEngine.query([
-  'RigidBodyRectangleComponent', 
-  'SpriteComponent'
-]);
-
-// Find entities with input components
-const inputEntities = engine.EntityEngine.query(['MouseComponent', 'InputComponent']);
-```
 
 ## Entity Lifecycle
 
@@ -267,11 +594,10 @@ sequenceDiagram
     participant EE as EntityEngine
     participant Event as EventEngine
     
-    System->>EE: createEntity(components)
-    EE->>EE: Generate unique ID
-    EE->>EE: Create component instances
-    EE->>EE: Register entity-component relationships
-    EE->>Event: emit('entity:created')
+    System->>EE: create(id?)
+    EE->>EE: Generate unique ID (or use provided)
+    EE->>EE: Register empty entity
+    EE->>Event: emit('entity:created', entityId)
     EE-->>System: entityId
 ```
 
@@ -283,12 +609,12 @@ sequenceDiagram
     participant Factory as Component Factory
     participant Event as EventEngine
     
-    System->>EE: addComponent(entityId, componentData)
+    System->>EE: addComponent(entityId, componentName, componentData)
     EE->>Factory: create(componentData)
     Factory-->>EE: componentInstance
     EE->>EE: Register component to entity
-    EE->>Event: emit('component:added')
-    EE-->>System: componentId
+    EE->>Event: emit('component:added', entityId, componentName, componentData)
+    EE-->>System: { componentId }
 ```
 
 ## Usage Examples
@@ -296,27 +622,28 @@ sequenceDiagram
 ### Creating Entities
 ```typescript
 // Create empty entity
-const entityId = engine.EntityEngine.createEntity();
+const entityId = engine.EntityEngine.create();
 
-// Create entity with initial components
-const playerEntity = engine.EntityEngine.createEntity([
-  {
-    name: 'SpriteComponent',
-    data: { texture_path: 'player.png', position: { x: 100, y: 200 } }
-  },
-  {
-    name: 'RigidBodyRectangleComponent', 
-    data: { x: 100, y: 200, width: 32, height: 32 }
-  }
-]);
+// Create entity with custom ID
+const playerEntity = engine.EntityEngine.create('PLAYER_001');
+
+// Add components to entity
+engine.EntityEngine.addComponent(entityId, 'SpriteComponent', {
+  texture_path: 'player.png',
+  position: { x: 100, y: 200 }
+});
+
+engine.EntityEngine.addComponent(entityId, 'RigidBodyRectangleComponent', {
+  x: 100, y: 200, width: 32, height: 32
+});
 ```
 
 ### Working with Components
 ```typescript
 // Add component to existing entity
-engine.EntityEngine.addComponent(entityId, {
-  name: 'HealthComponent',
-  data: { maxHealth: 100, currentHealth: 100 }
+const result = engine.EntityEngine.addComponent(entityId, 'HealthComponent', {
+  maxHealth: 100,
+  currentHealth: 100
 });
 
 // Get components from entity
@@ -325,8 +652,22 @@ const sprites = engine.EntityEngine.getComponent<SpriteComponent>(
   'SpriteComponent'
 );
 
-// Remove component
-engine.EntityEngine.removeComponent(entityId, componentId);
+// Get single component by ID
+const healthComponent = engine.EntityEngine.getComponentById<HealthComponent>(
+  result.componentId
+);
+
+// Check if entity has component
+const hasHealth = engine.EntityEngine.hasComponent(entityId, 'HealthComponent');
+
+// Remove component by name (removes first one)
+const removed = engine.EntityEngine.removeComponent(entityId, 'HealthComponent');
+
+// Remove component by ID
+const removedById = engine.EntityEngine.removeComponentById(result.componentId);
+
+// Remove all components of a type
+const removedCount = engine.EntityEngine.removeAllComponents(entityId, 'HealthComponent');
 ```
 
 ### System Integration
@@ -341,7 +682,11 @@ class RenderSystem implements System<TypeEngine> {
 
     // Process each entity for rendering
     for (const { entityId, components } of renderableEntities) {
-      this.renderEntity(components.SpriteComponent[0], components.TransformComponent[0]);
+      for (let i = 0; i < components.SpriteComponent.length; i++) {
+        const sprite = components.SpriteComponent[i];
+        const transform = components.TransformComponent[i];
+        this.renderEntity(sprite, transform);
+      }
     }
   }
 }

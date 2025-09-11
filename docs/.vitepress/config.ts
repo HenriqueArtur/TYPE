@@ -81,6 +81,14 @@ export default withMermaid(
               ]
             },
             {
+              text: 'Event Components',
+              collapsed: true,
+              items: [
+                { text: 'Event Component', link: '/components/event/event-component' },
+                { text: 'OnCollision Event Component', link: '/components/event/on-collision-event-component' }
+              ]
+            },
+            {
               text: 'Physics Components', 
               collapsed: true,
               items: [
