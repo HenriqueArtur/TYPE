@@ -147,14 +147,22 @@ describe("PhysicsEngine", () => {
       const handler = (physics_engine as any).boundHandleCollisionEnter;
       handler(collision_data);
 
-      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("physics:collision:enter:entity1", {
-        entityId: "entity2",
-        components: { TestComponent: [{ value: 2 }] },
-      });
-      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("physics:collision:enter:entity2", {
-        entityId: "entity1",
-        components: { TestComponent: [{ value: 1 }] },
-      });
+      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
+        "physics:collision:enter:entity1",
+        typeEngine,
+        {
+          entityId: "entity2",
+          components: { TestComponent: [{ value: 2 }] },
+        },
+      );
+      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
+        "physics:collision:enter:entity2",
+        typeEngine,
+        {
+          entityId: "entity1",
+          components: { TestComponent: [{ value: 1 }] },
+        },
+      );
     });
 
     it("should emit collision exit events with entities", async () => {
@@ -181,14 +189,22 @@ describe("PhysicsEngine", () => {
       const handler = (physics_engine as any).boundHandleCollisionExit;
       handler(collision_data);
 
-      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("physics:collision:exit:entity1", {
-        entityId: "entity2",
-        components: { TestComponent: [{ value: 2 }] },
-      });
-      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith("physics:collision:exit:entity2", {
-        entityId: "entity1",
-        components: { TestComponent: [{ value: 1 }] },
-      });
+      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
+        "physics:collision:exit:entity1",
+        typeEngine,
+        {
+          entityId: "entity2",
+          components: { TestComponent: [{ value: 2 }] },
+        },
+      );
+      expect(typeEngine.EventEngine.emit).toHaveBeenCalledWith(
+        "physics:collision:exit:entity2",
+        typeEngine,
+        {
+          entityId: "entity1",
+          components: { TestComponent: [{ value: 1 }] },
+        },
+      );
     });
 
     it("should handle collision with unknown bodies", async () => {

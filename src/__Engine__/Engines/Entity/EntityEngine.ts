@@ -37,6 +37,10 @@ export class EntityEngine {
   private components: Map<string, ComponentInstance>; // componentId -> ComponentInstance
   private componentFactories: Map<string, (args: object) => unknown>; // componentName -> factory
   private eventEngine: EventEngine;
+  private registeredEventHandlers: Map<
+    string,
+    { eventName: string; handler: (...args: unknown[]) => void }
+  >; // entityId -> event registration
 
   constructor({ engine, EventEngine }: EntityEngineOptions) {
     this.engine = engine;
@@ -44,6 +48,7 @@ export class EntityEngine {
     this.components = new Map();
     this.componentFactories = new Map();
     this.eventEngine = EventEngine;
+    this.registeredEventHandlers = new Map();
   }
 
   // ========================================
@@ -258,6 +263,15 @@ export class EntityEngine {
       if ("_body" in component.data) {
         this.eventEngine.emit("physics:add:body", entityId, componentName, component.data);
       }
+
+      // Handle event component registration
+      if (componentName === "EventComponent" || componentName === "OnCollisionEventComponent") {
+        this.registerEventHandler(
+          entityId,
+          componentName,
+          component.data as { scriptPath: string },
+        );
+      }
     }
 
     return { componentId };
@@ -381,6 +395,11 @@ export class EntityEngine {
       if ("_body" in component.data) {
         this.eventEngine.emit("physics:remove:body", ownerEntityId, component.name, component.data);
       }
+
+      // Handle event component unregistration
+      if (component.name === "EventComponent" || component.name === "OnCollisionEventComponent") {
+        this.unregisterEventHandler(ownerEntityId);
+      }
     }
 
     return true;
@@ -487,5 +506,76 @@ export class EntityEngine {
     }
 
     return result;
+  }
+
+  // ========================================
+  // EVENT HANDLER MANAGEMENT
+  // ========================================
+
+  /**
+   * Registers an event handler for EventComponent or OnCollisionEventComponent
+   * @param entityId - The ID of the entity
+   * @param componentName - The name of the component (EventComponent or OnCollisionEventComponent)
+   * @param componentData - The component data containing scriptPath
+   */
+  private async registerEventHandler(
+    entityId: string,
+    componentName: string,
+    componentData: { scriptPath: string },
+  ): Promise<void> {
+    try {
+      // Convert project-relative path to absolute path
+      const absolutePath = await window.electronAPI.absolutePath(
+        `${this.engine.projectPath}/${componentData.scriptPath}`,
+      );
+
+      // Dynamically import the event handler module
+      const eventModule = await import(absolutePath);
+      const eventHandler = eventModule.default;
+
+      if (!eventHandler || typeof eventHandler.handler !== "function") {
+        console.warn(`Invalid event handler in ${absolutePath}`);
+        return;
+      }
+
+      // Determine event name based on component type
+      let eventName: string;
+      if (componentName === "OnCollisionEventComponent") {
+        eventName = `physics:collision:enter:${entityId}`;
+      } else if (componentName === "EventComponent" && eventHandler.event) {
+        eventName = eventHandler.event;
+      } else {
+        console.warn(`Unable to determine event name for ${componentName} in entity ${entityId}`);
+        return;
+      }
+
+      // Register the event handler
+      this.eventEngine.on(eventName, eventHandler.handler);
+
+      // Store registration info for cleanup
+      this.registeredEventHandlers.set(entityId, {
+        eventName,
+        handler: eventHandler.handler,
+      });
+    } catch (error) {
+      console.error(`Failed to register event handler for entity ${entityId}:`, error);
+    }
+  }
+
+  /**
+   * Unregisters an event handler for EventComponent or OnCollisionEventComponent
+   * @param entityId - The ID of the entity
+   * @param componentName - The name of the component
+   * @param componentData - The component data containing scriptPath
+   */
+  private unregisterEventHandler(entityId: string): void {
+    const registration = this.registeredEventHandlers.get(entityId);
+    if (registration) {
+      // Remove the event listener
+      this.eventEngine.off(registration.eventName, registration.handler);
+
+      // Remove from tracking
+      this.registeredEventHandlers.delete(entityId);
+    }
   }
 }

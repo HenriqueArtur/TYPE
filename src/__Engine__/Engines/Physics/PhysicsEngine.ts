@@ -52,8 +52,8 @@ export class PhysicsEngine {
         const entity_B = entity_B_id ? this.engine.EntityEngine.get(entity_B_id) : undefined;
 
         if (entity_A && entity_B) {
-          this.eventEngine.emit(`physics:collision:enter:${entity_A_id}`, entity_B);
-          this.eventEngine.emit(`physics:collision:enter:${entity_B_id}`, entity_A);
+          this.eventEngine.emit(`physics:collision:enter:${entity_A_id}`, this.engine, entity_B);
+          this.eventEngine.emit(`physics:collision:enter:${entity_B_id}`, this.engine, entity_A);
         }
       }
     };
@@ -67,8 +67,8 @@ export class PhysicsEngine {
         const entity_B = entity_B_id ? this.engine.EntityEngine.get(entity_B_id) : undefined;
 
         if (entity_A && entity_B) {
-          this.eventEngine.emit(`physics:collision:exit:${entity_A_id}`, entity_B);
-          this.eventEngine.emit(`physics:collision:exit:${entity_B_id}`, entity_A);
+          this.eventEngine.emit(`physics:collision:exit:${entity_A_id}`, this.engine, entity_B);
+          this.eventEngine.emit(`physics:collision:exit:${entity_B_id}`, this.engine, entity_A);
         }
       }
     };
