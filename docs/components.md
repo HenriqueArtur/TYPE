@@ -30,6 +30,10 @@ Components that handle game events and script execution:
 Components that handle user input:
 - **[Mouse Component](/components/input/mouse)** - Mouse input handling
 
+### Utility Components
+Core utility components for common game object properties:
+- **[Transform Component](/components/utils/transform)** - Standardized spatial transformation (position, scale, rotation)
+
 ## Component Architecture
 
 Components in TYPE are pure data containers with no behavior. The actual component is the `ComponentType`, which contains the data properties that [Systems](/systems) read and modify.

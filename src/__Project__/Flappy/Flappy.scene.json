@@ -1,218 +1,48 @@
 {
   "name": "Flappy",
   "path": "Flappy/Flappy.scene.json",
-  "systems": [
-    "BirdControlSystem",
-    "PipeMovementSystem",
-    "CollisionSystem",
-    "GameOverlaySystem"
-  ],
+  "systems": [],
   "gameObjects": [
     {
       "name": "GameState",
+      "blueprint": {
+        "name": "GameState",
+        "path": "Flappy/GameState.blueprint.json"
+      },
       "components": [
         {
           "name": "GameStateComponent",
           "data": {
-            "isGameOver": false,
             "isPaused": false
           }
-        }
-      ]
-    },
-    {
-      "name": "Bird",
-      "components": [
-        {
-          "name": "CircleComponent",
-          "data": {
-            "radius": 15,
-            "position": { "x": 100, "y": 300 },
-            "fill": {
-              "enabled": true,
-              "color": "#FFFF00"
-            }
-          }
         },
-        {
-          "name": "BirdControlComponent",
-          "data": {
-            "gravity": 500,
-            "jumpForce": 200,
-            "velocity": { "x": 0, "y": 0 }
-          }
-        },
-        {
-          "name": "MouseComponent",
-          "data": {
-            "screenPosition": { "x": 0, "y": 0 },
-            "windowPosition": { "x": 0, "y": 0 },
-            "buttons": { "left": false, "right": false, "middle": false },
-            "wheel": { "deltaX": 0, "deltaY": 0, "deltaZ": 0 }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Pipe1Top",
-      "components": [
         {
           "name": "RectangleComponent",
           "data": {
-            "width": 60,
-            "height": 200,
-            "position": { "x": 400, "y": 100 },
-            "anchor": 0.5,
-            "fill": {
-              "enabled": true,
-              "color": "#00FF00"
-            }
-          }
-        },
-        {
-          "name": "PipeMovementComponent",
-          "data": {
-            "speed": 100
-          }
-        }
-      ]
-    },
-    {
-      "name": "Pipe1Bottom",
-      "components": [
-        {
-          "name": "RectangleComponent",
-          "data": {
-            "width": 60,
-            "height": 200,
-            "position": { "x": 400, "y": 500 },
-            "anchor": 0.5,
-            "fill": {
-              "enabled": true,
-              "color": "#00FF00"
-            }
-          }
-        },
-        {
-          "name": "PipeMovementComponent",
-          "data": {
-            "speed": 100
-          }
-        }
-      ]
-    },
-    {
-      "name": "Pipe2Top",
-      "components": [
-        {
-          "name": "RectangleComponent",
-          "data": {
-            "width": 60,
-            "height": 180,
-            "position": { "x": 600, "y": 90 },
-            "anchor": 0.5,
-            "fill": {
-              "enabled": true,
-              "color": "#00FF00"
-            }
-          }
-        },
-        {
-          "name": "PipeMovementComponent",
-          "data": {
-            "speed": 100
-          }
-        }
-      ]
-    },
-    {
-      "name": "Pipe2Bottom",
-      "components": [
-        {
-          "name": "RectangleComponent",
-          "data": {
-            "width": 60,
-            "height": 180,
-            "position": { "x": 600, "y": 510 },
-            "anchor": 0.5,
-            "fill": {
-              "enabled": true,
-              "color": "#00FF00"
-            }
-          }
-        },
-        {
-          "name": "PipeMovementComponent",
-          "data": {
-            "speed": 100
-          }
-        }
-      ]
-    },
-    {
-      "name": "Pipe3Top",
-      "components": [
-        {
-          "name": "RectangleComponent",
-          "data": {
-            "width": 60,
-            "height": 150,
-            "position": { "x": 800, "y": 75 },
-            "anchor": 0.5,
-            "fill": {
-              "enabled": true,
-              "color": "#00FF00"
-            }
-          }
-        },
-        {
-          "name": "PipeMovementComponent",
-          "data": {
-            "speed": 100
-          }
-        }
-      ]
-    },
-    {
-      "name": "Pipe3Bottom",
-      "components": [
-        {
-          "name": "RectangleComponent",
-          "data": {
-            "width": 60,
-            "height": 150,
-            "position": { "x": 800, "y": 525 },
-            "anchor": 0.5,
-            "fill": {
-              "enabled": true,
-              "color": "#00FF00"
-            }
-          }
-        },
-        {
-          "name": "PipeMovementComponent",
-          "data": {
-            "speed": 100
-          }
-        }
-      ]
-    },
-    {
-      "name": "GameOverOverlay",
-      "components": [
-        {
-          "name": "RectangleComponent",
-          "data": {
-            "width": 800,
-            "height": 600,
-            "position": { "x": 400, "y": 300 },
-            "anchor": 0.5,
-            "alpha": 0.8,
+            "width": 200,
+            "height": 100,
+            "position": {
+              "x": 400,
+              "y": 300
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "rotation": 0,
+            "alpha": 1,
             "visible": false,
+            "anchor": 0.5,
             "fill": {
               "enabled": true,
-              "color": "#FF0000"
+              "color": "#ff0000"
             }
+          }
+        },
+        {
+          "name": "EventComponent",
+          "data": {
+            "scriptPath": "Flappy/PauseGame.event.js"
           }
         }
       ]

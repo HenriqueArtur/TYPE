@@ -2,12 +2,14 @@ import { DEFAULT_DRAWABLE_COMPONENTS, DRAWABLE_COMPONENTS } from "./Drawable/__c
 import { DEFAULT_EVENT_COMPONENTS, EVENT_COMPONENTS } from "./Event/__const__";
 import { DEFAULT_INPUT_COMPONENTS, INPUT_COMPONENTS } from "./Input/__const__";
 import { DEFAULT_PHYSICS_COMPONENTS, PHYSICS_COMPONENTS } from "./Physics/__const__";
+import { TRANSFORM_COMPONENT } from "./Utils/__const__";
 
 export const DEFAULT_COMPONENTS = [
   ...DEFAULT_DRAWABLE_COMPONENTS,
   ...DEFAULT_EVENT_COMPONENTS,
   ...DEFAULT_INPUT_COMPONENTS,
   ...DEFAULT_PHYSICS_COMPONENTS,
+  TRANSFORM_COMPONENT,
 ];
 
 export const COMPONENT_NAMES = [
@@ -15,4 +17,5 @@ export const COMPONENT_NAMES = [
   ...EVENT_COMPONENTS,
   ...INPUT_COMPONENTS,
   ...PHYSICS_COMPONENTS,
+  "TransformComponent",
 ];

@@ -1,0 +1,41 @@
+{
+  "name": "GameState",
+  "path": "Flappy/GameState.blueprint.json",
+  "components": [
+    {
+      "name": "GameStateComponent",
+      "data": {
+        "isPaused": false
+      }
+    },
+    {
+      "name": "RectangleComponent",
+      "data": {
+        "width": 200,
+        "height": 100,
+        "position": {
+          "x": 400,
+          "y": 300
+        },
+        "scale": {
+          "x": 1,
+          "y": 1
+        },
+        "rotation": 0,
+        "alpha": 1,
+        "visible": false,
+        "anchor": 0.5,
+        "fill": {
+          "enabled": true,
+          "color": "#ff0000"
+        }
+      }
+    },
+    {
+      "name": "EventComponent",
+      "data": {
+        "scriptPath": "Flappy/PauseGame.event.js"
+      }
+    }
+  ]
+}

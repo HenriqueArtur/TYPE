@@ -1,9 +1,5 @@
 {
   "ExampleSystem": "not/Tests/ExampleSystem.system.js",
   "RotationSystem": "not/Tests/RotationSystem.system.js",
-  "PendulumSystem": "not/Tests/PendulumSystem.system.js",
-  "BirdControlSystem": "Flappy/BirdControlSystem.system.js",
-  "PipeMovementSystem": "Flappy/PipeMovementSystem.system.js",
-  "CollisionSystem": "Flappy/CollisionSystem.system.js",
-  "GameOverlaySystem": "Flappy/GameOverlaySystem.system.js"
+  "PendulumSystem": "not/Tests/PendulumSystem.system.js"
 }

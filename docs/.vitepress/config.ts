@@ -106,6 +106,13 @@ export default withMermaid(
               items: [
                 { text: 'Mouse Component', link: '/components/input/mouse' }
               ]
+            },
+            {
+              text: 'Utility Components',
+              collapsed: true,
+              items: [
+                { text: 'Transform Component', link: '/components/utils/transform' }
+              ]
             }
           ]
         },
