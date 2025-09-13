@@ -30,11 +30,11 @@ export class RenderEngine {
     componentName: string;
     componentData: Drawable<Container, unknown>;
   }) => void;
-  private boundHandleAddDrawable: (data: {
-    entityId: string;
-    componentName: string;
-    componentData: Drawable<Container, unknown>;
-  }) => void;
+  private boundHandleAddDrawable: (
+    entityId: string,
+    componentName: string,
+    componentData: Drawable<Container, unknown>,
+  ) => void;
   private tag: string;
   private render_window: { width: number; height: number };
 
@@ -147,34 +147,34 @@ export class RenderEngine {
    * Handle add:drawable events by adding sprites to the container
    * @param data - Event data containing entityId, componentName, and componentData
    */
-  private async handleAddDrawable(data: {
-    entityId: string;
-    componentName: string;
-    componentData: Drawable<Container, unknown>;
-  }): Promise<void> {
+  private async handleAddDrawable(
+    entityId: string,
+    componentName: string,
+    componentData: Drawable<Container, unknown>,
+  ): Promise<void> {
     // Setup the drawable resource
-    await this.setupByResouce(data.componentName, data.componentData);
+    await this.setupByResouce(componentName, componentData);
 
     // Add to stage
-    this._instance.stage.addChild(data.componentData._drawable);
+    this._instance.stage.addChild(componentData._drawable);
 
     // Add to tracking map
-    const entityRef = this.drawablesMap.get(data.entityId);
+    const entityRef = this.drawablesMap.get(entityId);
     if (!entityRef) {
       const componentsMap = new Map();
-      componentsMap.set(data.componentName, [data.componentData]);
-      this.drawablesMap.set(data.entityId, componentsMap);
+      componentsMap.set(componentName, [componentData]);
+      this.drawablesMap.set(entityId, componentsMap);
       return;
     }
 
-    const componentsRef = entityRef.get(data.componentName);
+    const componentsRef = entityRef.get(componentName);
     if (!componentsRef) {
-      entityRef.set(data.componentName, [data.componentData]);
+      entityRef.set(componentName, [componentData]);
       return;
     }
 
-    componentsRef.push(data.componentData);
-    entityRef.set(data.componentName, componentsRef);
+    componentsRef.push(componentData);
+    entityRef.set(componentName, componentsRef);
   }
 
   destroy(_engine: TypeEngine): void {

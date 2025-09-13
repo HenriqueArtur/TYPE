@@ -3,5 +3,6 @@
   "RotationSystem": "not/Tests/RotationSystem.system.js",
   "PendulumSystem": "not/Tests/PendulumSystem.system.js",
   "CirclePhysicsSyncSystem": "Flappy/CirclePhysicsSyncSystem.system.js",
-  "BirdJumpSystem": "Flappy/BirdJumpSystem.system.js"
+  "BirdJumpSystem": "Flappy/BirdJumpSystem.system.js",
+  "PipeSystem": "Flappy/PipeSystem.system.js"
 }
