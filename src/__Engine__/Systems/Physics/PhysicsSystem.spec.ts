@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { EntityEngine } from "../../Engines/Entity/EntityEngine";
 import type { PhysicsEngine } from "../../Engines/Physics/PhysicsEngine";
 import type { TypeEngine } from "../../TypeEngine";
 import { PhysicsSystem } from "./PhysicsSystem";
@@ -7,14 +8,20 @@ describe("PhysicsSystem", () => {
   let physics_system: PhysicsSystem;
   let mock_engine: TypeEngine;
   let mock_physics_engine: PhysicsEngine;
+  let mock_entity_engine: EntityEngine;
 
   beforeEach(() => {
     mock_physics_engine = {
       update: vi.fn(),
     } as unknown as PhysicsEngine;
 
+    mock_entity_engine = {
+      queryWithAny: vi.fn().mockReturnValue([]),
+    } as unknown as EntityEngine;
+
     mock_engine = {
       PhysicsEngine: mock_physics_engine,
+      EntityEngine: mock_entity_engine,
     } as unknown as TypeEngine;
 
     physics_system = new PhysicsSystem();
@@ -38,6 +45,7 @@ describe("PhysicsSystem", () => {
       physics_system.update(mock_engine, 16.67);
 
       expect(mock_physics_engine.update).toHaveBeenCalledWith(16.67);
+      expect(mock_entity_engine.queryWithAny).toHaveBeenCalled();
     });
   });
 
