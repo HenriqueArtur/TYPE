@@ -1,5 +1,7 @@
 {
   "ExampleSystem": "not/Tests/ExampleSystem.system.js",
   "RotationSystem": "not/Tests/RotationSystem.system.js",
-  "PendulumSystem": "not/Tests/PendulumSystem.system.js"
+  "PendulumSystem": "not/Tests/PendulumSystem.system.js",
+  "CirclePhysicsSyncSystem": "Flappy/CirclePhysicsSyncSystem.system.js",
+  "BirdJumpSystem": "Flappy/BirdJumpSystem.system.js"
 }

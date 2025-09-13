@@ -1,4 +1,11 @@
-import { type Body, Events, type IEventCollision, Engine as MatterEngine, World } from "matter-js";
+import {
+  type Body,
+  Events,
+  type IEventCollision,
+  Body as MatterBody,
+  Engine as MatterEngine,
+  World,
+} from "matter-js";
 import { PHYSICS_COMPONENTS } from "../../Component/Physics/__const__";
 import type { TypeEngine } from "../../TypeEngine";
 import type { EventEngine } from "../Event/EventEngine";
@@ -89,7 +96,7 @@ export class PhysicsEngine {
 
   setupScene() {
     const body_entities =
-      this.engine.EntityEngine.query<Record<string, { _body: Body }>>(PHYSICS_COMPONENTS);
+      this.engine.EntityEngine.queryWithAny<Record<string, { _body: Body }[]>>(PHYSICS_COMPONENTS);
     for (const { entityId, components } of body_entities) {
       let components_ref = this.bodyMap.get(entityId);
       if (!components_ref) {
@@ -97,9 +104,9 @@ export class PhysicsEngine {
         this.bodyMap.set(entityId, components_ref);
       }
       for (const [name, component] of Object.entries(components)) {
-        components_ref.set(name, component._body);
-        this.bodyToEntityMap.set(component._body, entityId);
-        World.add(this.world, component._body);
+        components_ref.set(name, component[0]._body);
+        this.bodyToEntityMap.set(component[0]._body, entityId);
+        World.add(this.world, component[0]._body);
       }
     }
   }
@@ -161,6 +168,14 @@ export class PhysicsEngine {
 
   findEntityByBody(body: Body): string | null {
     return this.bodyToEntityMap.get(body) ?? null;
+  }
+
+  applyForce(
+    body: Body,
+    position: { x: number; y: number },
+    force: { x: number; y: number },
+  ): void {
+    MatterBody.applyForce(body, position, force);
   }
 
   destroy(): void {

@@ -1,0 +1,32 @@
+{
+  "name": "Bird",
+  "path": "Flappy/Bird.blueprint.json",
+  "components": [
+    {
+      "name": "CircleComponent",
+      "data": {
+        "radius": 20,
+        "position": { "x": 0, "y": 0 },
+        "fill": {
+          "enabled": true,
+          "color": "#FFD700"
+        }
+      }
+    },
+    {
+      "name": "RigidBodyCircleComponent",
+      "data": {
+        "x": 0,
+        "y": 0,
+        "radius": 20,
+        "density": 0.001,
+        "frictionAir": 0,
+        "restitution": 0.3
+      }
+    },
+    {
+      "name": "MouseComponent",
+      "data": {}
+    }
+  ]
+}

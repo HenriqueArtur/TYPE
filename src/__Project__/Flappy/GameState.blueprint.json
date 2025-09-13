@@ -5,7 +5,9 @@
     {
       "name": "GameStateComponent",
       "data": {
-        "isPaused": false
+        "isPaused": false,
+        "timeToNextJump": 0,
+        "timeToJump": 300
       }
     },
     {
