@@ -9,19 +9,34 @@ import {
 import type { System } from "../../__Engine__/Systems/System";
 import type { TypeEngine } from "../../__Engine__/TypeEngine";
 import { generateId } from "../../__Engine__/Utils/id";
+import type { GameStateComponent } from "./GameStateComponent.component";
 
 export class PipeSystem implements System<TypeEngine> {
   name = "PipeSystem";
   priority = 7;
   enabled = true;
 
-  private maxPipesInScene = 1;
+  private maxPipesInScene = 3;
+  private pipeSpeed = 200; // pixels per second
+  private spawnDistance = 300; // distance between pipes
 
   async init(_engine: TypeEngine): Promise<void> {}
 
-  update(engine: TypeEngine, _deltaTime: number): void {
-    const pipeCount = this.countPipesInScene(engine);
+  update(engine: TypeEngine, deltaTime: number): void {
+    // Check if game is paused
+    const gameStateEntities = engine.EntityEngine.queryWithAny<{
+      GameStateComponent: GameStateComponent[];
+    }>(["GameStateComponent"]);
 
+    if (gameStateEntities.length > 0) {
+      const gameState = gameStateEntities[0].components.GameStateComponent[0];
+      if (gameState.isPaused) return; // Don't update pipes if game is paused
+    }
+
+    this.movePipes(engine, deltaTime);
+    this.removeOffScreenPipes(engine);
+
+    const pipeCount = this.countPipesInScene(engine);
     if (pipeCount < this.maxPipesInScene) {
       this.spawnPipe(engine);
     }
@@ -42,15 +57,77 @@ export class PipeSystem implements System<TypeEngine> {
     return count / 2; // Each pipe pair consists of 2 entities (top and bottom)
   }
 
+  private movePipes(engine: TypeEngine, deltaTime: number): void {
+    const pipeEntities = engine.EntityEngine.query<{
+      RectangleComponent: RectangleComponent[];
+      ColliderRectangleComponent: ColliderRectangleComponent[];
+    }>(["RectangleComponent", "ColliderRectangleComponent"]);
+
+    for (const { entityId, components } of pipeEntities) {
+      if (entityId.startsWith("pipe_")) {
+        const rectangle = components.RectangleComponent[0];
+        const collider = components.ColliderRectangleComponent[0];
+
+        // Move pipe to the left
+        const deltaX = (this.pipeSpeed * deltaTime) / 1000; // Convert to seconds
+        rectangle.position.x -= deltaX;
+        collider.x -= deltaX;
+      }
+    }
+  }
+
+  private removeOffScreenPipes(engine: TypeEngine): void {
+    const pipeEntities = engine.EntityEngine.query<{
+      RectangleComponent: RectangleComponent[];
+    }>(["RectangleComponent"]);
+
+    for (const { entityId, components } of pipeEntities) {
+      if (entityId.startsWith("pipe_")) {
+        const rectangle = components.RectangleComponent[0];
+
+        // Remove pipes that are completely off screen (left side)
+        if (rectangle.position.x < -100) {
+          engine.EntityEngine.remove(entityId);
+        }
+      }
+    }
+  }
+
+  private getLastPipePosition(engine: TypeEngine): number {
+    const pipeEntities = engine.EntityEngine.query<{
+      RectangleComponent: RectangleComponent[];
+    }>(["RectangleComponent"]);
+
+    let rightmostX = -Infinity;
+
+    for (const { entityId, components } of pipeEntities) {
+      if (entityId.startsWith("pipe_")) {
+        const rectangle = components.RectangleComponent[0];
+        if (rectangle.position.x > rightmostX) {
+          rightmostX = rectangle.position.x;
+        }
+      }
+    }
+
+    return rightmostX === -Infinity ? 600 : rightmostX; // Start at screen edge if no pipes exist
+  }
+
   private spawnPipe(engine: TypeEngine): void {
     const canvasHeight = 600;
     const pipeWidth = 60;
-    const pipeGap = 150;
-    const x = 400;
+    const pipeGap = 240;
 
-    const gapCenterY = canvasHeight / 2;
+    // Spawn new pipes at a distance from the last pipe
+    const lastPipeX = this.getLastPipePosition(engine);
+    const x = lastPipeX + this.spawnDistance;
+
+    // Randomize gap position
+    const minGapY = pipeGap / 2 + 50; // 50px from top
+    const maxGapY = canvasHeight - pipeGap / 2 - 50; // 50px from bottom
+    const gapCenterY = Math.random() * (maxGapY - minGapY) + minGapY;
+
     const topPipeHeight = gapCenterY - pipeGap / 2;
-    const bottomPipeHeight = gapCenterY - pipeGap / 2;
+    const bottomPipeHeight = canvasHeight - (gapCenterY + pipeGap / 2);
 
     // Create top pipe
     this.createPipeRect(engine, x, topPipeHeight / 2, pipeWidth, topPipeHeight, "top");

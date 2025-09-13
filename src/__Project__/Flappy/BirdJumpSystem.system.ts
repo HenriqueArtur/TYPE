@@ -39,7 +39,7 @@ export class BirdJumpSystem implements System<TypeEngine> {
       const mouseInput = components.MouseComponent[0];
 
       if (mouseInput.buttons.left && gameState.timeToNextJump <= 0) {
-        const jumpForce = { x: 0, y: -250 };
+        const jumpForce = { x: 0, y: -230 };
         const bodyPosition = { x: physicsBody.x, y: physicsBody.y };
         engine.PhysicsEngine.applyForce(physicsBody._body, bodyPosition, jumpForce);
 

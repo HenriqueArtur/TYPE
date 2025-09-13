@@ -15,7 +15,7 @@
           "data": {
             "isPaused": false,
             "timeToNextJump": 0,
-            "timeToJump": 150
+            "timeToJump": 30
           }
         },
         {

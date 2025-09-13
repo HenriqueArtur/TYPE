@@ -42,6 +42,9 @@ export class GameRestartSystem implements System<TypeEngine> {
       const mouseInput = components.MouseComponent[0];
 
       if (mouseInput.buttons.left) {
+        // Remove all existing pipes
+        this.clearAllPipes(engine);
+
         // Reset bird position to starting position
         MatterBody.setPosition(physicsBody._body, { x: 50, y: 300 });
 
@@ -59,6 +62,18 @@ export class GameRestartSystem implements System<TypeEngine> {
         gameState.timeToNextJump = 0;
 
         break; // Only need to restart once
+      }
+    }
+  }
+
+  private clearAllPipes(engine: TypeEngine): void {
+    const pipeEntities = engine.EntityEngine.query<{
+      RectangleComponent: RectangleComponent[];
+    }>(["RectangleComponent"]);
+
+    for (const { entityId } of pipeEntities) {
+      if (entityId.startsWith("pipe_")) {
+        engine.EntityEngine.remove(entityId);
       }
     }
   }

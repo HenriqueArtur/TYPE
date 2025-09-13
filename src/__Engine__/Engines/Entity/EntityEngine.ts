@@ -148,6 +148,17 @@ export class EntityEngine {
         const component = this.components.get(componentId);
         if (component && !componentNames.includes(component.name)) {
           componentNames.push(component.name);
+          if ("_body" in (component as { data: object }).data) {
+            this.engine.EventEngine.emit("physics:remove:body", entityId, component.name);
+            continue;
+          }
+          if ("_drawable" in (component as { data: object }).data) {
+            this.engine.EventEngine.emit("remove:drawable", {
+              entityId,
+              componentName: component.name,
+              componentData: component.data,
+            });
+          }
         }
       }
     }
