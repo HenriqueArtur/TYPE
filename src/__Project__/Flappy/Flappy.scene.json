@@ -1,7 +1,7 @@
 {
   "name": "Flappy",
   "path": "Flappy/Flappy.scene.json",
-  "systems": ["CirclePhysicsSyncSystem", "BirdJumpSystem"],
+  "systems": ["CirclePhysicsSyncSystem", "BirdJumpSystem", "BirdBoundsCheckSystem", "GameRestartSystem"],
   "gameObjects": [
     {
       "name": "GameState",

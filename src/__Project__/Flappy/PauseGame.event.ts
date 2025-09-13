@@ -20,14 +20,10 @@ const eventHandler: EventHandler = {
       const gameState = components.GameStateComponent[0];
       const rectangle = components.RectangleComponent[0];
 
-      // Toggle pause state
       gameState.isPaused = !gameState.isPaused;
-
-      // Show/hide red rectangle based on pause state
       rectangle.visible = gameState.isPaused;
-
-      console.log(`Game ${gameState.isPaused ? "paused" : "unpaused"}`);
     }
+    engine.SystemEngine.toggle("PhysicsSystem");
   },
 };
 

@@ -4,5 +4,7 @@
   "PendulumSystem": "not/Tests/PendulumSystem.system.js",
   "CirclePhysicsSyncSystem": "Flappy/CirclePhysicsSyncSystem.system.js",
   "BirdJumpSystem": "Flappy/BirdJumpSystem.system.js",
-  "PipeSystem": "Flappy/PipeSystem.system.js"
+  "PipeSystem": "Flappy/PipeSystem.system.js",
+  "BirdBoundsCheckSystem": "Flappy/BirdBoundsCheckSystem.system.js",
+  "GameRestartSystem": "Flappy/GameRestartSystem.system.js"
 }

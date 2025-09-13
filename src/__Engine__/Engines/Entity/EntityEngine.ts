@@ -231,6 +231,9 @@ export class EntityEngine {
 
       this.components.set(componentId, componentInstance);
       entityComponentIds.add(componentId);
+      if (componentName === "EventComponent" || componentName === "OnCollisionEventComponent") {
+        this.registerEventHandler(entityId, componentName, componentData as { scriptPath: string });
+      }
       return componentId;
     }
 
