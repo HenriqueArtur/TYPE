@@ -441,11 +441,7 @@ describe("RenderEngine", () => {
       // Call the private handleAddDrawable method directly
       // biome-ignore lint/suspicious/noExplicitAny: Accessing private method for testing
       const handleAddDrawable = (renderEngine as any).handleAddDrawable;
-      await handleAddDrawable.call(renderEngine, {
-        entityId,
-        componentName: "SpriteComponent",
-        componentData: spriteComponent,
-      });
+      await handleAddDrawable.call(renderEngine, entityId, "SpriteComponent", spriteComponent);
 
       expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(spriteComponent._drawable);
 
@@ -464,18 +460,10 @@ describe("RenderEngine", () => {
       const handleAddDrawable = (renderEngine as any).handleAddDrawable;
 
       // Add first sprite
-      await handleAddDrawable.call(renderEngine, {
-        entityId,
-        componentName: "SpriteComponent",
-        componentData: sprite1,
-      });
+      await handleAddDrawable.call(renderEngine, entityId, "SpriteComponent", sprite1);
 
       // Add second sprite of same type
-      await handleAddDrawable.call(renderEngine, {
-        entityId,
-        componentName: "SpriteComponent",
-        componentData: sprite2,
-      });
+      await handleAddDrawable.call(renderEngine, entityId, "SpriteComponent", sprite2);
 
       expect(renderEngine._instance.stage.addChild).toHaveBeenCalledTimes(2);
 
@@ -493,11 +481,7 @@ describe("RenderEngine", () => {
 
       // biome-ignore lint/suspicious/noExplicitAny: Accessing private method for testing
       const handleAddDrawable = (renderEngine as any).handleAddDrawable;
-      await handleAddDrawable.call(renderEngine, {
-        entityId,
-        componentName: "SpriteComponent",
-        componentData: spriteComponent,
-      });
+      await handleAddDrawable.call(renderEngine, entityId, "SpriteComponent", spriteComponent);
 
       expect(renderEngine._instance.stage.addChild).toHaveBeenCalledWith(spriteComponent._drawable);
 

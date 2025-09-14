@@ -1,5 +1,6 @@
 import { Bodies, type Body, type Engine, type IEventCollision } from "matter-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { BodyComponent } from "../../Component/Physics/__type__";
 import { COLLIDER_RECTANGLE_COMPONENT } from "../../Component/Physics/ColliderRectangleComponent";
 import { TypeEngine } from "../../TypeEngine";
 import { setupBasicTypeEngineMocks } from "../../TyprEngine.mock";
@@ -118,9 +119,9 @@ describe("PhysicsEngine", () => {
       bodyA = Bodies.rectangle(0, 0, 10, 10);
       bodyB = Bodies.rectangle(20, 20, 10, 10);
 
-      // Add bodies with entity mapping
-      physics_engine.addBody("entity1", "collider", bodyA);
-      physics_engine.addBody("entity2", "collider", bodyB);
+      // Add bodies with entity mapping - now using BodyComponent structure
+      physics_engine.addBody("entity1", "collider", { _body: bodyA } as BodyComponent);
+      physics_engine.addBody("entity2", "collider", { _body: bodyB } as BodyComponent);
     });
 
     it("should emit collision enter events with entities", async () => {
@@ -253,7 +254,7 @@ describe("PhysicsEngine", () => {
       const world = physics_engine.getWorld();
       const initial_body_count = world.bodies.length;
 
-      physics_engine.addBody("test-entity", "collider", body);
+      physics_engine.addBody("test-entity", "collider", { _body: body } as BodyComponent);
 
       expect(world.bodies.length).toBe(initial_body_count + 1);
       expect(physics_engine.getBodyMap().get("test-entity")?.get("collider")).toBe(body);
@@ -264,7 +265,7 @@ describe("PhysicsEngine", () => {
       const body = Bodies.rectangle(100, 100, 50, 50);
       const world = physics_engine.getWorld();
 
-      physics_engine.addBody("test-entity", "collider", body);
+      physics_engine.addBody("test-entity", "collider", { _body: body } as BodyComponent);
       const initial_count = world.bodies.length;
 
       physics_engine.removeBody("test-entity", "collider");
@@ -285,7 +286,7 @@ describe("PhysicsEngine", () => {
     it("should cleanup event listeners and clear maps", async () => {
       // Add some test data
       const body = Bodies.rectangle(0, 0, 10, 10);
-      physics_engine.addBody("test", "collider", body);
+      physics_engine.addBody("test", "collider", { _body: body } as BodyComponent);
 
       physics_engine.destroy();
 
@@ -342,8 +343,8 @@ describe("PhysicsEngine", () => {
       const bodyA = Bodies.rectangle(0, 0, 10, 10);
       const bodyB = Bodies.rectangle(20, 20, 10, 10);
 
-      physics_engine.addBody("entityA", "collider", bodyA);
-      physics_engine.addBody("entityB", "collider", bodyB);
+      physics_engine.addBody("entityA", "collider", { _body: bodyA } as BodyComponent);
+      physics_engine.addBody("entityB", "collider", { _body: bodyB } as BodyComponent);
 
       // Test private method through collision handling
       const result = physics_engine.findEntityByBody(bodyA);

@@ -58,7 +58,7 @@ export class PipeSystem implements System<TypeEngine> {
   }
 
   private movePipes(engine: TypeEngine, deltaTime: number): void {
-    const pipeEntities = engine.EntityEngine.query<{
+    const pipeEntities = engine.EntityEngine.queryWithAny<{
       RectangleComponent: RectangleComponent[];
       ColliderRectangleComponent: ColliderRectangleComponent[];
     }>(["RectangleComponent", "ColliderRectangleComponent"]);
@@ -72,6 +72,10 @@ export class PipeSystem implements System<TypeEngine> {
         const deltaX = (this.pipeSpeed * deltaTime) / 1000; // Convert to seconds
         rectangle.position.x -= deltaX;
         collider.x -= deltaX;
+        engine.PhysicsEngine.setPosition(collider._body, {
+          x: collider._body.position.x - deltaX,
+          y: collider._body.position.y,
+        });
       }
     }
   }

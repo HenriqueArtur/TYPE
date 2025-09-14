@@ -1,5 +1,6 @@
 import {
   type Body,
+  Composite,
   Events,
   type IEventCollision,
   Body as MatterBody,
@@ -7,6 +8,7 @@ import {
   World,
 } from "matter-js";
 import { PHYSICS_COMPONENTS } from "../../Component/Physics/__const__";
+import type { BodyComponent } from "../../Component/Physics/__type__";
 import type { TypeEngine } from "../../TypeEngine";
 import type { EventEngine } from "../Event/EventEngine";
 
@@ -19,7 +21,7 @@ export interface PhysicsEngineOptions {
 export class PhysicsEngine {
   private engine: TypeEngine;
   private matterEngine: MatterEngine;
-  private world: World;
+  private world: Composite;
   private eventEngine: EventEngine;
   private gravity: { x: number; y: number };
   private bodyMap = new Map<string, Map<string, Body>>();
@@ -28,7 +30,7 @@ export class PhysicsEngine {
   private boundHandleCollisionEnter?: (event: IEventCollision<MatterEngine>) => void;
   private boundHandleCollisionExit?: (event: IEventCollision<MatterEngine>) => void;
 
-  private bindedAddBody: (entityId: string, component_name: string, body: Body) => void;
+  private bindedAddBody: (entityId: string, component_name: string, body: BodyComponent) => void;
   private bindedRemoveBody: (entityId: string, component_name: string) => void;
 
   constructor(options: PhysicsEngineOptions) {
@@ -106,7 +108,7 @@ export class PhysicsEngine {
       for (const [name, component] of Object.entries(components)) {
         components_ref.set(name, component[0]._body);
         this.bodyToEntityMap.set(component[0]._body, entityId);
-        World.add(this.world, component[0]._body);
+        Composite.add(this.world, component[0]._body);
       }
     }
   }
@@ -115,15 +117,16 @@ export class PhysicsEngine {
     MatterEngine.update(this.matterEngine, deltaTime);
   }
 
-  addBody(entityId: string, component_name: string, body: Body): void {
+  addBody(entityId: string, component_name: string, body: BodyComponent): void {
     let components_ref = this.bodyMap.get(entityId);
     if (!components_ref) {
       components_ref = new Map();
       this.bodyMap.set(entityId, components_ref);
     }
-    components_ref.set(component_name, body);
-    this.bodyToEntityMap.set(body, entityId);
-    World.add(this.world, body);
+    components_ref.set(component_name, body._body);
+    this.bodyToEntityMap.set(body._body, entityId);
+    Composite.add(this.world, body._body);
+    console.log(Composite.allBodies(this.world));
   }
 
   removeBody(entityId: string, component_name: string): void {
@@ -178,6 +181,10 @@ export class PhysicsEngine {
     MatterBody.applyForce(body, position, force);
   }
 
+  setPosition(body: Body, position: { x: number; y: number }) {
+    MatterBody.setPosition(body, position);
+  }
+
   destroy(): void {
     // Remove event listeners
     if (this.boundHandleCollisionEnter) {
@@ -198,7 +205,7 @@ export class PhysicsEngine {
   }
 
   clear() {
-    World.clear(this.world, false);
+    Composite.clear(this.world, false);
     this.bodyMap.clear();
     this.bodyToEntityMap.clear();
   }
