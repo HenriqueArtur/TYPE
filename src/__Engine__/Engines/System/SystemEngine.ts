@@ -1,6 +1,8 @@
 import { MouseSystem, PhysicsSystem, RenderPixiSystem } from "../../Systems";
 import type { System } from "../../Systems/System";
 import type { TypeEngine } from "../../TypeEngine";
+import { joinPath } from "../../Utils/path";
+import { pathToFileURL } from "../../Utils/pathToFileURL";
 import type { EventEngine } from "../Event/EventEngine";
 
 export interface SystemEngineOptions {
@@ -67,7 +69,7 @@ export class SystemEngine {
    */
   private async loadSystemsFromConfig(): Promise<void> {
     try {
-      const systemManagePath = `${this.engine.projectPath}/system.manage.json`;
+      const systemManagePath = joinPath(this.engine.projectPath, "system.manage.json");
       const systemManageData: SystemManageSerialized =
         await window.electronAPI.readJsonFile(systemManagePath);
 
@@ -86,13 +88,11 @@ export class SystemEngine {
   private async loadCustomSystem(systemName: string, systemPath: string): Promise<void> {
     try {
       const absolute = await window.electronAPI.absolutePath(
-        `${this.engine.projectPath}/${systemPath}`,
+        joinPath(this.engine.projectPath, systemPath),
       );
 
       // Convert to proper file URL for dynamic import
-      const fileUrl = absolute.startsWith("file://")
-        ? absolute
-        : `file:///${absolute.replace(/\\/g, "/").replace(/^\//, "")}`;
+      const fileUrl = pathToFileURL(absolute);
 
       const systemModule = await import(fileUrl);
       const SystemModule = systemModule.default || systemModule[systemName];

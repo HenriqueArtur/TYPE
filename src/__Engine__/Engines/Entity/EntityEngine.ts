@@ -2,6 +2,8 @@ import { DEFAULT_COMPONENTS } from "../../Component/__const__";
 import type { ComponentInstanceManage } from "../../Component/ComponentInstanceManage";
 import type { TypeEngine } from "../../TypeEngine";
 import { generateId } from "../../Utils/id";
+import { joinPath } from "../../Utils/path";
+import { pathToFileURL } from "../../Utils/pathToFileURL";
 import type { EventEngine } from "../Event";
 import type {
   ComponentsManageSerialized,
@@ -67,18 +69,16 @@ export class EntityEngine {
   }
 
   private async setupCustomComponents() {
-    const managePath = `${this.engine.projectPath}/component.manage.json`;
+    const managePath = joinPath(this.engine.projectPath, "component.manage.json");
     const customComponentsMap: ComponentsManageSerialized =
       await window.electronAPI.readJsonFile(managePath);
     for (const [name, componentPath] of Object.entries(customComponentsMap)) {
       const absolute = await window.electronAPI.absolutePath(
-        `${this.engine.projectPath}/${componentPath}`,
+        joinPath(this.engine.projectPath, componentPath),
       );
       try {
         // Convert to proper file URL for dynamic import
-        const fileUrl = absolute.startsWith("file://")
-          ? absolute
-          : `file:///${absolute.replace(/\\/g, "/").replace(/^\//, "")}`;
+        const fileUrl = pathToFileURL(absolute);
         const componentModule = await import(fileUrl);
         const ComponentModule: ComponentInstanceManage<string, unknown, unknown> | undefined =
           componentModule.default || componentModule[name];
@@ -544,14 +544,12 @@ export class EntityEngine {
     try {
       // Convert project-relative path to absolute path
       const absolutePath = await window.electronAPI.absolutePath(
-        `${this.engine.projectPath}/${componentData.scriptPath}`,
+        joinPath(this.engine.projectPath, componentData.scriptPath),
       );
 
       // Dynamically import the event handler module
       // Convert to proper file URL for dynamic import
-      const fileUrl = absolutePath.startsWith("file://")
-        ? absolutePath
-        : `file:///${absolutePath.replace(/\\/g, "/").replace(/^\//, "")}`;
+      const fileUrl = pathToFileURL(absolutePath);
       const eventModule = await import(fileUrl);
       const eventHandler = eventModule.default;
 

@@ -1,4 +1,5 @@
 import type { TypeEngine } from "../../TypeEngine";
+import { joinPath } from "../../Utils/path";
 import type { GameObjectSerialized } from "../Entity/__types__";
 import type { SceneManageSerialized, SceneName } from "./__types__";
 import { Scene } from "./Scene";
@@ -22,12 +23,12 @@ export class SceneEngine {
   }
 
   async setup() {
-    const path = `${this.engine.projectPath}/scenes.manage.json`;
+    const path = joinPath(this.engine.projectPath, "scenes.manage.json");
     const sceneManageData: SceneManageSerialized = await window.electronAPI.readJsonFile(path);
     this.scenes = new Map(Object.entries(sceneManageData.scenes));
 
     const initialScenePath = sceneManageData.scenes[sceneManageData.initialScene];
-    const scene = await Scene.fromPath(`${this.engine.projectPath}/${initialScenePath}`);
+    const scene = await Scene.fromPath(joinPath(this.engine.projectPath, initialScenePath));
     this.currentScene = scene;
     return scene.load();
   }
@@ -57,7 +58,7 @@ export class SceneEngine {
     if (!scenePath) {
       throw new Error(`Scene path not found for "${sceneName}"`);
     }
-    const scene = await Scene.fromPath(`${this.engine.projectPath}/${scenePath}`);
+    const scene = await Scene.fromPath(joinPath(this.engine.projectPath, scenePath));
     this.currentScene = scene;
     return await scene.load();
   }

@@ -9,6 +9,7 @@ import {
 import { DRAWABLE_COMPONENTS } from "../../Component/Drawable/__const__";
 import type { Drawable } from "../../Component/Drawable/__type__";
 import type { TypeEngine } from "../../TypeEngine";
+import { joinPath } from "../../Utils/path";
 import type { EventEngine } from "../Event/EventEngine";
 
 export interface RenderEngineOptions {
@@ -93,7 +94,7 @@ export class RenderEngine {
   ) {
     if (typeof currentComponent._resource === "string") {
       const imgPath = await window.electronAPI.absolutePath(
-        `${this.engine.projectPath}/${currentComponent._resource}`,
+        joinPath(this.engine.projectPath, currentComponent._resource),
       );
       const texture = await Assets.load<Texture>(imgPath);
       (currentComponent._drawable as Sprite).texture = texture;
