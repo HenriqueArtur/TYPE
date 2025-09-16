@@ -79,10 +79,14 @@ ipcMain.handle("read-json-file", async (_, filePath: string) => {
 
       if (process.platform === "win32") {
         // On Windows, try multiple possible locations for resources
+        // Game files are in the "game" subdirectory in extraResources
         const possiblePaths = [
+          path.join(process.resourcesPath, "game", cleanPath),
+          path.join(process.resourcesPath, "app.asar.unpacked", "out", "game", cleanPath),
+          path.join(path.dirname(process.execPath), "resources", "game", cleanPath),
+          // Fallback to old paths for other files
           path.join(process.resourcesPath, cleanPath),
           path.join(process.resourcesPath, "app.asar.unpacked", cleanPath),
-          path.join(path.dirname(process.execPath), "resources", cleanPath),
         ];
 
         fullPath = possiblePaths[0]; // Default to first option
@@ -97,7 +101,22 @@ ipcMain.handle("read-json-file", async (_, filePath: string) => {
         }
       } else {
         // On macOS/Linux, extraResources are in Resources directory
-        fullPath = path.join(process.resourcesPath, cleanPath);
+        // Try game subdirectory first, then fallback to root
+        const possiblePaths = [
+          path.join(process.resourcesPath, "game", cleanPath),
+          path.join(process.resourcesPath, cleanPath),
+        ];
+
+        fullPath = possiblePaths[0]; // Default to first option
+        for (const testPath of possiblePaths) {
+          try {
+            await fs.access(testPath);
+            fullPath = testPath;
+            break;
+          } catch {
+            // Continue to next path
+          }
+        }
       }
     } else {
       // In development, use the out directory
@@ -122,10 +141,14 @@ ipcMain.handle("absolute-path", async (_, filePath: string) => {
 
     if (process.platform === "win32") {
       // On Windows, try multiple possible locations for resources
+      // Game files are in the "game" subdirectory in extraResources
       const possiblePaths = [
+        path.join(process.resourcesPath, "game", cleanPath),
+        path.join(process.resourcesPath, "app.asar.unpacked", "out", "game", cleanPath),
+        path.join(path.dirname(process.execPath), "resources", "game", cleanPath),
+        // Fallback to old paths for other files
         path.join(process.resourcesPath, cleanPath),
         path.join(process.resourcesPath, "app.asar.unpacked", cleanPath),
-        path.join(path.dirname(process.execPath), "resources", cleanPath),
       ];
 
       fullPath = possiblePaths[0]; // Default to first option
@@ -140,7 +163,22 @@ ipcMain.handle("absolute-path", async (_, filePath: string) => {
       }
     } else {
       // On macOS/Linux, extraResources are in Resources directory
-      fullPath = path.join(process.resourcesPath, cleanPath);
+      // Try game subdirectory first, then fallback to root
+      const possiblePaths = [
+        path.join(process.resourcesPath, "game", cleanPath),
+        path.join(process.resourcesPath, cleanPath),
+      ];
+
+      fullPath = possiblePaths[0]; // Default to first option
+      for (const testPath of possiblePaths) {
+        try {
+          await fs.access(testPath);
+          fullPath = testPath;
+          break;
+        } catch {
+          // Continue to next path
+        }
+      }
     }
   } else {
     // In development, use the out directory
