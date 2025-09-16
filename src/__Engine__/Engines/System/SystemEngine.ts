@@ -88,7 +88,13 @@ export class SystemEngine {
       const absolute = await window.electronAPI.absolutePath(
         `${this.engine.projectPath}/${systemPath}`,
       );
-      const systemModule = await import(absolute);
+
+      // Convert to proper file URL for dynamic import
+      const fileUrl = absolute.startsWith("file://")
+        ? absolute
+        : `file:///${absolute.replace(/\\/g, "/").replace(/^\//, "")}`;
+
+      const systemModule = await import(fileUrl);
       const SystemModule = systemModule.default || systemModule[systemName];
       const System = new SystemModule();
       if (System) {

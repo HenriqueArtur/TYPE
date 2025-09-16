@@ -78,14 +78,22 @@ ipcMain.handle("read-json-file", async (_, filePath: string) => {
       const cleanPath = filePath.replace(/^\.\.\//, ""); // Remove "../"
 
       if (process.platform === "win32") {
-        // On Windows, extraResources are in the app directory
-        fullPath = path.join(process.resourcesPath, "app.asar.unpacked", cleanPath);
+        // On Windows, try multiple possible locations for resources
+        const possiblePaths = [
+          path.join(process.resourcesPath, cleanPath),
+          path.join(process.resourcesPath, "app.asar.unpacked", cleanPath),
+          path.join(path.dirname(process.execPath), "resources", cleanPath),
+        ];
 
-        // Fallback to direct resources path if unpacked doesn't exist
-        try {
-          await fs.access(fullPath);
-        } catch {
-          fullPath = path.join(process.resourcesPath, cleanPath);
+        fullPath = possiblePaths[0]; // Default to first option
+        for (const testPath of possiblePaths) {
+          try {
+            await fs.access(testPath);
+            fullPath = testPath;
+            break;
+          } catch {
+            // Continue to next path
+          }
         }
       } else {
         // On macOS/Linux, extraResources are in Resources directory
@@ -113,14 +121,22 @@ ipcMain.handle("absolute-path", async (_, filePath: string) => {
     const cleanPath = filePath.replace(/^\.\.\//, ""); // Remove "../"
 
     if (process.platform === "win32") {
-      // On Windows, extraResources are in the app directory
-      fullPath = path.join(process.resourcesPath, "app.asar.unpacked", cleanPath);
+      // On Windows, try multiple possible locations for resources
+      const possiblePaths = [
+        path.join(process.resourcesPath, cleanPath),
+        path.join(process.resourcesPath, "app.asar.unpacked", cleanPath),
+        path.join(path.dirname(process.execPath), "resources", cleanPath),
+      ];
 
-      // Fallback to direct resources path if unpacked doesn't exist
-      try {
-        await fs.access(fullPath);
-      } catch {
-        fullPath = path.join(process.resourcesPath, cleanPath);
+      fullPath = possiblePaths[0]; // Default to first option
+      for (const testPath of possiblePaths) {
+        try {
+          await fs.access(testPath);
+          fullPath = testPath;
+          break;
+        } catch {
+          // Continue to next path
+        }
       }
     } else {
       // On macOS/Linux, extraResources are in Resources directory

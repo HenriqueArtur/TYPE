@@ -75,7 +75,11 @@ export class EntityEngine {
         `${this.engine.projectPath}/${componentPath}`,
       );
       try {
-        const componentModule = await import(absolute);
+        // Convert to proper file URL for dynamic import
+        const fileUrl = absolute.startsWith("file://")
+          ? absolute
+          : `file:///${absolute.replace(/\\/g, "/").replace(/^\//, "")}`;
+        const componentModule = await import(fileUrl);
         const ComponentModule: ComponentInstanceManage<string, unknown, unknown> | undefined =
           componentModule.default || componentModule[name];
 
@@ -544,7 +548,11 @@ export class EntityEngine {
       );
 
       // Dynamically import the event handler module
-      const eventModule = await import(absolutePath);
+      // Convert to proper file URL for dynamic import
+      const fileUrl = absolutePath.startsWith("file://")
+        ? absolutePath
+        : `file:///${absolutePath.replace(/\\/g, "/").replace(/^\//, "")}`;
+      const eventModule = await import(fileUrl);
       const eventHandler = eventModule.default;
 
       if (!eventHandler || typeof eventHandler.handler !== "function") {
