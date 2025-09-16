@@ -76,15 +76,11 @@ ipcMain.handle("read-json-file", async (_, filePath: string) => {
     if (app.isPackaged) {
       // Handle different platforms for packaged apps
       const cleanPath = filePath.replace(/^\.\.\//, ""); // Remove "../"
-      console.log(`🔍 Looking for file: ${cleanPath}`);
-      console.log(`📂 process.execPath: ${process.execPath}`);
-      console.log(`📂 process.resourcesPath: ${process.resourcesPath}`);
 
       if (process.platform === "win32") {
         // On Windows, try multiple possible locations for resources
         // Handle portable executables which extract to temp directories
         const appPath = path.dirname(process.execPath);
-        console.log(`📂 appPath: ${appPath}`);
         const possiblePaths = [
           // For portable executables, resources are typically in the same directory
           path.join(appPath, "resources", "game", cleanPath),
@@ -103,10 +99,9 @@ ipcMain.handle("read-json-file", async (_, filePath: string) => {
           try {
             await fs.access(testPath);
             fullPath = testPath;
-            console.log(`✓ Found file at: ${testPath}`);
             break;
           } catch {
-            console.log(`✗ File not found at: ${testPath}`);
+            // Continue to next path
           }
         }
       } else {
@@ -122,10 +117,9 @@ ipcMain.handle("read-json-file", async (_, filePath: string) => {
           try {
             await fs.access(testPath);
             fullPath = testPath;
-            console.log(`✓ Found file at: ${testPath}`);
             break;
           } catch {
-            console.log(`✗ File not found at: ${testPath}`);
+            // Continue to next path
           }
         }
       }

@@ -11,7 +11,7 @@ function createEntries(patterns, baseDir = 'src/__Project__') {
     const files = globSync(pattern);
     
     files.forEach(file => {
-      const relativePath = file.replace(baseDir + '/', '');
+      const relativePath = relative(baseDir, file);
       const nameWithoutExt = relativePath.replace(/\.[^.]+$/, '');
       const name = prefix ? `${prefix}${nameWithoutExt}` : nameWithoutExt;
       
@@ -35,6 +35,7 @@ export default defineConfig({
         entryFileNames: "[name].js",
         chunkFileNames: "[name].js",
         preserveModules: false,
+        manualChunks: undefined
       }],
       preserveEntrySignatures: "strict",
       plugins: [
