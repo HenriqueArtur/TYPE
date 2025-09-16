@@ -37,7 +37,7 @@ export default defineConfig({
           format: "esm",
           entryFileNames: "[name].js",
           sourcemap: false,
-          preserveModules: true,
+          preserveModules: false,
         }],
         preserveEntrySignatures: "allow-extension"
       },

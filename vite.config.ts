@@ -34,8 +34,7 @@ export default defineConfig({
         format: "esm",
         entryFileNames: "[name].js",
         chunkFileNames: "[name].js",
-        preserveModules: true,
-        preserveModulesRoot: 'src/__Project__',
+        preserveModules: false,
       }],
       preserveEntrySignatures: "strict",
       plugins: [

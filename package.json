@@ -4,16 +4,16 @@
   "homepage": "github.com/HenriqueArtur/TYPE",
   "repository": "github.com/HenriqueArtur/TYPE",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "main": "out/main/index.js",
   "packageManager": "pnpm@10.15.1",
   "scripts": {
     "dev": "electron-vite build && vite build && electron-vite dev",
     "build": "electron-vite build",
-    "build:linux": "electron-vite build && electron-builder --linux",
-    "build:mac": "electron-vite build && electron-builder --mac",
-    "build:win": "electron-vite build && electron-builder --win",
+    "build:linux": "electron-vite build && vite build && electron-builder --linux",
+    "build:mac": "electron-vite build && vite build && electron-builder --mac",
+    "build:win": "electron-vite build && vite build && electron-builder --win",
     "lint": "biome check --fix --unsafe ./src/**",
     "lint:ci": "biome check --diagnostic-level=error ./src/**",
     "test": "vitest",
@@ -46,6 +46,13 @@
       {
         "from": "assets",
         "to": "assets",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "out/game",
+        "to": "game",
         "filter": [
           "**/*"
         ]

@@ -42,11 +42,12 @@ function createGameWindow(): void {
     },
   });
 
-  if (process.env.VITE_DEV_SERVER_URL) {
-    gameWindow.loadURL(`${process.env.VITE_DEV_SERVER_URL}/game.html`);
-  } else {
-    gameWindow.loadFile(path.join(__dirname, "../renderer/game/index.html"));
-  }
+  // if (process.env.VITE_DEV_SERVER_URL) {
+  //   gameWindow.loadURL(`${process.env.VITE_DEV_SERVER_URL}/game.html`);
+  // } else {
+  //   gameWindow.loadFile(path.join(__dirname, "../renderer/game/index.html"));
+  // }
+  gameWindow.loadFile(path.join(__dirname, "../renderer/game/index.html"));
 
   gameWindow.on("closed", () => {
     gameWindow = null;
@@ -70,7 +71,19 @@ ipcMain.handle("path-join", (_, ...paths: string[]) => {
 
 ipcMain.handle("read-json-file", async (_, filePath: string) => {
   try {
-    const fileContent = await fs.readFile(path.join(__dirname, filePath), "utf-8");
+    let fullPath: string;
+
+    if (app.isPackaged) {
+      // In packaged app, extraResources are in Resources directory
+      // filePath comes as "../game/something.json", we need "Resources/game/something.json"
+      const cleanPath = filePath.replace(/^\.\.\//, ""); // Remove "../"
+      fullPath = path.join(process.resourcesPath, cleanPath);
+    } else {
+      // In development, use the out directory
+      fullPath = path.join(__dirname, filePath);
+    }
+
+    const fileContent = await fs.readFile(fullPath, "utf-8");
     return JSON.parse(fileContent);
   } catch (error) {
     throw new Error(`Failed to read JSON file: ${(error as Error).message}`);
@@ -78,7 +91,21 @@ ipcMain.handle("read-json-file", async (_, filePath: string) => {
 });
 
 ipcMain.handle("absolute-path", async (_, filePath: string) => {
-  return path.join(__dirname, filePath);
+  // In development: use the out directory
+  // In packaged app: use the extraResources directory
+  let fullPath: string;
+
+  if (app.isPackaged) {
+    // In packaged app, extraResources are in Resources directory
+    // filePath comes as "../game/something.js", we need "Resources/game/something.js"
+    const cleanPath = filePath.replace(/^\.\.\//, ""); // Remove "../"
+    fullPath = path.join(process.resourcesPath, cleanPath);
+  } else {
+    // In development, use the out directory
+    fullPath = path.join(__dirname, filePath);
+  }
+
+  return fullPath;
 });
 
 app.on("window-all-closed", () => {
