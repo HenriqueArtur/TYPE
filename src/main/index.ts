@@ -76,17 +76,26 @@ ipcMain.handle("read-json-file", async (_, filePath: string) => {
     if (app.isPackaged) {
       // Handle different platforms for packaged apps
       const cleanPath = filePath.replace(/^\.\.\//, ""); // Remove "../"
+      console.log(`🔍 Looking for file: ${cleanPath}`);
+      console.log(`📂 process.execPath: ${process.execPath}`);
+      console.log(`📂 process.resourcesPath: ${process.resourcesPath}`);
 
       if (process.platform === "win32") {
         // On Windows, try multiple possible locations for resources
-        // Game files are in the "game" subdirectory in extraResources
+        // Handle portable executables which extract to temp directories
+        const appPath = path.dirname(process.execPath);
+        console.log(`📂 appPath: ${appPath}`);
         const possiblePaths = [
+          // For portable executables, resources are typically in the same directory
+          path.join(appPath, "resources", "game", cleanPath),
+          path.join(appPath, "game", cleanPath),
+          // Standard Windows installer paths
           path.join(process.resourcesPath, "game", cleanPath),
           path.join(process.resourcesPath, "app.asar.unpacked", "out", "game", cleanPath),
-          path.join(path.dirname(process.execPath), "resources", "game", cleanPath),
           // Fallback to old paths for other files
           path.join(process.resourcesPath, cleanPath),
           path.join(process.resourcesPath, "app.asar.unpacked", cleanPath),
+          path.join(appPath, "resources", cleanPath),
         ];
 
         fullPath = possiblePaths[0]; // Default to first option
@@ -94,9 +103,10 @@ ipcMain.handle("read-json-file", async (_, filePath: string) => {
           try {
             await fs.access(testPath);
             fullPath = testPath;
+            console.log(`✓ Found file at: ${testPath}`);
             break;
           } catch {
-            // Continue to next path
+            console.log(`✗ File not found at: ${testPath}`);
           }
         }
       } else {
@@ -112,9 +122,10 @@ ipcMain.handle("read-json-file", async (_, filePath: string) => {
           try {
             await fs.access(testPath);
             fullPath = testPath;
+            console.log(`✓ Found file at: ${testPath}`);
             break;
           } catch {
-            // Continue to next path
+            console.log(`✗ File not found at: ${testPath}`);
           }
         }
       }
@@ -141,14 +152,19 @@ ipcMain.handle("absolute-path", async (_, filePath: string) => {
 
     if (process.platform === "win32") {
       // On Windows, try multiple possible locations for resources
-      // Game files are in the "game" subdirectory in extraResources
+      // Handle portable executables which extract to temp directories
+      const appPath = path.dirname(process.execPath);
       const possiblePaths = [
+        // For portable executables, resources are typically in the same directory
+        path.join(appPath, "resources", "game", cleanPath),
+        path.join(appPath, "game", cleanPath),
+        // Standard Windows installer paths
         path.join(process.resourcesPath, "game", cleanPath),
         path.join(process.resourcesPath, "app.asar.unpacked", "out", "game", cleanPath),
-        path.join(path.dirname(process.execPath), "resources", "game", cleanPath),
         // Fallback to old paths for other files
         path.join(process.resourcesPath, cleanPath),
         path.join(process.resourcesPath, "app.asar.unpacked", cleanPath),
+        path.join(appPath, "resources", cleanPath),
       ];
 
       fullPath = possiblePaths[0]; // Default to first option

@@ -67,6 +67,11 @@
       "asarUnpack": [
         "out/game/**/*"
       ],
+      "files": [
+        "out/**/*",
+        "node_modules/**/*",
+        "package.json"
+      ],
       "artifactName": "TYPE-portable.exe"
     },
     "linux": {
