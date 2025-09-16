@@ -63,7 +63,10 @@
       "category": "public.app-category.developer-tools"
     },
     "win": {
-      "target": "portable"
+      "target": "portable",
+      "asarUnpack": [
+        "out/game/**/*"
+      ]
     },
     "linux": {
       "target": [

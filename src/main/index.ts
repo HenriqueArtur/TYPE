@@ -74,10 +74,23 @@ ipcMain.handle("read-json-file", async (_, filePath: string) => {
     let fullPath: string;
 
     if (app.isPackaged) {
-      // In packaged app, extraResources are in Resources directory
-      // filePath comes as "../game/something.json", we need "Resources/game/something.json"
+      // Handle different platforms for packaged apps
       const cleanPath = filePath.replace(/^\.\.\//, ""); // Remove "../"
-      fullPath = path.join(process.resourcesPath, cleanPath);
+
+      if (process.platform === "win32") {
+        // On Windows, extraResources are in the app directory
+        fullPath = path.join(process.resourcesPath, "app.asar.unpacked", cleanPath);
+
+        // Fallback to direct resources path if unpacked doesn't exist
+        try {
+          await fs.access(fullPath);
+        } catch {
+          fullPath = path.join(process.resourcesPath, cleanPath);
+        }
+      } else {
+        // On macOS/Linux, extraResources are in Resources directory
+        fullPath = path.join(process.resourcesPath, cleanPath);
+      }
     } else {
       // In development, use the out directory
       fullPath = path.join(__dirname, filePath);
@@ -96,10 +109,23 @@ ipcMain.handle("absolute-path", async (_, filePath: string) => {
   let fullPath: string;
 
   if (app.isPackaged) {
-    // In packaged app, extraResources are in Resources directory
-    // filePath comes as "../game/something.js", we need "Resources/game/something.js"
+    // Handle different platforms for packaged apps
     const cleanPath = filePath.replace(/^\.\.\//, ""); // Remove "../"
-    fullPath = path.join(process.resourcesPath, cleanPath);
+
+    if (process.platform === "win32") {
+      // On Windows, extraResources are in the app directory
+      fullPath = path.join(process.resourcesPath, "app.asar.unpacked", cleanPath);
+
+      // Fallback to direct resources path if unpacked doesn't exist
+      try {
+        await fs.access(fullPath);
+      } catch {
+        fullPath = path.join(process.resourcesPath, cleanPath);
+      }
+    } else {
+      // On macOS/Linux, extraResources are in Resources directory
+      fullPath = path.join(process.resourcesPath, cleanPath);
+    }
   } else {
     // In development, use the out directory
     fullPath = path.join(__dirname, filePath);
